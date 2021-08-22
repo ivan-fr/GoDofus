@@ -113,8 +113,8 @@ func WriteVarShort(buff *bytes.Buffer, value int32) {
 	}
 }
 
-func WriteVarLong(buff *bytes.Buffer, value float32) {
-	var val int64 = int64(value)
+func WriteVarLong(buff *bytes.Buffer, value float64) {
+	var val = int64(value)
 
 	var low = int32(val & 0xffffffff)
 	var high = int32(val >> 32)
