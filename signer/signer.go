@@ -1,6 +1,7 @@
 package signer
 
 import (
+	"GoDofus/utils"
 	"bytes"
 	"crypto"
 	"crypto/md5"
@@ -31,15 +32,14 @@ func Signature() error {
 
 	buff := new(bytes.Buffer)
 
-	bytesArray := [3][]byte{
-		[]byte("DofusPublicKey"),
-		[]byte(nStr),
-		[]byte(eStr),
+	stringArray := [3]string{
+		"DofusPublicKey",
+		nStr,
+		eStr,
 	}
 
-	for _, bytesValues := range bytesArray {
-		err = binary.Write(buff, binary.BigEndian, uint16(len(bytesValues)))
-		err = binary.Write(buff, binary.BigEndian, bytesValues)
+	for _, value := range stringArray {
+		utils.WriteUTF(buff, value)
 		if err != nil {
 			panic(err)
 		}
@@ -50,28 +50,10 @@ func Signature() error {
 		panic(err)
 	}
 
-	fo, err := os.Create("./sign/public_key.pem")
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = fo.WriteString(
-		fmt.Sprintf("-----BEGIN PUBLIC KEY-----\n%s\n-----END PUBLIC KEY-----",
-			base64.StdEncoding.EncodeToString(pki),
-		),
-	)
-	if err != nil {
-		return err
-	}
-
-	if err != nil {
-		panic(err)
-	}
-
-	err = fo.Close()
-	if err != nil {
-		panic(err)
-	}
+	publicPemData := pem.EncodeToMemory(&pem.Block{
+		Type:  "PUBLIC KEY",
+		Bytes: pki,
+	})
 
 	privatePemData := pem.EncodeToMemory(&pem.Block{
 		Type:  "RSA PRIVATE KEY",
@@ -79,6 +61,7 @@ func Signature() error {
 	})
 
 	_ = os.WriteFile("./sign/private_key.pem", privatePemData, 0644)
+	_ = os.WriteFile("./sign/public_key.pem", publicPemData, 0644)
 	_ = os.WriteFile("./sign/signature.bin", buff.Bytes(), 0644)
 
 	return err
@@ -115,11 +98,10 @@ func getSignatureBuffer(byteToEncode []byte) *bytes.Buffer {
 	}
 
 	signedData, _ := rsa.SignPKCS1v15(nil, privateKey, crypto.Hash(0), hashBytes)
-	startString := []byte("AKSF")
+	startString := "AKSF"
 
 	finalBuff := new(bytes.Buffer)
-	_ = binary.Write(finalBuff, binary.BigEndian, uint16(len(startString)))
-	_ = binary.Write(finalBuff, binary.BigEndian, startString)
+	utils.WriteUTF(finalBuff, startString)
 	_ = binary.Write(finalBuff, binary.BigEndian, int16(1))
 	_ = binary.Write(finalBuff, binary.BigEndian, int32(len(signedData)))
 	_ = binary.Write(finalBuff, binary.BigEndian, signedData)
