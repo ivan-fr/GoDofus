@@ -7,24 +7,19 @@ import (
 
 type protocol struct {
 	packetId int32
-	version  string
+	Version  string
 }
 
 var proto = &protocol{packetId: 9546}
-
-func GetProtocol(version string) *protocol {
-	proto.version = version
-	return proto
-}
 
 func GetProtocolNOA() *protocol {
 	return proto
 }
 
 func (p *protocol) Serialize(buff *bytes.Buffer) {
-	utils.WriteUTF(buff, p.version)
+	utils.WriteUTF(buff, p.Version)
 }
 
 func (p *protocol) Deserialize(reader *bytes.Reader) {
-	p.version = utils.ReadUTF(reader)
+	p.Version = utils.ReadUTF(reader)
 }

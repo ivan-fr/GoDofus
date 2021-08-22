@@ -14,9 +14,16 @@ func WriteUTF(buff *bytes.Buffer, value string) {
 
 func ReadUTF(reader *bytes.Reader) string {
 	var length uint16
-	_ = binary.Read(reader, binary.BigEndian, length)
+	err := binary.Read(reader, binary.BigEndian, &length)
+	if err != nil {
+		panic(err)
+	}
+
 	bytesString := make([]byte, length)
-	_, _ = io.ReadFull(reader, bytesString)
+	_, err = io.ReadFull(reader, bytesString)
+	if err != nil {
+		panic(err)
+	}
 
 	return string(bytesString)
 }

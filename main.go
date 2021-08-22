@@ -3,6 +3,7 @@ package main
 import (
 	"GoDofus/messages"
 	"GoDofus/signer"
+	"GoDofus/socket"
 	"flag"
 	"log"
 )
@@ -11,6 +12,7 @@ func main() {
 	rsa_ := flag.Bool("is_rsa", false, "Génére le private/public key et la signature DofusPublicKey.")
 	hosts := flag.String("hosts", "", "Génére la signature des hosts pour config.xml.")
 	XMLSPath := flag.String("xmls", "", "Génére une signature en-tête pour xmls.")
+	launchClient := flag.Bool("client", false, "Lance le socket côte client.")
 
 	flag.Parse()
 
@@ -33,6 +35,10 @@ func main() {
 			return
 		}
 		log.Println("XMLS généré.")
+	}
+
+	if *launchClient {
+		socket.LaunchClientSocket()
 	}
 
 	log.Printf("%s", messages.GetSalt())

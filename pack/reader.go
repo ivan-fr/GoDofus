@@ -7,10 +7,10 @@ import (
 )
 
 type weft struct {
-	packId     uint16
-	lengthType uint16
-	length     uint32
-	message    []byte
+	PackId     uint16
+	LengthType uint16
+	Length     uint32
+	Message    []byte
 }
 
 type lastSignal struct {
@@ -21,7 +21,7 @@ type lastSignal struct {
 }
 
 type pipe struct {
-	wefts []*weft
+	Wefts []*weft
 }
 
 var lSignal = &lastSignal{typeRequest: noType}
@@ -40,26 +40,26 @@ func GetPipeline() *pipe {
 }
 
 func (p *pipe) append(w *weft) {
-	p.wefts = append(p.wefts, w)
+	p.Wefts = append(p.Wefts, w)
 	/*	if len(p.wefts) > 3 {
 			p.wefts = p.wefts[2:]
 		}
 	*/
 }
 
-func (lSignal *lastSignal) update(request int, typeRest int, containForType []byte, containNoType []byte) {
-	if typeRest == lSignal.typeRequest && lSignal.request < 0 && request <= lSignal.request {
+func (lSignal *lastSignal) update(request int, typeRequest int, containForType []byte, containNoType []byte) {
+	if typeRequest == lSignal.typeRequest && lSignal.request < 0 && request <= lSignal.request {
 		return
 	}
 
-	if typeRest == lSignal.typeRequest && lSignal.request < 0 && request > lSignal.request {
+	if typeRequest == lSignal.typeRequest && lSignal.request < 0 && request > lSignal.request {
 		lSignal.request = request
 		lSignal.containForType = append(lSignal.containForType, containForType...)
-	} else if lSignal.request == 0 || lSignal.typeRequest == noType {
+	} else if lSignal.request == 0 || typeRequest == noType {
 		lSignal.request = request
-		lSignal.typeRequest = typeRest
+		lSignal.typeRequest = typeRequest
 		lSignal.containForType = containForType
-		lSignal.containForType = nil
+		lSignal.containNoType = nil
 	} else {
 		panic("incoherence from lastSignal")
 	}
@@ -69,7 +69,7 @@ func (lSignal *lastSignal) update(request int, typeRest int, containForType []by
 			panic("incoherence contain no type can't be nil")
 		}
 
-		lSignal.containNoType = containForType
+		lSignal.containNoType = containNoType
 	}
 }
 
@@ -79,11 +79,11 @@ func commit() {
 			panic("lastWeft must not be nil.")
 		}
 
-		if len(lastWeft.message) > 0 {
+		if len(lastWeft.Message) > 0 {
 			panic("lastWeft wasn't purge.")
 		}
 
-		lastWeft.message = lSignal.containForType
+		lastWeft.Message = lSignal.containForType
 		pipeline.append(lastWeft)
 		lastWeft = nil
 	}
@@ -129,7 +129,7 @@ func readHeaderTwoFirstBytes(reader *bytes.Reader) bool {
 	packetId := twoBytes >> 2
 	lengthType := twoBytes & 0b11
 
-	*lastWeft = weft{packId: packetId, lengthType: lengthType}
+	lastWeft = &weft{PackId: packetId, LengthType: lengthType}
 	return true
 }
 
@@ -138,28 +138,30 @@ func readHeaderLength(reader *bytes.Reader) bool {
 		panic("incoherence last weft can't be nil")
 	}
 
-	if lastWeft.lengthType == 0 {
+	if lastWeft.LengthType == 0 {
 		panic("incoherence last weft can't have length type equals zero")
 	}
 
-	ok := tryRead(reader, headerLength, uint(lastWeft.lengthType))
+	ok := tryRead(reader, headerLength, uint(lastWeft.LengthType))
 
 	if !ok {
 		return false
 	}
 
-	switch lastWeft.lengthType {
+	switch lastWeft.LengthType {
 	case 3:
 		var specialCaseReader = bytes.NewReader(lSignal.containForType)
 		var firstByte uint8
-		_ = binary.Read(specialCaseReader, binary.BigEndian, firstByte)
+		_ = binary.Read(specialCaseReader, binary.BigEndian, &firstByte)
 		var twoBytes uint16
-		_ = binary.Read(specialCaseReader, binary.BigEndian, twoBytes)
-		lastWeft.length = uint32(firstByte)<<16 | uint32(twoBytes)
+		_ = binary.Read(specialCaseReader, binary.BigEndian, &twoBytes)
+		lastWeft.Length = uint32(firstByte)<<16 | uint32(twoBytes)
 	case 2:
-		lastWeft.length = uint32(binary.BigEndian.Uint16(lSignal.containForType))
+		lastWeft.Length = uint32(binary.BigEndian.Uint16(lSignal.containForType))
 	case 1:
-		lastWeft.length = uint32(lSignal.containForType[0])
+		lastWeft.Length = uint32(lSignal.containForType[0])
+	default:
+		panic("wrong length type")
 	}
 
 	return true
@@ -235,7 +237,7 @@ func Read(bytesPack []byte) bool {
 			newBytePack := lSignal.containNoType
 			lSignal.update(0, noType, nil, nil)
 			return Read(newBytePack)
-		case lastWeft.length == 0:
+		case lastWeft.Length == 0:
 			reader := bytes.NewReader(bytesPack)
 			ok := readHeaderLength(reader)
 			if !ok {
@@ -247,12 +249,12 @@ func Read(bytesPack []byte) bool {
 			return Read(newBytePack)
 		default:
 			reader := bytes.NewReader(bytesPack)
-			_ = tryRead(reader, messageLength, uint(lastWeft.length))
+			_ = tryRead(reader, messageLength, uint(lastWeft.Length))
 			return Read(nil)
 		}
 	default:
 		panic("program don't know the step.")
 	}
 
-	return true
+	return false
 }

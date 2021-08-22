@@ -19,7 +19,7 @@ func ReadVarInt16(reader *bytes.Reader) int32 {
 	var hasNext bool
 
 	for offset < int16Size {
-		_ = binary.Read(reader, binary.BigEndian, aByte)
+		_ = binary.Read(reader, binary.BigEndian, &aByte)
 		hasNext = (aByte & uint8(mask10000000)) == uint8(mask10000000)
 
 		if offset > 0 {
@@ -49,7 +49,7 @@ func ReadVarInt32(reader *bytes.Reader) int32 {
 	var hasNext bool
 
 	for offset < int32Size {
-		_ = binary.Read(reader, binary.BigEndian, aByte)
+		_ = binary.Read(reader, binary.BigEndian, &aByte)
 		hasNext = (aByte & uint8(mask10000000)) == uint8(mask10000000)
 
 		if offset > 0 {

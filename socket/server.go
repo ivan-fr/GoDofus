@@ -1,7 +1,9 @@
 package socket
 
 import (
+	"GoDofus/messages"
 	"GoDofus/pack"
+	"bytes"
 	"context"
 	"fmt"
 	"log"
@@ -28,17 +30,36 @@ func LaunchClientSocket() {
 	}(conn)
 
 	for {
-		var lecture []byte
+		lecture := make([]byte, 1024)
 		n, err := conn.Read(lecture)
 
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		ok := pack.Read(lecture)
+		if n == 0 {
+			continue
+		}
+
+		fmt.Printf("%d bytes reçu\n", n)
+
+		ok := pack.Read(lecture[:n])
 
 		if ok {
-			fmt.Printf("%d octet lues\nétat du pipeline:\n%v", n, pack.GetPipeline())
+			pipe := pack.GetPipeline()
+			lastWeft := pipe.Wefts[len(pipe.Wefts)-1]
+
+			if lastWeft.PackId == 1030 {
+				hConnect := messages.GetHelloConnectNOA()
+				hConnect.Deserialize(bytes.NewReader(lastWeft.Message))
+				fmt.Println(hConnect)
+			} else if lastWeft.PackId == 9546 {
+				protocol := messages.GetProtocolNOA()
+				protocol.Deserialize(bytes.NewReader(lastWeft.Message))
+				fmt.Println(protocol.Version)
+			}
+		} else {
+			fmt.Println("paquet incomplet")
 		}
 	}
 }

@@ -4,42 +4,41 @@ import (
 	"GoDofus/utils"
 	"bytes"
 	"encoding/binary"
+	"fmt"
 )
 
 type helloConnect struct {
-	packetId int32
-	salt     string
-	key      []byte
+	PacketId int32
+	Salt     string
+	Key      []byte
 }
 
-var hConnect = &helloConnect{packetId: 1030}
-
-func GetHelloConnect(salt string, key []byte) *helloConnect {
-	hConnect.salt = salt
-	hConnect.key = key
-	return hConnect
-}
+var hConnect = &helloConnect{PacketId: 1030}
 
 func GetHelloConnectNOA() *helloConnect {
 	return hConnect
 }
 
 func (h *helloConnect) Serialize(buff *bytes.Buffer) {
-	utils.WriteUTF(buff, h.salt)
-	utils.WriteVarInt32(buff, int32(len(h.key)))
+	utils.WriteUTF(buff, h.Salt)
+	utils.WriteVarInt32(buff, int32(len(h.Key)))
 
-	for i := uint(0); i < uint(len(h.key)); i++ {
-		_ = binary.Write(buff, binary.BigEndian, uint8(h.key[i]))
+	for i := uint(0); i < uint(len(h.Key)); i++ {
+		_ = binary.Write(buff, binary.BigEndian, h.Key[i])
 	}
 }
 
 func (h *helloConnect) Deserialize(reader *bytes.Reader) {
-	h.salt = utils.ReadUTF(reader)
+	h.Salt = utils.ReadUTF(reader)
 	keyLen := uint(utils.ReadVarInt32(reader))
-	h.key = nil
+	h.Key = nil
 	for i := uint(0); i < keyLen; i++ {
 		var aByte byte
-		_ = binary.Read(reader, binary.BigEndian, aByte)
-		h.key = append(h.key, aByte)
+		_ = binary.Read(reader, binary.BigEndian, &aByte)
+		h.Key = append(h.Key, aByte)
 	}
+}
+
+func (h *helloConnect) String() string {
+	return fmt.Sprintf("PacketId: %d\nSalt: %s\nKey:%v\n", h.PacketId, h.Salt, h.Key)
 }
