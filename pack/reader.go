@@ -22,6 +22,7 @@ type lastSignal struct {
 
 type pipe struct {
 	Wefts []*weft
+	index int
 }
 
 var lSignal = &lastSignal{typeRequest: noType}
@@ -45,6 +46,16 @@ func (p *pipe) append(w *weft) {
 			p.wefts = p.wefts[2:]
 		}
 	*/
+}
+
+func (p *pipe) Get() *weft {
+	if p.index > len(p.Wefts)-1 {
+		return nil
+	}
+
+	w := p.Wefts[p.index]
+	p.index++
+	return w
 }
 
 func (lSignal *lastSignal) update(request int, typeRequest int, containForType []byte, containNoType []byte) {

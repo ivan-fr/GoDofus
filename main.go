@@ -9,9 +9,9 @@ import (
 )
 
 func main() {
-	rsa_ := flag.Bool("is_rsa", false, "Génére le private/public key et la signature DofusPublicKey.")
+	rsa_ := flag.Bool("get_rsa", false, "Génére le private/public key et la signature DofusPublicKey. (-get_rsa=true/false)")
 	hosts := flag.String("hosts", "", "Génére la signature des hosts pour config.xml.")
-	XMLSPath := flag.String("xmls", "", "Génére une signature en-tête pour xmls.")
+	XMLSPath := flag.String("xmls", "", "Génére une signature en-tête pour xmls (pour le theme par exemple) (-xmls=true/false).")
 	launchClient := flag.Bool("client", false, "Lance le socket côte client.")
 
 	flag.Parse()
