@@ -148,7 +148,20 @@ func readHeaderLength(reader *bytes.Reader) bool {
 		return false
 	}
 
-	lastWeft.length = binary.BigEndian.Uint32(lSignal.containForType)
+	switch lastWeft.lengthType {
+	case 3:
+		var specialCaseReader = bytes.NewReader(lSignal.containForType)
+		var firstByte uint8
+		_ = binary.Read(specialCaseReader, binary.BigEndian, firstByte)
+		var twoBytes uint16
+		_ = binary.Read(specialCaseReader, binary.BigEndian, twoBytes)
+		lastWeft.length = uint32(firstByte)<<16 | uint32(twoBytes)
+	case 2:
+		lastWeft.length = uint32(binary.BigEndian.Uint16(lSignal.containForType))
+	case 1:
+		lastWeft.length = uint32(lSignal.containForType[0])
+	}
+
 	return true
 }
 

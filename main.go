@@ -1,11 +1,9 @@
 package main
 
 import (
+	"GoDofus/messages"
 	"GoDofus/signer"
-	"bytes"
-	"encoding/binary"
 	"flag"
-	"io"
 	"log"
 )
 
@@ -37,15 +35,5 @@ func main() {
 		log.Println("XMLS généré.")
 	}
 
-	var lol = []byte{98}
-	p := bytes.NewReader(lol)
-	var bb [4]byte
-
-	t := p.Len()
-	err := binary.Read(p, binary.LittleEndian, &bb)
-	log.Println(bb)
-
-	if err == io.ErrUnexpectedEOF {
-		log.Println(len(bb)-t, bb)
-	}
+	log.Printf("%s", messages.GetSalt())
 }

@@ -29,7 +29,7 @@ func Signature() error {
 	var nStr = fmt.Sprintf("%x", publicKey.N)
 	var eStr = fmt.Sprintf("%x", publicKey.E)
 
-	buf := new(bytes.Buffer)
+	buff := new(bytes.Buffer)
 
 	bytesArray := [3][]byte{
 		[]byte("DofusPublicKey"),
@@ -38,8 +38,8 @@ func Signature() error {
 	}
 
 	for _, bytesValues := range bytesArray {
-		err = binary.Write(buf, binary.BigEndian, uint16(len(bytesValues)))
-		err = binary.Write(buf, binary.LittleEndian, bytesValues)
+		err = binary.Write(buff, binary.BigEndian, uint16(len(bytesValues)))
+		err = binary.Write(buff, binary.BigEndian, bytesValues)
 		if err != nil {
 			panic(err)
 		}
@@ -79,7 +79,7 @@ func Signature() error {
 	})
 
 	_ = os.WriteFile("./sign/private_key.pem", privatePemData, 0644)
-	_ = os.WriteFile("./sign/signature.bin", buf.Bytes(), 0644)
+	_ = os.WriteFile("./sign/signature.bin", buff.Bytes(), 0644)
 
 	return err
 }
@@ -97,21 +97,21 @@ func getSignatureBuffer(byteToEncode []byte) *bytes.Buffer {
 	}
 
 	random := rand.New(rand.NewSource(time.Now().UnixNano()))
-	randomInt := byte(random.Intn(254) + 1)
+	randomByte := byte(random.Intn(254) + 1)
 
 	hashBuffer := new(bytes.Buffer)
 
 	md5_ := md5.Sum(byteToEncode)
 	hexBytes := []byte(hex.EncodeToString(md5_[:]))
 
-	_ = binary.Write(hashBuffer, binary.LittleEndian, randomInt)
+	_ = binary.Write(hashBuffer, binary.BigEndian, randomByte)
 	_ = binary.Write(hashBuffer, binary.BigEndian, uint32(len(byteToEncode)))
-	_ = binary.Write(hashBuffer, binary.LittleEndian, hexBytes)
+	_ = binary.Write(hashBuffer, binary.BigEndian, hexBytes)
 
 	hashBytes := hashBuffer.Bytes()
 
 	for i := 2; i < len(hashBytes); i++ {
-		hashBytes[i] ^= randomInt
+		hashBytes[i] ^= randomByte
 	}
 
 	signedData, _ := rsa.SignPKCS1v15(nil, privateKey, crypto.Hash(0), hashBytes)
@@ -119,10 +119,10 @@ func getSignatureBuffer(byteToEncode []byte) *bytes.Buffer {
 
 	finalBuff := new(bytes.Buffer)
 	_ = binary.Write(finalBuff, binary.BigEndian, uint16(len(startString)))
-	_ = binary.Write(finalBuff, binary.LittleEndian, startString)
+	_ = binary.Write(finalBuff, binary.BigEndian, startString)
 	_ = binary.Write(finalBuff, binary.BigEndian, int16(1))
 	_ = binary.Write(finalBuff, binary.BigEndian, int32(len(signedData)))
-	_ = binary.Write(finalBuff, binary.LittleEndian, signedData)
+	_ = binary.Write(finalBuff, binary.BigEndian, signedData)
 
 	return finalBuff
 }
