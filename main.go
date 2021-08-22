@@ -11,8 +11,8 @@ import (
 func main() {
 	rsa_ := flag.Bool("get_rsa", false, "Génére le private/public key et la signature DofusPublicKey. (-get_rsa=true/false)")
 	hosts := flag.String("hosts", "", "Génére la signature des hosts pour config.xml.")
-	XMLSPath := flag.String("xmls", "", "Génére une signature en-tête pour xmls (pour le theme par exemple) (-xmls=true/false).")
-	launchClient := flag.Bool("client", false, "Lance le socket côte client.")
+	XMLSPath := flag.String("xmls", "", "Génére une signature en-tête pour xmls (donner le chemin absolu) .")
+	launchClient := flag.Bool("client", false, "Lance le socket côte client (-client=true/false).")
 
 	flag.Parse()
 
