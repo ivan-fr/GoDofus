@@ -1,4 +1,4 @@
-package paquets
+package pack
 
 import (
 	"bytes"
@@ -15,7 +15,7 @@ type weft struct {
 
 type lastSignal struct {
 	request        int
-	typeRest       int
+	typeRequest    int
 	containForType []byte
 	containNoType  []byte
 }
@@ -24,7 +24,7 @@ type pipe struct {
 	wefts []*weft
 }
 
-var lSignal = &lastSignal{typeRest: noType}
+var lSignal = &lastSignal{typeRequest: noType}
 var pipeline = new(pipe)
 var lastWeft *weft = nil
 
@@ -48,12 +48,16 @@ func (p *pipe) append(w *weft) {
 }
 
 func (lSignal *lastSignal) update(request int, typeRest int, containForType []byte, containNoType []byte) {
-	if typeRest == lSignal.typeRest && lSignal.request < 0 && request > lSignal.request {
+	if typeRest == lSignal.typeRequest && lSignal.request < 0 && request <= lSignal.request {
+		return
+	}
+
+	if typeRest == lSignal.typeRequest && lSignal.request < 0 && request > lSignal.request {
 		lSignal.request = request
 		lSignal.containForType = append(lSignal.containForType, containForType...)
-	} else if lSignal.request == 0 || lSignal.typeRest == noType {
+	} else if lSignal.request == 0 || lSignal.typeRequest == noType {
 		lSignal.request = request
-		lSignal.typeRest = typeRest
+		lSignal.typeRequest = typeRest
 		lSignal.containForType = containForType
 		lSignal.containForType = nil
 	} else {
@@ -70,7 +74,7 @@ func (lSignal *lastSignal) update(request int, typeRest int, containForType []by
 }
 
 func commit() {
-	if lSignal.request >= 0 && lSignal.typeRest == messageLength {
+	if lSignal.request >= 0 && lSignal.typeRequest == messageLength {
 		if lastWeft == nil {
 			panic("lastWeft must not be nil.")
 		}
@@ -98,19 +102,19 @@ func tryRead(reader *bytes.Reader, step int, bytesWanted uint) bool {
 	var containForType = make([]byte, nbBytesToRead)
 	_, _ = io.ReadFull(reader, containForType)
 
-	bytesRest := int(readerLen - bytesWanted)
+	request := int(readerLen - bytesWanted)
 	ok := false
 	var containNoType []byte
 
-	if bytesRest >= 0 {
+	if request >= 0 {
 		ok = true
 	}
 
-	if bytesRest > 0 {
+	if request > 0 {
 		containNoType, _ = io.ReadAll(reader)
 	}
 
-	lSignal.update(bytesRest, step, containForType, containNoType)
+	lSignal.update(request, step, containForType, containNoType)
 	return ok
 }
 
@@ -148,31 +152,31 @@ func readHeaderLength(reader *bytes.Reader) bool {
 	return true
 }
 
-func Read(bytesPack []byte) {
-	switch lSignal.typeRest {
+func Read(bytesPack []byte) bool {
+	switch lSignal.typeRequest {
 	case messageLength:
 		switch {
 		case lSignal.request == 0:
 			commit()
 			lSignal.update(0, noType, nil, nil)
-			Read(bytesPack)
+			return Read(bytesPack)
 		case lSignal.request > 0:
 			commit()
 			newBytesPack := append(lSignal.containNoType, bytesPack...)
 			lSignal.update(0, noType, nil, nil)
-			Read(newBytesPack)
+			return Read(newBytesPack)
 		case lSignal.request < 0:
 			reader := bytes.NewReader(bytesPack)
 			ok := tryRead(reader, messageLength, uint(-lSignal.request))
 
 			if !ok {
-				break
+				return false
 			}
 
 			commit()
 			newBytePack := lSignal.containNoType
 			lSignal.update(0, noType, nil, nil)
-			Read(newBytePack)
+			return Read(newBytePack)
 		}
 	case headerTwoFirstBytes:
 		switch {
@@ -180,12 +184,12 @@ func Read(bytesPack []byte) {
 			reader := bytes.NewReader(bytesPack)
 			ok := readHeaderTwoFirstBytes(reader)
 			if !ok {
-				break
+				return false
 			}
 
 			newBytePack := lSignal.containNoType
 			lSignal.update(0, noType, nil, nil)
-			Read(newBytePack)
+			return Read(newBytePack)
 		default:
 			panic("incoherence, last signal can't be positive")
 		}
@@ -195,43 +199,47 @@ func Read(bytesPack []byte) {
 			reader := bytes.NewReader(bytesPack)
 			ok := readHeaderLength(reader)
 			if !ok {
-				break
+				return false
 			}
 
 			newBytePack := lSignal.containNoType
 			lSignal.update(0, noType, nil, nil)
-			Read(newBytePack)
+			return Read(newBytePack)
 		default:
 			panic("incoherence, last signal can't be positive")
 		}
 	case noType:
 		switch {
 		case bytesPack == nil:
-			return
+			return true
 		case lastWeft == nil:
 			reader := bytes.NewReader(bytesPack)
 			ok := readHeaderTwoFirstBytes(reader)
 			if !ok {
-				break
+				return false
 			}
 
 			newBytePack := lSignal.containNoType
 			lSignal.update(0, noType, nil, nil)
-			Read(newBytePack)
+			return Read(newBytePack)
 		case lastWeft.length == 0:
 			reader := bytes.NewReader(bytesPack)
 			ok := readHeaderLength(reader)
 			if !ok {
-				break
+				return false
 			}
 
 			newBytePack := lSignal.containNoType
 			lSignal.update(0, noType, nil, nil)
-			Read(newBytePack)
+			return Read(newBytePack)
 		default:
 			reader := bytes.NewReader(bytesPack)
 			_ = tryRead(reader, messageLength, uint(lastWeft.length))
-			Read(nil)
+			return Read(nil)
 		}
+	default:
+		panic("program don't know the step.")
 	}
+
+	return true
 }
