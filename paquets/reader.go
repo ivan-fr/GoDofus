@@ -92,12 +92,13 @@ func min(a, b uint) uint {
 	return b
 }
 
-func tryRead(reader *bytes.Reader, step int, bytesWanted uint) ([]byte, bool) {
-	nbBytesToRead := min(uint(reader.Len()), bytesWanted)
-	var lectureBytes = make([]byte, nbBytesToRead)
-	_, _ = io.ReadFull(reader, lectureBytes)
+func tryRead(reader *bytes.Reader, step int, bytesWanted uint) bool {
+	readerLen := uint(reader.Len())
+	nbBytesToRead := min(uint(reader.Len()), bytesWanted) // <= bytesWanted && <= reader.Len
+	var containForType = make([]byte, nbBytesToRead)
+	_, _ = io.ReadFull(reader, containForType)
 
-	bytesRest := int(nbBytesToRead - bytesWanted) // <= 0
+	bytesRest := int(readerLen - bytesWanted)
 	ok := false
 	var containNoType []byte
 
@@ -109,18 +110,18 @@ func tryRead(reader *bytes.Reader, step int, bytesWanted uint) ([]byte, bool) {
 		containNoType, _ = io.ReadAll(reader)
 	}
 
-	lSignal.update(bytesRest, step, lectureBytes, containNoType)
-	return lectureBytes, ok
+	lSignal.update(bytesRest, step, containForType, containNoType)
+	return ok
 }
 
 func readHeaderTwoFirstBytes(reader *bytes.Reader) bool {
-	result, ok := tryRead(reader, headerTwoFirstBytes, 2)
+	ok := tryRead(reader, headerTwoFirstBytes, 2)
 
 	if !ok {
 		return false
 	}
 
-	twoBytes := binary.BigEndian.Uint16(result)
+	twoBytes := binary.BigEndian.Uint16(lSignal.containForType)
 	packetId := twoBytes >> 2
 	lengthType := twoBytes & 0b11
 
@@ -137,13 +138,13 @@ func readHeaderLength(reader *bytes.Reader) bool {
 		panic("incoherence last weft can't have length type equals zero")
 	}
 
-	result, ok := tryRead(reader, headerLength, uint(lastWeft.lengthType))
+	ok := tryRead(reader, headerLength, uint(lastWeft.lengthType))
 
 	if !ok {
 		return false
 	}
 
-	lastWeft.length = binary.BigEndian.Uint32(result)
+	lastWeft.length = binary.BigEndian.Uint32(lSignal.containForType)
 	return true
 }
 
@@ -162,7 +163,7 @@ func Read(bytesPack []byte) {
 			Read(newBytesPack)
 		case lSignal.request < 0:
 			reader := bytes.NewReader(bytesPack)
-			_, ok := tryRead(reader, messageLength, uint(-lSignal.request))
+			ok := tryRead(reader, messageLength, uint(-lSignal.request))
 
 			if !ok {
 				break
@@ -229,11 +230,8 @@ func Read(bytesPack []byte) {
 			Read(newBytePack)
 		default:
 			reader := bytes.NewReader(bytesPack)
-			_, ok := tryRead(reader, messageLength, uint(lastWeft.length))
-
-			if ok && lSignal.request == 0 {
-				Read(nil)
-			}
+			_ = tryRead(reader, messageLength, uint(lastWeft.length))
+			Read(nil)
 		}
 	}
 }
