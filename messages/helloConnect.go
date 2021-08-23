@@ -22,10 +22,7 @@ func GetHelloConnectNOA() *helloConnect {
 func (h *helloConnect) Serialize(buff *bytes.Buffer) {
 	utils.WriteUTF(buff, h.Salt)
 	utils.WriteVarInt32(buff, int32(len(h.Key)))
-
-	for i := uint(0); i < uint(len(h.Key)); i++ {
-		_ = binary.Write(buff, binary.BigEndian, h.Key[i])
-	}
+	_ = binary.Write(buff, binary.BigEndian, h.Key)
 }
 
 func (h *helloConnect) Deserialize(reader *bytes.Reader) {
@@ -36,5 +33,5 @@ func (h *helloConnect) Deserialize(reader *bytes.Reader) {
 }
 
 func (h *helloConnect) String() string {
-	return fmt.Sprintf("packetId: %d\nSalt: %s\nKey: %v\n", h.PacketId, h.Salt, h.Key)
+	return fmt.Sprintf("packetId: %d\nSalt: %s\nKey: %v\nlength Key: %d\n", h.PacketId, h.Salt, h.Key, len(h.Key))
 }

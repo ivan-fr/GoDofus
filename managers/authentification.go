@@ -122,8 +122,7 @@ func (a *authentification) getPublicKey() *rsa.PublicKey {
 	}
 
 	theKey := make([]byte, len(hc.Key))
-	rsaVerifyKey := publicKeyVerify
-	err := rsa.VerifyPKCS1v15(rsaVerifyKey, crypto.Hash(0), theKey, hc.Key)
+	err := rsa.VerifyPKCS1v15(publicKeyVerify, crypto.Hash(0), theKey, hc.Key)
 	if err != nil {
 		panic(err)
 	}
