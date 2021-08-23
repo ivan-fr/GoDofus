@@ -1,6 +1,7 @@
 package socket
 
 import (
+	"GoDofus/managers"
 	"GoDofus/messages"
 	"GoDofus/pack"
 	"bytes"
@@ -24,6 +25,16 @@ func handling(lecture []byte, n int) {
 				hConnect := messages.GetHelloConnectNOA()
 				hConnect.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(hConnect)
+
+				fmt.Println("======= GO Identification =======")
+				mAuth := managers.GetAuthentification()
+				mAuth.InitIdentificationMessage()
+
+				authMessge := messages.GetIdentificationNOA()
+				buff := new(bytes.Buffer)
+				authMessge.Serialize(buff)
+
+				println("%v", pack.Write(messages.IdentificationID, buff.Bytes()))
 			case messages.ProtocolID:
 				protocol := messages.GetProtocolNOA()
 				protocol.Deserialize(bytes.NewReader(weft.Message))

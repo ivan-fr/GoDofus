@@ -41,7 +41,7 @@ var publicVerifyPem, _ = os.ReadFile("../binaryData/verify_key.bin")
 var blockVerify, _ = pem.Decode(publicVerifyPem)
 var publicKeyVerify, _ = x509.ParsePKIXPublicKey(blockVerify.Bytes)
 
-func getAuthentification() *authentification {
+func GetAuthentification() *authentification {
 	return authenticate_
 }
 
@@ -71,7 +71,7 @@ func (a *authentification) getCipher() []byte {
 	return baOut
 }
 
-func (a *authentification) getIdentificationMessage() {
+func (a *authentification) InitIdentificationMessage() {
 	a.initLoginAction()
 	identification := messages.GetIdentificationNOA()
 	identification.Lang = a.lang
