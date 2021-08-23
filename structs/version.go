@@ -39,7 +39,7 @@ func getVersion(args ...interface{}) *version {
 		code, _ := strconv.ParseUint(codeStr, 10, 8)
 		v.Code = uint8(code)
 
-		v.BuildType = args[1].(uint8)
+		v.BuildType = uint8(args[1].(int))
 	}
 
 	return v

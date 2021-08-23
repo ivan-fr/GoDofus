@@ -34,12 +34,35 @@ type authentification struct {
 }
 
 var authenticate_ = &authentification{AESKey: generateAESKey(), lang: "fr"}
-
 var AESLength = uint(32)
 
-var publicVerifyPem, _ = os.ReadFile("../binaryData/verify_key.bin")
-var blockVerify, _ = pem.Decode(publicVerifyPem)
-var publicKeyVerify, _ = x509.ParsePKIXPublicKey(blockVerify.Bytes)
+var publicVerifyPem = readVerify()
+var blockVerify = decodeVerifyPem()
+var publicKeyVerify = theVerifyPublicKey()
+
+func readVerify() []byte {
+	publicVerifyPem, err := os.ReadFile("./binaryData/verify_key.bin")
+	if err != nil {
+		panic(err)
+	}
+	return publicVerifyPem
+}
+
+func decodeVerifyPem() *pem.Block {
+	var blockVerify, _ = pem.Decode(publicVerifyPem)
+	if blockVerify == nil {
+		panic("block empty")
+	}
+	return blockVerify
+}
+
+func theVerifyPublicKey() *rsa.PublicKey {
+	publicKeyVerify, err := x509.ParsePKIXPublicKey(blockVerify.Bytes)
+	if err != nil {
+		panic(err)
+	}
+	return publicKeyVerify.(*rsa.PublicKey)
+}
 
 func GetAuthentification() *authentification {
 	return authenticate_
@@ -99,7 +122,7 @@ func (a *authentification) getPublicKey() *rsa.PublicKey {
 	}
 
 	theKey := make([]byte, len(hc.Key))
-	rsaVerifyKey := publicKeyVerify.(*rsa.PublicKey)
+	rsaVerifyKey := publicKeyVerify
 	err := rsa.VerifyPKCS1v15(rsaVerifyKey, crypto.Hash(0), theKey, hc.Key)
 	if err != nil {
 		panic(err)
