@@ -13,7 +13,7 @@ import (
 )
 
 func handling(lecture []byte, n int) {
-	fmt.Printf("%d bits reçu\n", n)
+	fmt.Printf("%d octets reçu\n", n)
 
 	ok := pack.Read(lecture[:n])
 
