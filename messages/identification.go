@@ -4,10 +4,11 @@ import (
 	"GoDofus/utils"
 	"bytes"
 	"encoding/binary"
+	"fmt"
 )
 
 type identification struct {
-	PacketId            uint32
+	packetId            uint32
 	Version             *version
 	Lang                string
 	Credentials         []byte
@@ -19,7 +20,7 @@ type identification struct {
 	FailedAttempts      []uint32
 }
 
-var idCation = &identification{PacketId: IdentificationID, Version: new(version), UseCertificate: false, UseLoginToken: false}
+var idCation = &identification{packetId: IdentificationID, Version: new(version), UseCertificate: false, UseLoginToken: false}
 
 func GetIdentificationNOA() *identification {
 	return idCation
@@ -77,4 +78,8 @@ func (id *identification) Deserialize(reader *bytes.Reader) {
 	for i := uint16(0); i < failsLen; i++ {
 		id.FailedAttempts = append(id.FailedAttempts, uint32(utils.ReadVarInt16(reader)))
 	}
+}
+
+func (id *identification) String() string {
+	return fmt.Sprintf("packetId: %d\nVersion: %v\nidentification: ...\n", id.packetId, id.Version)
 }

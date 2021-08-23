@@ -1,7 +1,6 @@
 package main
 
 import (
-	"GoDofus/messages"
 	"GoDofus/signer"
 	"GoDofus/socket"
 	"flag"
@@ -40,6 +39,4 @@ func main() {
 	if *launchClient {
 		socket.LaunchClientSocket()
 	}
-
-	log.Printf("%s", messages.GetSalt())
 }

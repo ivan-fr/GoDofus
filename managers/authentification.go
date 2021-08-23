@@ -4,7 +4,7 @@ import (
 	"GoDofus/messages"
 	"GoDofus/structs"
 	"bytes"
-	"crypto"
+	cryptoRand "crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
@@ -12,6 +12,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"log"
+	"math/big"
 	"math/rand"
 	"os"
 	"time"
@@ -31,6 +32,26 @@ type authentification struct {
 	lang      string
 	publicKey *rsa.PublicKey
 	salt      string
+}
+
+func RSA_public_decrypt(pubKey *rsa.PublicKey, data []byte) []byte {
+	c := new(big.Int)
+	m := new(big.Int)
+	m.SetBytes(data)
+	e := big.NewInt(int64(pubKey.E))
+	c.Exp(m, e, pubKey.N)
+	out := c.Bytes()
+	skip := 0
+	for i := 2; i < len(out); i++ {
+		if i+1 >= len(out) {
+			break
+		}
+		if out[i] == 0xff && out[i+1] == 0 {
+			skip = i + 2
+			break
+		}
+	}
+	return out[skip:]
 }
 
 var authenticate_ = &authentification{AESKey: generateAESKey(), lang: "fr"}
@@ -61,7 +82,8 @@ func theVerifyPublicKey() *rsa.PublicKey {
 	if err != nil {
 		panic(err)
 	}
-	return publicKeyVerify.(*rsa.PublicKey)
+	p := publicKeyVerify.(*rsa.PublicKey)
+	return p
 }
 
 func GetAuthentification() *authentification {
@@ -86,7 +108,9 @@ func (a *authentification) getCipher() []byte {
 	_ = binary.Write(buff, binary.BigEndian, []byte(a.lA.username))
 	_ = binary.Write(buff, binary.BigEndian, []byte(a.lA.password))
 
-	baOut, err := rsa.EncryptPKCS1v15(nil, a.getPublicKey(), buff.Bytes())
+	rng := cryptoRand.Reader
+
+	baOut, err := rsa.EncryptPKCS1v15(rng, a.getPublicKey(), buff.Bytes())
 	if err != nil {
 		panic(err)
 	}
@@ -121,11 +145,7 @@ func (a *authentification) getPublicKey() *rsa.PublicKey {
 		panic("helloMessage wasn't call")
 	}
 
-	theKey := make([]byte, len(hc.Key))
-	err := rsa.VerifyPKCS1v15(publicKeyVerify, crypto.Hash(0), theKey, hc.Key)
-	if err != nil {
-		panic(err)
-	}
+	theKey := RSA_public_decrypt(publicKeyVerify, hc.Key)
 
 	publicKey := fmt.Sprintf("-----BEGIN PUBLIC KEY-----\n%s\n-----END PUBLIC KEY-----",
 		base64.StdEncoding.EncodeToString(theKey))

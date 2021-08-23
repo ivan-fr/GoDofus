@@ -17,7 +17,7 @@ const (
 	RELEASE = iota
 )
 
-var version_ = getVersion("2.60.3-release", RELEASE)
+var version_ = getVersion("2.60.3-12", RELEASE)
 
 func getVersion(args ...interface{}) *version {
 	v := &version{}
@@ -35,9 +35,12 @@ func getVersion(args ...interface{}) *version {
 		minor, _ := strconv.ParseUint(split[1], 10, 8)
 		v.Minor = uint8(minor)
 
-		codeStr := strings.Split(split[2], "-")[0]
-		code, _ := strconv.ParseUint(codeStr, 10, 8)
+		codeStr := strings.Split(split[2], "-")
+		code, _ := strconv.ParseUint(codeStr[0], 10, 8)
 		v.Code = uint8(code)
+
+		build, _ := strconv.ParseUint(codeStr[1], 10, 8)
+		v.Build = uint32(build)
 
 		v.BuildType = uint8(args[1].(int))
 	}

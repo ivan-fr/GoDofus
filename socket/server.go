@@ -12,6 +12,8 @@ import (
 	"time"
 )
 
+var conn net.Conn
+
 func handling(lecture []byte, n int) {
 	fmt.Printf("%d octets reçu\n", n)
 
@@ -30,15 +32,22 @@ func handling(lecture []byte, n int) {
 				mAuth := managers.GetAuthentification()
 				mAuth.InitIdentificationMessage()
 
-				authMessge := messages.GetIdentificationNOA()
-				buff := new(bytes.Buffer)
-				authMessge.Serialize(buff)
+				if conn != nil {
+					authMessage := messages.GetIdentificationNOA()
+					buff := new(bytes.Buffer)
+					authMessage.Serialize(buff)
 
-				println("%v", pack.Write(messages.IdentificationID, buff.Bytes()))
+					authMessage.Deserialize(bytes.NewReader(buff.Bytes()))
+					fmt.Println(authMessage)
+				}
 			case messages.ProtocolID:
 				protocol := messages.GetProtocolNOA()
 				protocol.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(protocol)
+			case messages.IdentificationFailedForBadVersionID:
+				idf := messages.GetIdentificationFailedForBadVersionNOA()
+				idf.Deserialize(bytes.NewReader(weft.Message))
+				fmt.Println(idf)
 			default:
 				fmt.Printf("there is no traitment for %d ID\n", weft.PackId)
 			}
@@ -53,17 +62,19 @@ func LaunchClientSocket() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
-	conn, err := d.DialContext(ctx, "tcp", "34.252.21.81:5555")
+	var err error
+	conn, err = d.DialContext(ctx, "tcp", "34.252.21.81:5555")
 	if err != nil {
 		log.Fatalf("Failed to dial: %v", err)
 	} else {
 		log.Println("La connexion au serveur d'authentification est réussie.")
 	}
-	defer func(conn net.Conn) {
+	defer func(conn_ net.Conn) {
 		err := conn.Close()
 		if err != nil {
 			log.Fatal(err)
 		}
+		conn = nil
 	}(conn)
 
 	for {
