@@ -36,9 +36,10 @@ func handling(lecture []byte, n int) {
 					authMessage := messages.GetIdentificationNOA()
 					buff := new(bytes.Buffer)
 					authMessage.Serialize(buff)
-					reader := bytes.NewReader(buff.Bytes())
-					authMessage.Deserialize(reader)
-					fmt.Println(authMessage)
+					_, err := conn.Write(pack.Write(messages.IdentificationID, buff.Bytes()))
+					if err != nil {
+						panic(err)
+					}
 				}
 			case messages.ProtocolID:
 				protocol := messages.GetProtocolNOA()
@@ -48,7 +49,7 @@ func handling(lecture []byte, n int) {
 				idf := messages.GetIdentificationFailedForBadVersionNOA()
 				idf.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(idf)
-			case messages.IdentificationFailedM:
+			case messages.IdentificationFailedID:
 				idf := messages.GetIdentificationFailedNOA()
 				idf.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(idf)
@@ -67,7 +68,7 @@ func LaunchClientSocket() {
 	defer cancel()
 
 	var err error
-	conn, err = d.DialContext(ctx, "tcp", "34.252.21.81:5555")
+	conn, err = d.DialContext(ctx, "tcp", "52.17.231.202:5555")
 	if err != nil {
 		log.Fatalf("Failed to dial: %v", err)
 	} else {

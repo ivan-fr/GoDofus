@@ -86,18 +86,18 @@ func (a *authentification) getCipher() []byte {
 	mySalt := a.getSalt()
 	_ = binary.Write(buff, binary.BigEndian, []byte(mySalt))
 	_ = binary.Write(buff, binary.BigEndian, a.AESKey)
-	_ = binary.Write(buff, binary.BigEndian, uint8(len(a.lA.username)))
+	_ = binary.Write(buff, binary.BigEndian, byte(len(a.lA.username)))
 	_ = binary.Write(buff, binary.BigEndian, []byte(a.lA.username))
 	_ = binary.Write(buff, binary.BigEndian, []byte(a.lA.password))
 
 	rng := cryptoRand.Reader
 
-	baOut, err := rsa.EncryptPKCS1v15(rng, a.getPublicKey(), buff.Bytes())
+	credentials, err := rsa.EncryptPKCS1v15(rng, a.getPublicKey(), buff.Bytes())
 	if err != nil {
 		panic(err)
 	}
 
-	return baOut
+	return credentials
 }
 
 func (a *authentification) InitIdentificationMessage() {
@@ -114,7 +114,6 @@ func (a *authentification) InitIdentificationMessage() {
 	identification.Version.BuildType = currentVersion.BuildType
 
 	identification.Credentials = a.getCipher()
-	fmt.Println(identification.Credentials)
 }
 
 func (a *authentification) getPublicKey() *rsa.PublicKey {

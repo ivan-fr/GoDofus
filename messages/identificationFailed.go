@@ -11,7 +11,7 @@ type identificationFailed struct {
 	Reason   uint8
 }
 
-var idf = &identificationFailed{packetId: IdentificationFailedM}
+var idf = &identificationFailed{packetId: IdentificationFailedID}
 
 func GetIdentificationFailedNOA() *identificationFailed {
 	return idf
