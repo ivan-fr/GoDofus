@@ -57,7 +57,7 @@ func SetFlag(a uint32, pos uint, b bool) uint32 {
 	return a
 }
 
-func getFlag(a uint32, pos uint32) bool {
+func GetFlag(a uint32, pos uint32) bool {
 	switch pos {
 	case 0:
 		return (a & 1) != 0

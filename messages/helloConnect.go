@@ -36,5 +36,5 @@ func (h *helloConnect) Deserialize(reader *bytes.Reader) {
 }
 
 func (h *helloConnect) String() string {
-	return fmt.Sprintf("PacketId: %d\nSalt: %s\nKey: %v\n", h.PacketId, h.Salt, h.Key)
+	return fmt.Sprintf("packetId: %d\nSalt: %s\nKey: %v\n", h.PacketId, h.Salt, h.Key)
 }

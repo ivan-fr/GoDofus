@@ -26,5 +26,5 @@ func (p *protocol) Deserialize(reader *bytes.Reader) {
 }
 
 func (p *protocol) String() string {
-	return fmt.Sprintf("PacketId: %d\nVersion: %s\n", p.packetId, p.Version)
+	return fmt.Sprintf("packetId: %d\nVersion: %s\n", p.packetId, p.Version)
 }

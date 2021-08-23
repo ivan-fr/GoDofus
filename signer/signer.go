@@ -71,7 +71,7 @@ func getSignatureBuffer(byteToEncode []byte) *bytes.Buffer {
 	privatePam, _ := os.ReadFile("./sign/private_key.pem")
 	block, _ := pem.Decode(privatePam)
 	if block == nil || block.Type != "RSA PRIVATE KEY" {
-		log.Fatal("failed to decode PEM block containing public key")
+		log.Fatal("failed to decode PEM block containing private key")
 	}
 
 	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
