@@ -42,19 +42,15 @@ func GetPipeline() *pipe {
 
 func (p *pipe) append(w *weft) {
 	p.Wefts = append(p.Wefts, w)
-	/*	if len(p.wefts) > 3 {
-			p.wefts = p.wefts[2:]
-		}
-	*/
 }
 
 func (p *pipe) Get() *weft {
-	if p.index > len(p.Wefts)-1 {
+	if len(p.Wefts) == 0 {
 		return nil
 	}
 
-	w := p.Wefts[p.index]
-	p.index++
+	w := p.Wefts[0]
+	p.Wefts = p.Wefts[1:]
 	return w
 }
 

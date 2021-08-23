@@ -41,7 +41,7 @@ func LaunchClientSocket() {
 			continue
 		}
 
-		fmt.Printf("%d bytes reçu\n", n)
+		fmt.Printf("%d bits reçu\n", n)
 
 		ok := pack.Read(lecture[:n])
 
@@ -56,7 +56,7 @@ func LaunchClientSocket() {
 				case 9546:
 					protocol := messages.GetProtocolNOA()
 					protocol.Deserialize(bytes.NewReader(weft.Message))
-					fmt.Println(protocol.Version)
+					fmt.Println(protocol)
 				default:
 					fmt.Printf("there is no traitment for %d ID\n", weft.PackId)
 				}

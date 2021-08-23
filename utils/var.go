@@ -32,7 +32,7 @@ func ReadVarInt16(reader *bytes.Reader) int32 {
 
 		if !hasNext {
 			if value > int32(math.MaxInt16) {
-				value -= int32(math.MaxUint16 + 1)
+				value -= int32(math.MaxUint16) + int32(1)
 			}
 
 			return value
