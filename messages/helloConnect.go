@@ -8,7 +8,7 @@ import (
 )
 
 type helloConnect struct {
-	PacketId int32
+	PacketId uint32
 	Salt     string
 	Key      []byte
 }
@@ -31,14 +31,10 @@ func (h *helloConnect) Serialize(buff *bytes.Buffer) {
 func (h *helloConnect) Deserialize(reader *bytes.Reader) {
 	h.Salt = utils.ReadUTF(reader)
 	keyLen := uint(utils.ReadVarInt32(reader))
-	h.Key = nil
-	for i := uint(0); i < keyLen; i++ {
-		var aByte byte
-		_ = binary.Read(reader, binary.BigEndian, &aByte)
-		h.Key = append(h.Key, aByte)
-	}
+	h.Key = make([]byte, keyLen)
+	_ = binary.Read(reader, binary.BigEndian, &h.Key)
 }
 
 func (h *helloConnect) String() string {
-	return fmt.Sprintf("PacketId: %d\nSalt: %s\nKey:%v\n", h.PacketId, h.Salt, h.Key)
+	return fmt.Sprintf("PacketId: %d\nSalt: %s\nKey: %v\n", h.PacketId, h.Salt, h.Key)
 }

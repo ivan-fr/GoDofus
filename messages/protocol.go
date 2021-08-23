@@ -7,7 +7,7 @@ import (
 )
 
 type protocol struct {
-	packetId int32
+	packetId uint32
 	Version  string
 }
 

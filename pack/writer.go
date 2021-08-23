@@ -3,6 +3,7 @@ package pack
 import (
 	"bytes"
 	"encoding/binary"
+	"math"
 )
 
 var instanceId uint32 = 0
@@ -39,8 +40,8 @@ func Write(packetId uint16, message []byte) []byte {
 		var lenMessage = uint16(len(message))
 		_ = binary.Write(buff, binary.BigEndian, lenMessage)
 	case 3:
-		var high = uint8(uint32(len(message)) >> 24 & 255)
-		var low = uint16(uint32(len(message)) & 65535)
+		var high = uint8(uint32(len(message)) >> 16 & math.MaxUint8)
+		var low = uint16(uint32(len(message)) & math.MaxUint16)
 		_ = binary.Write(buff, binary.BigEndian, high)
 		_ = binary.Write(buff, binary.BigEndian, low)
 	}
