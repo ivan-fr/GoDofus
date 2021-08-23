@@ -12,7 +12,7 @@ type trustCertificate struct {
 	hash     string
 }
 
-var tCertif = &trustCertificate{PacketId: 2178}
+var tCertif = &trustCertificate{PacketId: TrustCertificateID}
 
 func GetTrustCertificateNOA() *trustCertificate {
 	return tCertif

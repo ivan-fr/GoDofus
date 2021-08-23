@@ -19,7 +19,7 @@ type identification struct {
 	FailedAttempts      []uint32
 }
 
-var idCation = &identification{PacketId: 2767, Version: new(version), UseCertificate: false, UseLoginToken: false}
+var idCation = &identification{PacketId: IdentificationID, Version: new(version), UseCertificate: false, UseLoginToken: false}
 
 func GetIdentificationNOA() *identification {
 	return idCation

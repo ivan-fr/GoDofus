@@ -13,7 +13,7 @@ type helloConnect struct {
 	Key      []byte
 }
 
-var hConnect = &helloConnect{PacketId: 1030}
+var hConnect = &helloConnect{PacketId: HelloConnectID}
 
 func GetHelloConnectNOA() *helloConnect {
 	return hConnect

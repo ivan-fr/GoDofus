@@ -14,7 +14,7 @@ type version struct {
 	BuildType uint8
 }
 
-var ve = &version{packetId: 9475}
+var ve = &version{packetId: VersionID}
 
 func GetVersionNOA() *version {
 	return ve

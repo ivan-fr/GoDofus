@@ -11,6 +11,32 @@ import (
 	"time"
 )
 
+func handling(lecture []byte, n int) {
+	fmt.Printf("%d bits reçu\n", n)
+
+	ok := pack.Read(lecture[:n])
+
+	if ok {
+		pipe := pack.GetPipeline()
+		for weft := pipe.Get(); weft != nil; weft = pipe.Get() {
+			switch weft.PackId {
+			case messages.HelloConnectID:
+				hConnect := messages.GetHelloConnectNOA()
+				hConnect.Deserialize(bytes.NewReader(weft.Message))
+				fmt.Println(hConnect)
+			case messages.ProtocolID:
+				protocol := messages.GetProtocolNOA()
+				protocol.Deserialize(bytes.NewReader(weft.Message))
+				fmt.Println(protocol)
+			default:
+				fmt.Printf("there is no traitment for %d ID\n", weft.PackId)
+			}
+		}
+	} else {
+		fmt.Println("paquet incomplet")
+	}
+}
+
 func LaunchClientSocket() {
 	var d net.Dialer
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
@@ -41,28 +67,6 @@ func LaunchClientSocket() {
 			continue
 		}
 
-		fmt.Printf("%d bits reçu\n", n)
-
-		ok := pack.Read(lecture[:n])
-
-		if ok {
-			pipe := pack.GetPipeline()
-			for weft := pipe.Get(); weft != nil; weft = pipe.Get() {
-				switch weft.PackId {
-				case 1030:
-					hConnect := messages.GetHelloConnectNOA()
-					hConnect.Deserialize(bytes.NewReader(weft.Message))
-					fmt.Println(hConnect)
-				case 9546:
-					protocol := messages.GetProtocolNOA()
-					protocol.Deserialize(bytes.NewReader(weft.Message))
-					fmt.Println(protocol)
-				default:
-					fmt.Printf("there is no traitment for %d ID\n", weft.PackId)
-				}
-			}
-		} else {
-			fmt.Println("paquet incomplet")
-		}
+		handling(lecture, n)
 	}
 }

@@ -11,7 +11,7 @@ type protocol struct {
 	Version  string
 }
 
-var proto = &protocol{packetId: 9546}
+var proto = &protocol{packetId: ProtocolID}
 
 func GetProtocolNOA() *protocol {
 	return proto
