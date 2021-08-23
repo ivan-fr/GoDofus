@@ -7,4 +7,5 @@ const (
 	TrustCertificateID                  = 2178
 	VersionID                           = 9475
 	IdentificationFailedForBadVersionID = 8989
+	IdentificationFailedM               = 5778
 )

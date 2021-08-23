@@ -36,8 +36,8 @@ func handling(lecture []byte, n int) {
 					authMessage := messages.GetIdentificationNOA()
 					buff := new(bytes.Buffer)
 					authMessage.Serialize(buff)
-
-					authMessage.Deserialize(bytes.NewReader(buff.Bytes()))
+					reader := bytes.NewReader(buff.Bytes())
+					authMessage.Deserialize(reader)
 					fmt.Println(authMessage)
 				}
 			case messages.ProtocolID:
@@ -46,6 +46,10 @@ func handling(lecture []byte, n int) {
 				fmt.Println(protocol)
 			case messages.IdentificationFailedForBadVersionID:
 				idf := messages.GetIdentificationFailedForBadVersionNOA()
+				idf.Deserialize(bytes.NewReader(weft.Message))
+				fmt.Println(idf)
+			case messages.IdentificationFailedM:
+				idf := messages.GetIdentificationFailedNOA()
 				idf.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(idf)
 			default:

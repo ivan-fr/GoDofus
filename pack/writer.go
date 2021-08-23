@@ -40,8 +40,8 @@ func Write(packetId uint16, message []byte) []byte {
 		var lenMessage = uint16(len(message))
 		_ = binary.Write(buff, binary.BigEndian, lenMessage)
 	case 3:
-		var high = uint8(uint32(len(message)) >> 16 & math.MaxUint8)
-		var low = uint16(uint32(len(message)) & math.MaxUint16)
+		var high = uint8(uint32(len(message)) >> 16 & uint32(math.MaxUint8))
+		var low = uint16(uint32(len(message)) & uint32(math.MaxUint16))
 		_ = binary.Write(buff, binary.BigEndian, high)
 		_ = binary.Write(buff, binary.BigEndian, low)
 	}

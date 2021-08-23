@@ -9,6 +9,7 @@ import (
 type weft struct {
 	PackId     uint16
 	LengthType uint16
+	instanceID uint32
 	Length     uint32
 	Message    []byte
 }
@@ -28,13 +29,19 @@ type pipe struct {
 var lSignal = &lastSignal{typeRequest: noType}
 var pipeline = new(pipe)
 var lastWeft *weft = nil
+var client = false
 
 const (
 	headerTwoFirstBytes = iota
 	headerLength
+	headerInstance
 	messageLength
 	noType
 )
+
+func ToggleClient() {
+	client = !client
+}
 
 func GetPipeline() *pipe {
 	return pipeline
@@ -140,6 +147,19 @@ func readHeaderTwoFirstBytes(reader *bytes.Reader) bool {
 	return true
 }
 
+func readHeaderInstance(reader *bytes.Reader) bool {
+	ok := tryRead(reader, headerInstance, 4)
+
+	if !ok {
+		return false
+	}
+
+	instanceID := binary.BigEndian.Uint32(lSignal.containForType)
+
+	lastWeft.instanceID = instanceID
+	return true
+}
+
 func readHeaderLength(reader *bytes.Reader) bool {
 	if lastWeft == nil {
 		panic("incoherence last weft can't be nil")
@@ -230,6 +250,21 @@ func Read(bytesPack []byte) bool {
 		default:
 			panic("incoherence, last signal can't be positive")
 		}
+	case headerInstance:
+		switch {
+		case lSignal.request < 0:
+			reader := bytes.NewReader(bytesPack)
+			ok := readHeaderInstance(reader)
+			if !ok {
+				return false
+			}
+
+			newBytePack := lSignal.containNoType
+			lSignal.update(0, noType, nil, nil)
+			return Read(newBytePack)
+		default:
+			panic("incoherence, last signal can't be positive")
+		}
 	case noType:
 		switch {
 		case bytesPack == nil:
@@ -237,6 +272,16 @@ func Read(bytesPack []byte) bool {
 		case lastWeft == nil:
 			reader := bytes.NewReader(bytesPack)
 			ok := readHeaderTwoFirstBytes(reader)
+			if !ok {
+				return false
+			}
+
+			newBytePack := lSignal.containNoType
+			lSignal.update(0, noType, nil, nil)
+			return Read(newBytePack)
+		case lastWeft.instanceID == 0 && client:
+			reader := bytes.NewReader(bytesPack)
+			ok := readHeaderInstance(reader)
 			if !ok {
 				return false
 			}

@@ -57,7 +57,6 @@ func (id *identification) Deserialize(reader *bytes.Reader) {
 	id.AutoSelectServer = utils.GetFlag(uint32(box), 0)
 	id.UseCertificate = utils.GetFlag(uint32(box), 1)
 	id.UseLoginToken = utils.GetFlag(uint32(box), 2)
-	id.Version = new(version)
 	id.Version.Deserialize(reader)
 	id.Lang = utils.ReadUTF(reader)
 
@@ -81,5 +80,6 @@ func (id *identification) Deserialize(reader *bytes.Reader) {
 }
 
 func (id *identification) String() string {
-	return fmt.Sprintf("packetId: %d\nVersion: %v\nidentification: ...\n", id.packetId, id.Version)
+	return fmt.Sprintf("packetId: %d\nVersion: %v\nidentification: ...\n\t%s\n\t%v\n",
+		id.packetId, id.Version, id.Lang, id.Credentials)
 }

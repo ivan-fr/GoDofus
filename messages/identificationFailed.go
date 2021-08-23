@@ -3,6 +3,7 @@ package messages
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 )
 
 type identificationFailed struct {
@@ -10,7 +11,7 @@ type identificationFailed struct {
 	Reason   uint8
 }
 
-var idf = &identificationFailed{packetId: VersionID}
+var idf = &identificationFailed{packetId: IdentificationFailedM}
 
 func GetIdentificationFailedNOA() *identificationFailed {
 	return idf
@@ -18,4 +19,8 @@ func GetIdentificationFailedNOA() *identificationFailed {
 
 func (f *identificationFailed) Deserialize(reader *bytes.Reader) {
 	_ = binary.Read(reader, binary.BigEndian, &f.Reason)
+}
+
+func (f *identificationFailed) String(reader *bytes.Reader) string {
+	return fmt.Sprintf("REASEON %d\n", f.Reason)
 }
