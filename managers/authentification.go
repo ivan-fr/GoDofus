@@ -4,7 +4,6 @@ import (
 	"GoDofus/messages"
 	"GoDofus/structs"
 	"bytes"
-	"crypto/rsa"
 	"encoding/base64"
 	"encoding/binary"
 	"fmt"
@@ -27,7 +26,7 @@ type authentification struct {
 	AESKey    []byte
 	lA        *loginAction
 	lang      string
-	publicKey *rsa.PublicKey
+	publicKey []byte
 	salt      string
 }
 
@@ -105,10 +104,10 @@ func (a *authentification) getPublicKey() {
 		log.Fatal(err)
 	}
 
-	publicKey := fmt.Sprintf("-----BEGIN PUBLIC KEY-----\n%s\n-----END PUBLIC KEY-----",
-		base64.StdEncoding.EncodeToString(out))
+	a.publicKey = []byte(fmt.Sprintf("-----BEGIN PUBLIC KEY-----\n%s\n-----END PUBLIC KEY-----",
+		base64.StdEncoding.EncodeToString(out)))
 
-	_ = os.WriteFile("./sign/publicKeyFromHello.pem", []byte(publicKey), 0644)
+	_ = os.WriteFile("./sign/publicKeyFromHello.pem", a.publicKey, 0644)
 }
 
 func (a *authentification) getSalt() string {
