@@ -101,7 +101,7 @@ func WriteVarShort(buff *bytes.Buffer, value int32) {
 		return
 	}
 
-	var c = value & 65535
+	var c = value & math.MaxUint16
 	for c != 0 {
 		aByte = uint8(c & mask01111111)
 		c >>= chunkBitSize

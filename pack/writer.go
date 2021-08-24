@@ -9,10 +9,10 @@ import (
 var instanceId uint32 = 0
 
 func computeTypeLength(messageLength uint32) uint16 {
-	if messageLength > 65535 {
+	if messageLength > math.MaxUint16 {
 		return 3
 	}
-	if messageLength > 255 {
+	if messageLength > math.MaxUint8 {
 		return 2
 	}
 	if messageLength > 0 {
