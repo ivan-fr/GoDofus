@@ -40,6 +40,13 @@ func handling(lecture []byte, n int) {
 					if err != nil {
 						panic(err)
 					}
+					clientKey := messages.GetClientKeyNOA()
+					buff = new(bytes.Buffer)
+					clientKey.Serialize(buff)
+					_, err = conn.Write(pack.Write(messages.ClientKeyID, buff.Bytes()))
+					if err != nil {
+						panic(err)
+					}
 				}
 			case messages.ProtocolID:
 				protocol := messages.GetProtocolNOA()

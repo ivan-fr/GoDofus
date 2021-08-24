@@ -81,6 +81,6 @@ func (id *identification) Deserialize(reader *bytes.Reader) {
 }
 
 func (id *identification) String() string {
-	return fmt.Sprintf("packetId: %d\nVersion: %v\nidentification: ...\n\t%s\n\t%v\n",
-		id.packetId, id.Version, id.Lang, id.Credentials)
+	return fmt.Sprintf("packetId: %d\nVersion: %v\nidentification: ...\n\t%s\n\t%v\n\t%v\n\t%v\n\t%v\n\t%v\n",
+		id.packetId, id.Version, id.Lang, id.Credentials, id.SessionOptionalSalt, id.FailedAttempts, id.ServerId, len(id.Credentials))
 }

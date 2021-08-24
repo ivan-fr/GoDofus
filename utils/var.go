@@ -119,7 +119,7 @@ func WriteVarLong(buff *bytes.Buffer, value float64) {
 	var low = int32(val & 0xffffffff)
 	var high = int32(val >> 32)
 	if high == 0 {
-		_ = binary.Write(buff, binary.BigEndian, low)
+		writeSpecialInt32(buff, low)
 		return
 	}
 
@@ -132,6 +132,14 @@ func WriteVarLong(buff *bytes.Buffer, value float64) {
 		_ = binary.Write(buff, binary.BigEndian, uint8(high<<4|low))
 	} else {
 		_ = binary.Write(buff, binary.BigEndian, uint8((high<<4|low)&mask01111111|mask10000000))
-		_ = binary.Write(buff, binary.BigEndian, high>>3)
+		writeSpecialInt32(buff, high>>3)
 	}
+}
+
+func writeSpecialInt32(buff *bytes.Buffer, value int32) {
+	for value >= 128 {
+		_ = binary.Write(buff, binary.BigEndian, uint8(value&127|128))
+		value >>= 7
+	}
+	_ = binary.Write(buff, binary.BigEndian, uint8(value))
 }
