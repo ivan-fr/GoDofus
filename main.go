@@ -3,7 +3,9 @@ package main
 import (
 	"GoDofus/signer"
 	"GoDofus/socket"
+	"crypto/md5"
 	"flag"
+	"fmt"
 	"log"
 )
 
@@ -39,4 +41,7 @@ func main() {
 	if *launchClient {
 		socket.LaunchClientSocket()
 	}
+
+	p := md5.Sum([]byte("the---fear"))
+	fmt.Printf("%x\n", p)
 }
