@@ -4,6 +4,7 @@ import (
 	"GoDofus/utils"
 	"bytes"
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 )
 
@@ -29,9 +30,9 @@ func GetIdentificationNOA() *identification {
 
 func (id *identification) Serialize(buff *bytes.Buffer) {
 	var box uint32
-	box = utils.SetFlag(box, 1, id.AutoSelectServer)
-	box = utils.SetFlag(box, 2, id.UseCertificate)
-	box = utils.SetFlag(box, 3, id.UseLoginToken)
+	box = utils.SetFlag(box, 0, id.AutoSelectServer)
+	box = utils.SetFlag(box, 1, id.UseCertificate)
+	box = utils.SetFlag(box, 2, id.UseLoginToken)
 
 	_ = binary.Write(buff, binary.BigEndian, byte(box))
 	id.Version.Serialize(buff)
@@ -45,6 +46,9 @@ func (id *identification) Serialize(buff *bytes.Buffer) {
 	}
 
 	utils.WriteVarLong(buff, id.SessionOptionalSalt)
+
+	fmt.Println(hex.EncodeToString(buff.Bytes()))
+
 	_ = binary.Write(buff, binary.BigEndian, uint16(len(id.FailedAttempts)))
 
 	for i := 0; i < len(id.FailedAttempts); i++ {
