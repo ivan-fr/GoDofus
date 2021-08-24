@@ -39,7 +39,7 @@ func Signature() error {
 	}
 
 	for _, value := range stringArray {
-		utils.WriteUTF(buff, value)
+		utils.WriteUTF(buff, []byte(value))
 		if err != nil {
 			panic(err)
 		}
@@ -101,7 +101,7 @@ func getSignatureBuffer(byteToEncode []byte) *bytes.Buffer {
 	startString := "AKSF"
 
 	finalBuff := new(bytes.Buffer)
-	utils.WriteUTF(finalBuff, startString)
+	utils.WriteUTF(finalBuff, []byte(startString))
 	_ = binary.Write(finalBuff, binary.BigEndian, int16(1))
 	_ = binary.Write(finalBuff, binary.BigEndian, int32(len(signedData)))
 	_ = binary.Write(finalBuff, binary.BigEndian, signedData)

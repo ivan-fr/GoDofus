@@ -10,7 +10,7 @@ import (
 type identification struct {
 	packetId            uint32
 	Version             *version
-	Lang                string
+	Lang                []byte
 	Credentials         []byte
 	ServerId            uint16
 	AutoSelectServer    bool

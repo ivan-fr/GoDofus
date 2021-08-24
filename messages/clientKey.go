@@ -8,15 +8,16 @@ import (
 
 type clientKey struct {
 	packetId uint32
-	key      string
+	key      []byte
 }
 
 var cK = &clientKey{packetId: ClientKeyID}
-var uid = "a19fRCh9EAOvmumjSE"
+var uid = []byte("a19fRCh9EAOvmumjSE")
 
 func GetClientKeyNOA() *clientKey {
-	if cK.key == "" {
-		cK.key = uid + "#01"
+	if cK.key == nil {
+		cK.key = append(cK.key, uid...)
+		cK.key = append(cK.key, []byte("#01")...)
 	}
 	return cK
 }

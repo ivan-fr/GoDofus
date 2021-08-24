@@ -6,13 +6,12 @@ import (
 	"io"
 )
 
-func WriteUTF(buff *bytes.Buffer, value string) {
-	bytesValue := []byte(value)
-	_ = binary.Write(buff, binary.BigEndian, uint16(len(bytesValue)))
-	_ = binary.Write(buff, binary.BigEndian, bytesValue)
+func WriteUTF(buff *bytes.Buffer, value []byte) {
+	_ = binary.Write(buff, binary.BigEndian, uint16(len(value)))
+	_ = binary.Write(buff, binary.BigEndian, value)
 }
 
-func ReadUTF(reader *bytes.Reader) string {
+func ReadUTF(reader *bytes.Reader) []byte {
 	var length uint16
 	err := binary.Read(reader, binary.BigEndian, &length)
 	if err != nil {
@@ -25,5 +24,5 @@ func ReadUTF(reader *bytes.Reader) string {
 		panic(err)
 	}
 
-	return string(bytesString)
+	return bytesString
 }

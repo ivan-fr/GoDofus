@@ -9,7 +9,7 @@ import (
 type trustCertificate struct {
 	PacketId uint32
 	id       uint32
-	hash     string
+	hash     []byte
 }
 
 var tCertif = &trustCertificate{PacketId: TrustCertificateID}

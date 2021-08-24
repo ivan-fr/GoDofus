@@ -8,7 +8,7 @@ import (
 
 type protocol struct {
 	packetId uint32
-	Version  string
+	Version  []byte
 }
 
 var proto = &protocol{packetId: ProtocolID}

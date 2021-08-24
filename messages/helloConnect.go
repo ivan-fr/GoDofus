@@ -9,7 +9,7 @@ import (
 
 type helloConnect struct {
 	PacketId uint32
-	Salt     string
+	Salt     []byte
 	Key      []byte
 }
 
