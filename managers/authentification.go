@@ -4,12 +4,16 @@ import (
 	"GoDofus/messages"
 	"GoDofus/structs"
 	"bytes"
+	cryptoRand "crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/binary"
+	"encoding/pem"
 	"fmt"
+	"math/big"
 	"math/rand"
 	"os"
-	"os/exec"
 	"time"
 )
 
@@ -25,12 +29,61 @@ type authentification struct {
 	AESKey    []byte
 	lA        *loginAction
 	lang      []byte
-	publicKey []byte
+	publicKey *rsa.PublicKey
 	salt      []byte
 }
 
 var authenticate_ = &authentification{AESKey: generateAESKey(), lang: []byte("fr")}
 var AESLength = uint(32)
+
+var publicVerifyPem = readVerify()
+var blockVerify = decodeVerifyPem()
+var publicKeyVerify = theVerifyPublicKey()
+
+func RSA_public_decrypt(pubKey *rsa.PublicKey, data []byte) []byte {
+	c := new(big.Int)
+	m := new(big.Int)
+	m.SetBytes(data)
+	e := big.NewInt(int64(pubKey.E))
+	c.Exp(m, e, pubKey.N)
+	out := c.Bytes()
+	skip := 0
+	for i := 2; i < len(out); i++ {
+		if i+1 >= len(out) {
+			break
+		}
+		if out[i] == 0xff && out[i+1] == 0 {
+			skip = i + 2
+			break
+		}
+	}
+	return out[skip:]
+}
+
+func readVerify() []byte {
+	publicVerifyPem, err := os.ReadFile("./binaryData/verify_key.bin")
+	if err != nil {
+		panic(err)
+	}
+	return publicVerifyPem
+}
+
+func decodeVerifyPem() *pem.Block {
+	var blockVerify, _ = pem.Decode(publicVerifyPem)
+	if blockVerify == nil {
+		panic("block empty")
+	}
+	return blockVerify
+}
+
+func theVerifyPublicKey() *rsa.PublicKey {
+	publicKeyVerify, err := x509.ParsePKIXPublicKey(blockVerify.Bytes)
+	if err != nil {
+		panic(err)
+	}
+	p := publicKeyVerify.(*rsa.PublicKey)
+	return p
+}
 
 func GetAuthentification() *authentification {
 	return authenticate_
@@ -54,14 +107,7 @@ func (a *authentification) getCipher() []byte {
 	_ = binary.Write(buff, binary.BigEndian, []byte(a.lA.username))
 	_ = binary.Write(buff, binary.BigEndian, []byte(a.lA.password))
 
-	_ = os.WriteFile("./sign/cipher.bin", buff.Bytes(), 0644)
-
-	fmt.Println(len(mySalt))
-	a.getPublicKey()
-
-	args := []string{"rsautl", "-encrypt", "-inkey", `C:/Users/Ivan/IdeaProjects/GoDofus/sign/publicKeyFromHello.pem`,
-		"-pubin", "-in", `C:/Users/Ivan/IdeaProjects/GoDofus/sign/cipher.bin`}
-	credentials, err := exec.Command("openssl", args...).Output()
+	credentials, err := rsa.EncryptPKCS1v15(cryptoRand.Reader, a.getPublicKey(), buff.Bytes())
 	if err != nil {
 		panic(err)
 	}
@@ -84,29 +130,31 @@ func (a *authentification) InitIdentificationMessage() {
 	identification.Credentials = a.getCipher()
 }
 
-func (a *authentification) getPublicKey() {
+func (a *authentification) getPublicKey() *rsa.PublicKey {
 	hc := messages.GetHelloConnectNOA()
 
-	if a.publicKey != nil && 0 == bytes.Compare(hc.Salt, a.salt) {
-		return
+	if a.publicKey != nil && bytes.Compare(hc.Salt, a.salt) == 0 {
+		return a.publicKey
 	}
 
 	if hc.Key == nil {
 		panic("helloMessage wasn't call")
 	}
 
-	_ = os.WriteFile("./sign/keyFromHello.pem", hc.Key, 0644)
-	args := []string{"rsautl", "-verify", "-inkey", `C:/Users/Ivan/IdeaProjects/GoDofus/binaryData/verify_key.bin`,
-		"-pubin", "-in", `C:/Users/Ivan/IdeaProjects/GoDofus/sign/keyFromHello.pem`}
-	out, err := exec.Command("openssl", args...).Output()
+	publicKey := RSA_public_decrypt(publicKeyVerify, hc.Key)
+
+	pki := fmt.Sprintf("-----BEGIN PUBLIC KEY-----\n%s\n-----END PUBLIC KEY-----",
+		base64.StdEncoding.EncodeToString(publicKey))
+
+	publicKeyPem, _ := pem.Decode([]byte(pki))
+
+	pkiX, err := x509.ParsePKIXPublicKey(publicKeyPem.Bytes)
 	if err != nil {
 		panic(err)
 	}
 
-	a.publicKey = []byte(fmt.Sprintf("-----BEGIN PUBLIC KEY-----\n%s\n-----END PUBLIC KEY-----",
-		base64.StdEncoding.EncodeToString(out)))
-
-	_ = os.WriteFile("./sign/publicKeyFromHello.pem", a.publicKey, 0644)
+	a.publicKey = pkiX.(*rsa.PublicKey)
+	return a.publicKey
 }
 
 func (a *authentification) getSalt() []byte {

@@ -4,7 +4,6 @@ import (
 	"GoDofus/utils"
 	"bytes"
 	"encoding/binary"
-	"encoding/hex"
 	"fmt"
 )
 
@@ -46,8 +45,6 @@ func (id *identification) Serialize(buff *bytes.Buffer) {
 	}
 
 	utils.WriteVarLong(buff, id.SessionOptionalSalt)
-
-	fmt.Println(hex.EncodeToString(buff.Bytes()))
 
 	_ = binary.Write(buff, binary.BigEndian, uint16(len(id.FailedAttempts)))
 

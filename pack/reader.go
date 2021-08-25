@@ -12,6 +12,7 @@ type weft struct {
 	instanceID uint32
 	Length     uint32
 	Message    []byte
+	waitLength bool
 }
 
 type lastSignal struct {
@@ -143,7 +144,7 @@ func readHeaderTwoFirstBytes(reader *bytes.Reader) bool {
 	packetId := twoBytes >> 2
 	lengthType := twoBytes & 0b11
 
-	lastWeft = &weft{PackId: packetId, LengthType: lengthType}
+	lastWeft = &weft{PackId: packetId, LengthType: lengthType, waitLength: true}
 	return true
 }
 
@@ -165,10 +166,6 @@ func readHeaderLength(reader *bytes.Reader) bool {
 		panic("incoherence last weft can't be nil")
 	}
 
-	if lastWeft.LengthType == 0 {
-		panic("incoherence last weft can't have length type equals zero")
-	}
-
 	ok := tryRead(reader, headerLength, uint(lastWeft.LengthType))
 
 	if !ok {
@@ -187,10 +184,13 @@ func readHeaderLength(reader *bytes.Reader) bool {
 		lastWeft.Length = uint32(binary.BigEndian.Uint16(lSignal.containForType))
 	case 1:
 		lastWeft.Length = uint32(lSignal.containForType[0])
+	case 0:
+		lastWeft.Length = 0
 	default:
 		panic("wrong length type")
 	}
 
+	lastWeft.waitLength = false
 	return true
 }
 
@@ -289,7 +289,7 @@ func Read(bytesPack []byte) bool {
 			newBytePack := lSignal.containNoType
 			lSignal.update(0, noType, nil, nil)
 			return Read(newBytePack)
-		case lastWeft.Length == 0:
+		case lastWeft.waitLength:
 			reader := bytes.NewReader(bytesPack)
 			ok := readHeaderLength(reader)
 			if !ok {
