@@ -15,4 +15,5 @@ const (
 	SelectedServerDataID                = 1568
 	gameServerInformationID             = 920
 	IdentificationSuccessID             = 7272
+	HelloGameID                         = 5556
 )

@@ -14,9 +14,9 @@ import (
 type selectedServerData struct {
 	PacketId              uint32
 	serverId              uint32
-	address               []byte
+	Address               []byte
 	portsLen              uint16
-	ports                 []int32
+	Ports                 []int32
 	canCreateNewCharacter bool
 	ticket                []byte
 }
@@ -33,11 +33,11 @@ func (s *selectedServerData) Serialize(buff *bytes.Buffer) {
 
 func (s *selectedServerData) Deserialize(reader *bytes.Reader) {
 	s.serverId = uint32(utils.ReadVarInt16(reader))
-	s.address = utils.ReadUTF(reader)
+	s.Address = utils.ReadUTF(reader)
 	_ = binary.Read(reader, binary.BigEndian, &s.portsLen)
 
 	for i := uint16(0); i < s.portsLen; i++ {
-		s.ports = append(s.ports, utils.ReadVarInt16(reader))
+		s.Ports = append(s.Ports, utils.ReadVarInt16(reader))
 	}
 	_ = binary.Read(reader, binary.BigEndian, &s.canCreateNewCharacter)
 
@@ -55,5 +55,5 @@ func (s *selectedServerData) GetPacketId() uint32 {
 }
 
 func (s *selectedServerData) String() string {
-	return fmt.Sprintf("PacketId: %d\nAddress: %s\nports: %v", s.PacketId, string(s.address), s.ports)
+	return fmt.Sprintf("PacketId: %d\nAddress: %s\nports: %v", s.PacketId, string(s.Address), s.Ports)
 }

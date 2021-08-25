@@ -11,8 +11,8 @@ import (
 
 type selectedServerDataExtended struct {
 	PacketId uint32
-	sSD      *selectedServerData
-	gSI      []*gameServerInformations
+	SSD      *selectedServerData
+	GSI      []*gameServerInformations
 }
 
 var selectedServerDataExtended_ = &selectedServerDataExtended{PacketId: SelectedServerDataExtendedID}
@@ -26,14 +26,14 @@ func (s *selectedServerDataExtended) Serialize(buff *bytes.Buffer) {
 }
 
 func (s *selectedServerDataExtended) Deserialize(reader *bytes.Reader) {
-	s.sSD = new(selectedServerData)
-	s.sSD.Deserialize(reader)
+	s.SSD = new(selectedServerData)
+	s.SSD.Deserialize(reader)
 
 	var serverLen uint16
 	for i := uint16(0); i < serverLen; i++ {
 		var gSI = new(gameServerInformations)
 		gSI.Deserialize(reader)
-		s.gSI = append(s.gSI, gSI)
+		s.GSI = append(s.GSI, gSI)
 	}
 }
 
@@ -42,5 +42,5 @@ func (s *selectedServerDataExtended) GetPacketId() uint32 {
 }
 
 func (s *selectedServerDataExtended) String() string {
-	return fmt.Sprintf("PacketId: %d\nSelectedServerData: %v\ngameServerInformations: %v\n", s.PacketId, s.sSD, s.gSI)
+	return fmt.Sprintf("PacketId: %d\nSelectedServerData: %v\ngameServerInformations: %v\n", s.PacketId, s.SSD, s.GSI)
 }

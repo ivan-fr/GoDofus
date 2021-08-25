@@ -39,6 +39,8 @@ func main() {
 	}
 
 	if *launchClient {
+		sockets.Callback = sockets.HandlingAuth
+		sockets.Address = "52.17.231.202:5555"
 		sockets.LaunchClientSocket()
 	}
 

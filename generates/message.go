@@ -42,7 +42,7 @@ func ({{.FistLetter}} *{{.Name}}) GetPacketId() uint32 {
 }
 
 func ({{.FistLetter}} *{{.Name}}) String() string {
-	return fmt.Sprintf("packetId: %d\n", {{ .FistLetter }}.packetId)
+	return fmt.Sprintf("packetId: %d\n", {{ .FistLetter }}.PacketId)
 }
 `))
 

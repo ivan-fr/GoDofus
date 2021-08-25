@@ -13,8 +13,34 @@ import (
 )
 
 var conn net.Conn
+var stop bool
+var Callback func([]byte, int)
+var Address string
+var currentAddress string
 
-func handling(lecture []byte, n int) {
+func handlingGame(lecture []byte, n int) {
+	fmt.Printf("%d octets reçu\n", n)
+
+	ok := pack.Read(lecture[:n])
+
+	if ok {
+		pipe := pack.GetPipeline()
+		for weft := pipe.Get(); weft != nil; weft = pipe.Get() {
+			switch weft.PackId {
+			case messages.ProtocolID:
+				protocol := messages.GetProtocolNOA()
+				protocol.Deserialize(bytes.NewReader(weft.Message))
+				fmt.Println(protocol)
+			default:
+				fmt.Printf("there is no traitment for %d ID\n", weft.PackId)
+			}
+		}
+	} else {
+		fmt.Println("paquet incomplet")
+	}
+}
+
+func HandlingAuth(lecture []byte, n int) {
 	fmt.Printf("%d octets reçu\n", n)
 
 	ok := pack.Read(lecture[:n])
@@ -66,6 +92,9 @@ func handling(lecture []byte, n int) {
 				msg := messages.GetSelectedServerDataExtendedNOA()
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)
+				stop = true
+				Address = fmt.Sprintf("%s:%d", msg.SSD.Address, msg.SSD.Ports[0])
+				Callback = handlingGame
 			case messages.CredentialsAcknowledgementID:
 				msg := messages.GetCredentialsAcknowledgementNOA()
 				msg.Deserialize(bytes.NewReader(weft.Message))
@@ -85,18 +114,24 @@ func LaunchClientSocket() {
 	defer cancel()
 
 	var err error
-	conn, err = d.DialContext(ctx, "tcp", "52.17.231.202:5555")
+	conn, err = d.DialContext(ctx, "tcp", Address)
 	if err != nil {
 		log.Fatalf("Failed to dial: %v", err)
 	} else {
 		log.Println("La connexion au serveur d'authentification est réussie.")
 	}
+	currentAddress = Address
+	stop = false
+
 	defer func(conn_ net.Conn) {
 		err := conn.Close()
 		if err != nil {
 			log.Fatal(err)
 		}
 		conn = nil
+		if Address != currentAddress {
+			LaunchClientSocket()
+		}
 	}(conn)
 
 	for {
@@ -107,10 +142,14 @@ func LaunchClientSocket() {
 			log.Fatal(err)
 		}
 
+		if stop {
+			break
+		}
+
 		if n == 0 {
 			continue
 		}
 
-		handling(lecture, n)
+		Callback(lecture, n)
 	}
 }
