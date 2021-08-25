@@ -25,7 +25,7 @@ type identificationSuccess struct {
 	accountCreation             float64
 	subscriptionElapsedDuration float64
 	subscriptionEndDate         float64
-	havenbagAvailableRoom       uint16
+	havenbagAvailableRoom       uint8
 }
 
 var identificationSuccess_ = &identificationSuccess{PacketId: IdentificationSuccessID}
@@ -67,5 +67,5 @@ func (i *identificationSuccess) GetPacketId() uint32 {
 }
 
 func (i *identificationSuccess) String() string {
-	return fmt.Sprintf("PacketId: %d\n", i.PacketId)
+	return fmt.Sprintf("PacketId: %d\nHavenbagAvailableRoom: %d\n", i.PacketId, i.havenbagAvailableRoom)
 }
