@@ -4,6 +4,7 @@ import (
 	"GoDofus/messages"
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"math"
 )
 
@@ -54,5 +55,7 @@ func Write(message messages.Message) []byte {
 	}
 
 	_ = binary.Write(buff, binary.BigEndian, messageContent)
+
+	fmt.Println("Ecriture vers le serveurs...")
 	return buff.Bytes()
 }

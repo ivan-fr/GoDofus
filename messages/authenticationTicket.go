@@ -5,26 +5,53 @@
 package messages
 
 import (
+	"GoDofus/managers"
 	"GoDofus/utils"
 	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
 	"fmt"
 )
 
 type authenticationTicket struct {
 	PacketId uint32
+	mAuth    *managers.Authentification
 }
 
 var authenticationTicket_ = &authenticationTicket{PacketId: AuthenticationTicketID}
 
-func GetAuthenticationTicketNOA() *authenticationTicket {
+func GetAuthenticationTicketNOA(mAuth *managers.Authentification) *authenticationTicket {
+	if authenticationTicket_.mAuth == nil {
+		authenticationTicket_.mAuth = mAuth
+	}
+
 	return authenticationTicket_
 }
 
 func (a *authenticationTicket) Serialize(buff *bytes.Buffer) {
 	id := GetIdentificationNOA()
 	sSD := GetSelectedServerDataExtendedNOA().SSD
+	aesKey := a.mAuth.AESKey
+
+	block, err := aes.NewCipher(aesKey)
+	if err != nil {
+		panic(err)
+	}
+
+	if len(sSD.ticket) < aes.BlockSize {
+		panic("ciphertext too short")
+	}
+	iv := sSD.ticket[:aes.BlockSize]
+	ciphertext := sSD.ticket[aes.BlockSize:]
+
+	if len(ciphertext)%aes.BlockSize != 0 {
+		panic("ciphertext is not a multiple of the block size")
+	}
+	mode := cipher.NewCBCDecrypter(block, iv)
+	mode.CryptBlocks(ciphertext, ciphertext)
+
 	utils.WriteUTF(buff, id.Lang)
-	utils.WriteUTF(buff, sSD.ticket)
+	utils.WriteUTF(buff, ciphertext)
 }
 
 func (a *authenticationTicket) Deserialize(reader *bytes.Reader) {

@@ -46,7 +46,7 @@ type loginAction struct {
 	host             string
 }
 
-type authentification struct {
+type Authentification struct {
 	AESKey    []byte
 	lA        *loginAction
 	lang      []byte
@@ -54,7 +54,7 @@ type authentification struct {
 	salt      []byte
 }
 
-var authenticate_ = &authentification{AESKey: generateAESKey(), lang: []byte("fr")}
+var authenticate_ = &Authentification{AESKey: generateAESKey(), lang: []byte("fr")}
 var AESLength = uint(32)
 
 var myLogin_ = getConf()
@@ -62,11 +62,11 @@ var publicVerifyPem = utils.ReadRSA("./binaryData/verify_key.bin")
 var blockVerify = utils.DecodePem(publicVerifyPem)
 var publicKeyVerify = utils.PublicKeyOf(blockVerify)
 
-func GetAuthentification() *authentification {
+func GetAuthentification() *Authentification {
 	return authenticate_
 }
 
-func (a *authentification) initLoginAction() {
+func (a *Authentification) initLoginAction() {
 	la := &loginAction{autoSelectServer: true}
 	la.username = myLogin_.Ndc
 	la.password = myLogin_.Pass
@@ -75,7 +75,7 @@ func (a *authentification) initLoginAction() {
 	time.Sleep(time.Second * randomTime)
 }
 
-func (a *authentification) getCipher() []byte {
+func (a *Authentification) getCipher() []byte {
 	buff := new(bytes.Buffer)
 	mySalt := a.getSalt()
 	_ = binary.Write(buff, binary.BigEndian, []byte(mySalt))
@@ -91,7 +91,7 @@ func (a *authentification) getCipher() []byte {
 	return credentials
 }
 
-func (a *authentification) InitIdentificationMessage() {
+func (a *Authentification) InitIdentificationMessage() {
 	a.initLoginAction()
 	identification := messages.GetIdentificationNOA()
 	identification.Lang = a.lang
@@ -107,7 +107,7 @@ func (a *authentification) InitIdentificationMessage() {
 	identification.Credentials = a.getCipher()
 }
 
-func (a *authentification) getPublicKey() *rsa.PublicKey {
+func (a *Authentification) getPublicKey() *rsa.PublicKey {
 	hc := messages.GetHelloConnectNOA()
 
 	if a.publicKey != nil && bytes.Compare(hc.Salt, a.salt) == 0 {
@@ -134,7 +134,7 @@ func (a *authentification) getPublicKey() *rsa.PublicKey {
 	return a.publicKey
 }
 
-func (a *authentification) getSalt() []byte {
+func (a *Authentification) getSalt() []byte {
 	hc := messages.GetHelloConnectNOA()
 	if hc.Salt == nil {
 		panic("helloMessage wasn't call")
