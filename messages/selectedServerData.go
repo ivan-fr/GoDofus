@@ -55,5 +55,5 @@ func (s *selectedServerData) GetPacketId() uint32 {
 }
 
 func (s *selectedServerData) String() string {
-	return fmt.Sprintf("PacketId: %d\n", s.PacketId)
+	return fmt.Sprintf("PacketId: %d\nAddress: %s\n", s.PacketId, string(s.address))
 }

@@ -42,5 +42,5 @@ func (s *selectedServerDataExtended) GetPacketId() uint32 {
 }
 
 func (s *selectedServerDataExtended) String() string {
-	return fmt.Sprintf("PacketId: %d\n", s.PacketId)
+	return fmt.Sprintf("PacketId: %d\nSelectedServerData: %v\ngameServerInformations: %v\n", s.PacketId, s.sSD, s.gSI)
 }

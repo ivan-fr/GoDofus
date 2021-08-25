@@ -47,25 +47,29 @@ func handling(lecture []byte, n int) {
 				protocol.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(protocol)
 			case messages.IdentificationFailedForBadVersionID:
-				idf := messages.GetIdentificationFailedForBadVersionNOA()
-				idf.Deserialize(bytes.NewReader(weft.Message))
-				fmt.Println(idf)
+				msg := messages.GetIdentificationFailedForBadVersionNOA()
+				msg.Deserialize(bytes.NewReader(weft.Message))
+				fmt.Println(msg)
 			case messages.IdentificationFailedID:
-				idf := messages.GetIdentificationFailedNOA()
-				idf.Deserialize(bytes.NewReader(weft.Message))
-				fmt.Println(idf)
+				msg := messages.GetIdentificationFailedNOA()
+				msg.Deserialize(bytes.NewReader(weft.Message))
+				fmt.Println(msg)
 			case messages.LoginQueueID:
-				idf := messages.GetLoginQueueStatusNOA()
-				idf.Deserialize(bytes.NewReader(weft.Message))
-				fmt.Println(idf)
+				msg := messages.GetLoginQueueStatusNOA()
+				msg.Deserialize(bytes.NewReader(weft.Message))
+				fmt.Println(msg)
 			case messages.IdentificationSuccessID:
-				idf := messages.GetIdentificationSuccessNOA()
-				idf.Deserialize(bytes.NewReader(weft.Message))
-				fmt.Println(idf)
+				msg := messages.GetIdentificationSuccessNOA()
+				msg.Deserialize(bytes.NewReader(weft.Message))
+				fmt.Println(msg)
 			case messages.SelectedServerDataExtendedID:
-				idf := messages.GetSelectedServerDataExtendedNOA()
-				idf.Deserialize(bytes.NewReader(weft.Message))
-				fmt.Println(idf)
+				msg := messages.GetSelectedServerDataExtendedNOA()
+				msg.Deserialize(bytes.NewReader(weft.Message))
+				fmt.Println(msg)
+			case messages.CredentialsAcknowledgementID:
+				msg := messages.GetCredentialsAcknowledgementNOA()
+				msg.Deserialize(bytes.NewReader(weft.Message))
+				fmt.Println(msg)
 			default:
 				fmt.Printf("there is no traitment for %d ID\n", weft.PackId)
 			}
