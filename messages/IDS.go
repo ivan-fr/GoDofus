@@ -16,4 +16,6 @@ const (
 	gameServerInformationID             = 920
 	IdentificationSuccessID             = 7272
 	HelloGameID                         = 5556
+	RawDataID                           = 6253
+	CheckIntegrity                      = 5541
 )

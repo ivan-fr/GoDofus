@@ -64,7 +64,7 @@ func (id *identification) Deserialize(reader *bytes.Reader) {
 
 	credLen := utils.ReadVarInt32(reader)
 	id.Credentials = make([]byte, credLen)
-	_ = binary.Read(reader, binary.BigEndian, &id.Credentials)
+	_ = binary.Read(reader, binary.BigEndian, id.Credentials)
 
 	_ = binary.Read(reader, binary.BigEndian, &id.ServerId)
 
