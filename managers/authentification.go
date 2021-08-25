@@ -78,7 +78,7 @@ func (a *Authentification) initLoginAction() {
 func (a *Authentification) getCipher() []byte {
 	buff := new(bytes.Buffer)
 	mySalt := a.getSalt()
-	_ = binary.Write(buff, binary.BigEndian, []byte(mySalt))
+	_ = binary.Write(buff, binary.BigEndian, mySalt)
 	_ = binary.Write(buff, binary.BigEndian, a.AESKey)
 	_ = binary.Write(buff, binary.BigEndian, byte(len(a.lA.username)))
 	_ = binary.Write(buff, binary.BigEndian, []byte(a.lA.username))
@@ -94,6 +94,7 @@ func (a *Authentification) getCipher() []byte {
 func (a *Authentification) InitIdentificationMessage() {
 	a.initLoginAction()
 	identification := messages.GetIdentificationNOA()
+	identification.AesKEY_ = a.AESKey
 	identification.Lang = a.lang
 	identification.AutoSelectServer = a.lA.autoSelectServer
 

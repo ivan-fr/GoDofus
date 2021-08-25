@@ -5,7 +5,6 @@
 package messages
 
 import (
-	"GoDofus/managers"
 	"GoDofus/utils"
 	"bytes"
 	"crypto/aes"
@@ -15,23 +14,18 @@ import (
 
 type authenticationTicket struct {
 	PacketId uint32
-	mAuth    *managers.Authentification
 }
 
 var authenticationTicket_ = &authenticationTicket{PacketId: AuthenticationTicketID}
 
-func GetAuthenticationTicketNOA(mAuth *managers.Authentification) *authenticationTicket {
-	if authenticationTicket_.mAuth == nil {
-		authenticationTicket_.mAuth = mAuth
-	}
-
+func GetAuthenticationTicketNOA() *authenticationTicket {
 	return authenticationTicket_
 }
 
 func (a *authenticationTicket) Serialize(buff *bytes.Buffer) {
 	id := GetIdentificationNOA()
 	sSD := GetSelectedServerDataExtendedNOA().SSD
-	aesKey := a.mAuth.AESKey
+	aesKey := GetIdentificationNOA().AesKEY_
 
 	block, err := aes.NewCipher(aesKey)
 	if err != nil {

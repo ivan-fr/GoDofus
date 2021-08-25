@@ -32,7 +32,7 @@ func handlingGame(lecture []byte, n int) {
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)
 				time.Sleep(time.Millisecond * 150)
-				msg2 := messages.GetAuthenticationTicketNOA(managers.GetAuthentification())
+				msg2 := messages.GetAuthenticationTicketNOA()
 				_, err := conn.Write(pack.Write(msg2))
 				if err != nil {
 					panic(err)
