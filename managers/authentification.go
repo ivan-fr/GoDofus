@@ -3,6 +3,7 @@ package managers
 import (
 	"GoDofus/messages"
 	"GoDofus/structs"
+	"GoDofus/utils"
 	"bytes"
 	cryptoRand "crypto/rand"
 	"crypto/rsa"
@@ -12,7 +13,6 @@ import (
 	"encoding/pem"
 	"fmt"
 	"gopkg.in/yaml.v2"
-	"math/big"
 	"math/rand"
 	"os"
 	"time"
@@ -58,54 +58,9 @@ var authenticate_ = &authentification{AESKey: generateAESKey(), lang: []byte("fr
 var AESLength = uint(32)
 
 var myLogin_ = getConf()
-var publicVerifyPem = readVerify()
-var blockVerify = decodeVerifyPem()
-var publicKeyVerify = theVerifyPublicKey()
-
-func rsaPublicDecrypt(pubKey *rsa.PublicKey, data []byte) []byte {
-	c := new(big.Int)
-	m := new(big.Int)
-	m.SetBytes(data)
-	e := big.NewInt(int64(pubKey.E))
-	c.Exp(m, e, pubKey.N)
-	out := c.Bytes()
-	skip := 0
-	for i := 2; i < len(out); i++ {
-		if i+1 >= len(out) {
-			break
-		}
-		if out[i] == 0xff && out[i+1] == 0 {
-			skip = i + 2
-			break
-		}
-	}
-	return out[skip:]
-}
-
-func readVerify() []byte {
-	publicVerifyPem, err := os.ReadFile("./binaryData/verify_key.bin")
-	if err != nil {
-		panic(err)
-	}
-	return publicVerifyPem
-}
-
-func decodeVerifyPem() *pem.Block {
-	var blockVerify, _ = pem.Decode(publicVerifyPem)
-	if blockVerify == nil {
-		panic("block empty")
-	}
-	return blockVerify
-}
-
-func theVerifyPublicKey() *rsa.PublicKey {
-	publicKeyVerify, err := x509.ParsePKIXPublicKey(blockVerify.Bytes)
-	if err != nil {
-		panic(err)
-	}
-	p := publicKeyVerify.(*rsa.PublicKey)
-	return p
-}
+var publicVerifyPem = utils.ReadRSA("./binaryData/verify_key.bin")
+var blockVerify = utils.DecodePem(publicVerifyPem)
+var publicKeyVerify = utils.PublicKeyOf(blockVerify)
 
 func GetAuthentification() *authentification {
 	return authenticate_
@@ -163,7 +118,7 @@ func (a *authentification) getPublicKey() *rsa.PublicKey {
 		panic("helloMessage wasn't call")
 	}
 
-	publicKey := rsaPublicDecrypt(publicKeyVerify, hc.Key)
+	publicKey := utils.RsaPublicDecrypt(publicKeyVerify, hc.Key)
 
 	pki := fmt.Sprintf("-----BEGIN PUBLIC KEY-----\n%s\n-----END PUBLIC KEY-----",
 		base64.StdEncoding.EncodeToString(publicKey))

@@ -5,22 +5,28 @@
 package messages
 
 import (
+	"GoDofus/utils"
 	"bytes"
+	"encoding/binary"
 	"fmt"
 )
 
 type checkIntegrity struct {
 	PacketId uint32
+	data     []byte
 }
 
 var checkIntegrity_ = &checkIntegrity{PacketId: CheckIntegrity}
 
 func GetCheckIntegrityNOA() *checkIntegrity {
+	reader := bytes.NewReader(GetRawDataNOA().content)
+	checkIntegrity_.data = utils.DecryptV(reader)
 	return checkIntegrity_
 }
 
 func (c *checkIntegrity) Serialize(buff *bytes.Buffer) {
-
+	utils.WriteVarInt32(buff, int32(len(c.data)))
+	_ = binary.Write(buff, binary.BigEndian, c.data)
 }
 
 func (c *checkIntegrity) Deserialize(reader *bytes.Reader) {
