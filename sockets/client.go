@@ -5,20 +5,19 @@ import (
 	"GoDofus/messages"
 	"GoDofus/pack"
 	"bytes"
-	"context"
 	"fmt"
 	"log"
 	"net"
 	"time"
 )
 
-var conn net.Conn
+var conn *net.TCPConn
 var stop bool
 var Callback func([]byte, int)
 var Address string
 var currentAddress string
 
-func handlingGame(lecture []byte, n int) {
+func HandlingGame(lecture []byte, n int) {
 	fmt.Printf("%d octets reçu\n", n)
 
 	ok := pack.Read(lecture[:n])
@@ -31,16 +30,16 @@ func handlingGame(lecture []byte, n int) {
 				msg := messages.GetProtocolNOA()
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)
+			case messages.HelloGameID:
+				msg := messages.GetHelloGameNOA()
+				msg.Deserialize(bytes.NewReader(weft.Message))
+				fmt.Println(msg)
 				time.Sleep(time.Millisecond * 150)
 				msg2 := messages.GetAuthenticationTicketNOA()
 				_, err := conn.Write(pack.Write(msg2))
 				if err != nil {
 					panic(err)
 				}
-			case messages.HelloGameID:
-				msg := messages.GetHelloGameNOA()
-				msg.Deserialize(bytes.NewReader(weft.Message))
-				fmt.Println(msg)
 			case messages.RawDataID:
 				msg := messages.GetRawDataNOA()
 				msg.Deserialize(bytes.NewReader(weft.Message))
@@ -113,7 +112,7 @@ func HandlingAuth(lecture []byte, n int) {
 				fmt.Println(msg)
 				stop = true
 				Address = fmt.Sprintf("%s:%d", msg.SSD.Address, msg.SSD.Ports[0])
-				Callback = handlingGame
+				Callback = HandlingGame
 			case messages.CredentialsAcknowledgementID:
 				msg := messages.GetCredentialsAcknowledgementNOA()
 				msg.Deserialize(bytes.NewReader(weft.Message))
@@ -128,12 +127,9 @@ func HandlingAuth(lecture []byte, n int) {
 }
 
 func LaunchClientSocket() {
-	var d net.Dialer
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancel()
+	laddr, err := net.ResolveTCPAddr("tcp", Address)
+	conn, err = net.DialTCP("tcp", nil, laddr)
 
-	var err error
-	conn, err = d.DialContext(ctx, "tcp", Address)
 	if err != nil {
 		log.Fatalf("Failed to dial: %v", err)
 	} else {
@@ -153,12 +149,13 @@ func LaunchClientSocket() {
 		}
 	}(conn)
 
+	lecture := make([]byte, 256)
+
 	for {
 		if stop {
 			break
 		}
 
-		lecture := make([]byte, 1024)
 		n, err := conn.Read(lecture)
 
 		if err != nil {

@@ -91,11 +91,18 @@ func (lSignal *lastSignal) update(request int, typeRequest int, containForType [
 func commit() {
 	if lSignal.request >= 0 && lSignal.typeRequest == messageLength {
 		if lastWeft == nil {
-			panic("lastWeft must not be nil.")
+			return
+		}
+
+		if lastWeft.LengthType == 0 && lastWeft.waitLength {
+			lastWeft.waitLength = false
+			pipeline.append(lastWeft)
+			lastWeft = nil
+			return
 		}
 
 		if len(lastWeft.Message) > 0 {
-			panic("lastWeft wasn't purge.")
+			return
 		}
 
 		lastWeft.Message = lSignal.containForType
