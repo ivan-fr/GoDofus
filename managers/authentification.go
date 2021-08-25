@@ -11,11 +11,34 @@ import (
 	"encoding/binary"
 	"encoding/pem"
 	"fmt"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
+	"log"
 	"math/big"
 	"math/rand"
 	"os"
 	"time"
 )
+
+type myLogin struct {
+	ndc  string `yaml:"nomdecompte"`
+	pass string `yaml:"motdepasse"`
+}
+
+func getConf() *myLogin {
+	var login = &myLogin{}
+
+	yamlFile, err := ioutil.ReadFile("./login.yaml")
+	if err != nil {
+		log.Printf("yamlFile.Get err   #%v ", err)
+	}
+	err = yaml.Unmarshal(yamlFile, login)
+	if err != nil {
+		log.Fatalf("Unmarshal: %v", err)
+	}
+
+	return login
+}
 
 type loginAction struct {
 	username         string
@@ -36,11 +59,12 @@ type authentification struct {
 var authenticate_ = &authentification{AESKey: generateAESKey(), lang: []byte("fr")}
 var AESLength = uint(32)
 
+var myLogin_ = getConf()
 var publicVerifyPem = readVerify()
 var blockVerify = decodeVerifyPem()
 var publicKeyVerify = theVerifyPublicKey()
 
-func RSA_public_decrypt(pubKey *rsa.PublicKey, data []byte) []byte {
+func rsaPublicDecrypt(pubKey *rsa.PublicKey, data []byte) []byte {
 	c := new(big.Int)
 	m := new(big.Int)
 	m.SetBytes(data)
@@ -91,11 +115,11 @@ func GetAuthentification() *authentification {
 
 func (a *authentification) initLoginAction() {
 	la := &loginAction{autoSelectServer: true}
-	fmt.Println("Entre nom de compte :")
-	_, _ = fmt.Scanln(&la.username)
-	fmt.Println("Entre le mot de passe :")
-	_, _ = fmt.Scanln(&la.password)
+	la.username = myLogin_.ndc
+	la.password = myLogin_.pass
 	a.lA = la
+
+	time.Sleep(time.Second * 2)
 }
 
 func (a *authentification) getCipher() []byte {
@@ -141,7 +165,7 @@ func (a *authentification) getPublicKey() *rsa.PublicKey {
 		panic("helloMessage wasn't call")
 	}
 
-	publicKey := RSA_public_decrypt(publicKeyVerify, hc.Key)
+	publicKey := rsaPublicDecrypt(publicKeyVerify, hc.Key)
 
 	pki := fmt.Sprintf("-----BEGIN PUBLIC KEY-----\n%s\n-----END PUBLIC KEY-----",
 		base64.StdEncoding.EncodeToString(publicKey))

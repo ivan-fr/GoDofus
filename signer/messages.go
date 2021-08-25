@@ -20,10 +20,10 @@ import (
 )
 
 type {{ .Name }} struct {
-	packetId uint32
+	PacketId uint32
 }
 
-var {{ .Name }}_ = &{{ .Name }}{packetId: {{ .Id }}}
+var {{ .Name }}_ = &{{ .Name }}{PacketId: {{ .Id }}}
 
 func Get{{ .NameCapFirst }}NOA() *{{ .Name }} {
 	return {{ .Name }}_
@@ -35,6 +35,10 @@ func ({{.FistLetter}} *{{.Name}}) Serialize(buff *bytes.Buffer) {
 
 func ({{.FistLetter}} *{{.Name}}) Deserialize(reader *bytes.Reader) {
 
+}
+
+func ({{.FistLetter}} *{{.Name}}) GetPacketId() uint32 {
+	return {{ .FistLetter }}.PacketId
 }
 
 func ({{.FistLetter}} *{{.Name}}) String(reader *bytes.Reader) string {
