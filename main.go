@@ -39,8 +39,8 @@ func main() {
 	}
 
 	if *launchClient {
-		sockets.Callback = sockets.HandlingGame
-		sockets.Address = "ush.ankama-games.com:5555"
+		sockets.Callback = sockets.HandlingAuth
+		sockets.Address = "34.252.21.81:5555"
 		sockets.LaunchClientSocket()
 	}
 
