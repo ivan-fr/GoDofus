@@ -127,8 +127,8 @@ func HandlingAuth(lecture []byte, n int) {
 }
 
 func LaunchClientSocket() {
-	laddr, err := net.ResolveTCPAddr("tcp", Address)
-	conn, err = net.DialTCP("tcp", nil, laddr)
+	lAddr, err := net.ResolveTCPAddr("tcp", Address)
+	conn, err = net.DialTCP("tcp", nil, lAddr)
 
 	if err != nil {
 		log.Fatalf("Failed to dial: %v", err)
