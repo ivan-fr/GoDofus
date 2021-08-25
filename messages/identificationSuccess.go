@@ -25,7 +25,7 @@ type identificationSuccess struct {
 	accountCreation             float64
 	subscriptionElapsedDuration float64
 	subscriptionEndDate         float64
-	havenbagAvailableRoom       uint8
+	havenbagAvailableRoom       uint16
 }
 
 var identificationSuccess_ = &identificationSuccess{PacketId: IdentificationSuccessID}
