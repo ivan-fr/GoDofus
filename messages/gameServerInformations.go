@@ -54,6 +54,6 @@ func (g *gameServerInformations) GetPacketId() uint32 {
 	return g.PacketId
 }
 
-func (g *gameServerInformations) String(reader *bytes.Reader) string {
+func (g *gameServerInformations) String() string {
 	return fmt.Sprintf("PacketId: %d\n", g.PacketId)
 }

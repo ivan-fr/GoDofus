@@ -31,6 +31,6 @@ func (c *credentialsAcknowledgement) GetPacketId() uint32 {
 	return c.PacketId
 }
 
-func (c *credentialsAcknowledgement) String(reader *bytes.Reader) string {
+func (c *credentialsAcknowledgement) String() string {
 	return fmt.Sprintf("PacketId: %d\n", c.PacketId)
 }

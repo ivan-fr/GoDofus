@@ -35,6 +35,6 @@ func (l *loginQueueStatus) GetPacketId() uint32 {
 	return l.PacketId
 }
 
-func (l *loginQueueStatus) String(reader *bytes.Reader) string {
+func (l *loginQueueStatus) String() string {
 	return fmt.Sprintf("PacketId: %d\n", l.PacketId)
 }

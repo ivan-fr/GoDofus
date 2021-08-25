@@ -41,6 +41,6 @@ func (s *selectedServerDataExtended) GetPacketId() uint32 {
 	return s.PacketId
 }
 
-func (s *selectedServerDataExtended) String(reader *bytes.Reader) string {
+func (s *selectedServerDataExtended) String() string {
 	return fmt.Sprintf("PacketId: %d\n", s.PacketId)
 }

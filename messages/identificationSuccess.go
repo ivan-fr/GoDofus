@@ -66,6 +66,6 @@ func (i *identificationSuccess) GetPacketId() uint32 {
 	return i.PacketId
 }
 
-func (i *identificationSuccess) String(reader *bytes.Reader) string {
+func (i *identificationSuccess) String() string {
 	return fmt.Sprintf("PacketId: %d\n", i.PacketId)
 }

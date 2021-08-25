@@ -41,7 +41,7 @@ func ({{.FistLetter}} *{{.Name}}) GetPacketId() uint32 {
 	return {{ .FistLetter }}.PacketId
 }
 
-func ({{.FistLetter}} *{{.Name}}) String(reader *bytes.Reader) string {
+func ({{.FistLetter}} *{{.Name}}) String() string {
 	return fmt.Sprintf("packetId: %d\n", {{ .FistLetter }}.packetId)
 }
 `))
