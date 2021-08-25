@@ -21,6 +21,6 @@ func (f *identificationFailed) Deserialize(reader *bytes.Reader) {
 	_ = binary.Read(reader, binary.BigEndian, &f.Reason)
 }
 
-func (f *identificationFailed) String(reader *bytes.Reader) string {
+func (f *identificationFailed) String() string {
 	return fmt.Sprintf("REASEON %d\n", f.Reason)
 }
