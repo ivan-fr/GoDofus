@@ -7,11 +7,11 @@ import (
 )
 
 type identificationFailed struct {
-	packetId uint32
+	PacketId uint32
 	Reason   uint8
 }
 
-var idf = &identificationFailed{packetId: IdentificationFailedID}
+var idf = &identificationFailed{PacketId: IdentificationFailedID}
 
 func GetIdentificationFailedNOA() *identificationFailed {
 	return idf
@@ -19,6 +19,10 @@ func GetIdentificationFailedNOA() *identificationFailed {
 
 func (f *identificationFailed) Deserialize(reader *bytes.Reader) {
 	_ = binary.Read(reader, binary.BigEndian, &f.Reason)
+}
+
+func (f *identificationFailed) GetPacketId() uint32 {
+	return f.PacketId
 }
 
 func (f *identificationFailed) String() string {

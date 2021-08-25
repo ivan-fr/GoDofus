@@ -10,10 +10,10 @@ import (
 )
 
 type credentialsAcknowledgement struct {
-	packetId uint32
+	PacketId uint32
 }
 
-var credentialsAcknowledgement_ = &credentialsAcknowledgement{packetId: 5417}
+var credentialsAcknowledgement_ = &credentialsAcknowledgement{PacketId: CredentialsAcknowledgementID}
 
 func GetCredentialsAcknowledgementNOA() *credentialsAcknowledgement {
 	return credentialsAcknowledgement_
@@ -27,6 +27,10 @@ func (c *credentialsAcknowledgement) Deserialize(reader *bytes.Reader) {
 
 }
 
+func (c *credentialsAcknowledgement) GetPacketId() uint32 {
+	return c.PacketId
+}
+
 func (c *credentialsAcknowledgement) String(reader *bytes.Reader) string {
-	return fmt.Sprintf("packetId: %d\n", c.packetId)
+	return fmt.Sprintf("PacketId: %d\n", c.PacketId)
 }

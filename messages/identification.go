@@ -8,7 +8,7 @@ import (
 )
 
 type identification struct {
-	packetId            uint32
+	PacketId            uint32
 	Version             *version
 	Lang                []byte
 	Credentials         []byte
@@ -20,7 +20,7 @@ type identification struct {
 	FailedAttempts      []uint32
 }
 
-var idCation = &identification{packetId: IdentificationID, Version: new(version),
+var idCation = &identification{PacketId: IdentificationID, Version: new(version),
 	UseCertificate: false, UseLoginToken: false, ServerId: 0}
 
 func GetIdentificationNOA() *identification {
@@ -81,7 +81,11 @@ func (id *identification) Deserialize(reader *bytes.Reader) {
 	}
 }
 
+func (id *identification) GetPacketId() uint32 {
+	return id.PacketId
+}
+
 func (id *identification) String() string {
-	return fmt.Sprintf("packetId: %d\nVersion: %v\nidentification: ...\n\t%s\n\t%v\n\t%v\n\t%v\n\t%v\n\t%v\n",
-		id.packetId, id.Version, id.Lang, id.Credentials, id.SessionOptionalSalt, id.FailedAttempts, id.ServerId, len(id.Credentials))
+	return fmt.Sprintf("PacketId: %d\nVersion: %v\nidentification: ...\n\t%s\n\t%v\n\t%v\n\t%v\n\t%v\n\t%v\n",
+		id.PacketId, id.Version, id.Lang, id.Credentials, id.SessionOptionalSalt, id.FailedAttempts, id.ServerId, len(id.Credentials))
 }

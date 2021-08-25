@@ -27,3 +27,7 @@ func (t *trustCertificate) Deserialize(reader *bytes.Reader) {
 	_ = binary.Read(reader, binary.BigEndian, &t.id)
 	t.hash = utils.ReadUTF(reader)
 }
+
+func (t *trustCertificate) GetPacketId() uint32 {
+	return t.PacketId
+}

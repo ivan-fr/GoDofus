@@ -32,21 +32,15 @@ func handling(lecture []byte, n int) {
 				mAuth := managers.GetAuthentification()
 				mAuth.InitIdentificationMessage()
 
-				if conn != nil {
-					authMessage := messages.GetIdentificationNOA()
-					buff := new(bytes.Buffer)
-					authMessage.Serialize(buff)
-					_, err := conn.Write(pack.Write(messages.IdentificationID, buff.Bytes()))
-					if err != nil {
-						panic(err)
-					}
-					clientKey := messages.GetClientKeyNOA()
-					buff = new(bytes.Buffer)
-					clientKey.Serialize(buff)
-					_, err = conn.Write(pack.Write(messages.ClientKeyID, buff.Bytes()))
-					if err != nil {
-						panic(err)
-					}
+				authMessage := messages.GetIdentificationNOA()
+				_, err := conn.Write(pack.Write(authMessage))
+				if err != nil {
+					panic(err)
+				}
+				clientKey := messages.GetClientKeyNOA()
+				_, err = conn.Write(pack.Write(clientKey))
+				if err != nil {
+					panic(err)
 				}
 			case messages.ProtocolID:
 				protocol := messages.GetProtocolNOA()
@@ -58,6 +52,18 @@ func handling(lecture []byte, n int) {
 				fmt.Println(idf)
 			case messages.IdentificationFailedID:
 				idf := messages.GetIdentificationFailedNOA()
+				idf.Deserialize(bytes.NewReader(weft.Message))
+				fmt.Println(idf)
+			case messages.LoginQueueID:
+				idf := messages.GetLoginQueueStatusNOA()
+				idf.Deserialize(bytes.NewReader(weft.Message))
+				fmt.Println(idf)
+			case messages.IdentificationSuccessID:
+				idf := messages.GetIdentificationSuccessNOA()
+				idf.Deserialize(bytes.NewReader(weft.Message))
+				fmt.Println(idf)
+			case messages.SelectedServerDataExtendedID:
+				idf := messages.GetSelectedServerDataExtendedNOA()
 				idf.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(idf)
 			default:

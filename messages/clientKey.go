@@ -7,11 +7,11 @@ import (
 )
 
 type clientKey struct {
-	packetId uint32
+	PacketId uint32
 	key      []byte
 }
 
-var cK = &clientKey{packetId: ClientKeyID}
+var cK = &clientKey{PacketId: ClientKeyID}
 var uid = []byte("a19fRCh9EAOvmumjSE")
 
 func GetClientKeyNOA() *clientKey {
@@ -30,6 +30,10 @@ func (ck *clientKey) Deserialize(reader *bytes.Reader) {
 	ck.key = utils.ReadUTF(reader)
 }
 
+func (ck *clientKey) GetPacketId() uint32 {
+	return ck.PacketId
+}
+
 func (ck *clientKey) String() string {
-	return fmt.Sprintf("packetId: %d\nkey: %s\n", ck.packetId, ck.key)
+	return fmt.Sprintf("PacketId: %d\nkey: %s\n", ck.PacketId, ck.key)
 }

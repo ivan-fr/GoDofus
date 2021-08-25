@@ -32,6 +32,10 @@ func (h *helloConnect) Deserialize(reader *bytes.Reader) {
 	_ = binary.Read(reader, binary.BigEndian, &h.Key)
 }
 
+func (h *helloConnect) GetPacketId() uint32 {
+	return h.PacketId
+}
+
 func (h *helloConnect) String() string {
-	return fmt.Sprintf("packetId: %d\nSalt: %s\nKey: %v\nlength Key: %d\n", h.PacketId, h.Salt, h.Key, len(h.Key))
+	return fmt.Sprintf("PacketId: %d\nSalt: %s\nKey: %v\nlength Key: %d\n", h.PacketId, h.Salt, h.Key, len(h.Key))
 }

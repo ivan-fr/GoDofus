@@ -6,7 +6,7 @@ import (
 )
 
 type version struct {
-	packetId  uint32
+	PacketId  uint32
 	Major     uint8
 	Minor     uint8
 	Code      uint8
@@ -14,7 +14,7 @@ type version struct {
 	BuildType uint8
 }
 
-var ve = &version{packetId: VersionID}
+var ve = &version{PacketId: VersionID}
 
 func GetVersionNOA() *version {
 	return ve
@@ -34,4 +34,8 @@ func (v *version) Deserialize(reader *bytes.Reader) {
 	_ = binary.Read(reader, binary.BigEndian, &v.Code)
 	_ = binary.Read(reader, binary.BigEndian, &v.Build)
 	_ = binary.Read(reader, binary.BigEndian, &v.BuildType)
+}
+
+func (v *version) GetPacketId() uint32 {
+	return v.PacketId
 }
