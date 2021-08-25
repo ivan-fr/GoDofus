@@ -28,9 +28,28 @@ func handlingGame(lecture []byte, n int) {
 		for weft := pipe.Get(); weft != nil; weft = pipe.Get() {
 			switch weft.PackId {
 			case messages.ProtocolID:
-				protocol := messages.GetProtocolNOA()
-				protocol.Deserialize(bytes.NewReader(weft.Message))
-				fmt.Println(protocol)
+				msg := messages.GetProtocolNOA()
+				msg.Deserialize(bytes.NewReader(weft.Message))
+				fmt.Println(msg)
+			case messages.HelloGameID:
+				msg := messages.GetHelloGameNOA()
+				msg.Deserialize(bytes.NewReader(weft.Message))
+				fmt.Println(msg)
+				time.Sleep(time.Millisecond * 150)
+				msg2 := messages.GetAuthenticationTicketNOA()
+				_, err := conn.Write(pack.Write(msg2))
+				if err != nil {
+					panic(err)
+				}
+			case messages.RawDataID:
+				msg := messages.GetRawDataNOA()
+				msg.Deserialize(bytes.NewReader(weft.Message))
+				fmt.Println(msg)
+				msg2 := messages.GetCheckIntegrityNOA()
+				_, err := conn.Write(pack.Write(msg2))
+				if err != nil {
+					panic(err)
+				}
 			default:
 				fmt.Printf("there is no traitment for %d ID\n", weft.PackId)
 			}

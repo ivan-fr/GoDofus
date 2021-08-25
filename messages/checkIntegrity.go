@@ -16,7 +16,7 @@ type checkIntegrity struct {
 	data     []byte
 }
 
-var checkIntegrity_ = &checkIntegrity{PacketId: CheckIntegrity}
+var checkIntegrity_ = &checkIntegrity{PacketId: CheckIntegrityID}
 
 func GetCheckIntegrityNOA() *checkIntegrity {
 	reader := bytes.NewReader(GetRawDataNOA().content)

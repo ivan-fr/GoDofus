@@ -14,7 +14,7 @@ type authenticationTicket struct {
 	PacketId uint32
 }
 
-var authenticationTicket_ = &authenticationTicket{PacketId: 3920}
+var authenticationTicket_ = &authenticationTicket{PacketId: AuthenticationTicketID}
 
 func GetAuthenticationTicketNOA() *authenticationTicket {
 	return authenticationTicket_
