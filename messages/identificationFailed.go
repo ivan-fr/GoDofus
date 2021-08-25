@@ -26,5 +26,5 @@ func (f *identificationFailed) GetPacketId() uint32 {
 }
 
 func (f *identificationFailed) String() string {
-	return fmt.Sprintf("REASEON %d\n", f.Reason)
+	return fmt.Sprintf("Reason %d\n", f.Reason)
 }

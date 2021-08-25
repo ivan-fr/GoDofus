@@ -12,8 +12,6 @@ import (
 	"encoding/pem"
 	"fmt"
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
-	"log"
 	"math/big"
 	"math/rand"
 	"os"
@@ -21,20 +19,20 @@ import (
 )
 
 type myLogin struct {
-	ndc  string `yaml:"nomdecompte"`
-	pass string `yaml:"motdepasse"`
+	Ndc  string `yaml:"nomdecompte"`
+	Pass string `yaml:"motdepasse"`
 }
 
 func getConf() *myLogin {
 	var login = &myLogin{}
 
-	yamlFile, err := ioutil.ReadFile("./login.yaml")
+	yamlFile, err := os.ReadFile("./login.yaml")
 	if err != nil {
-		log.Printf("yamlFile.Get err   #%v ", err)
+		panic(err)
 	}
 	err = yaml.Unmarshal(yamlFile, login)
 	if err != nil {
-		log.Fatalf("Unmarshal: %v", err)
+		panic(err)
 	}
 
 	return login
@@ -115,11 +113,11 @@ func GetAuthentification() *authentification {
 
 func (a *authentification) initLoginAction() {
 	la := &loginAction{autoSelectServer: true}
-	la.username = myLogin_.ndc
-	la.password = myLogin_.pass
+	la.username = myLogin_.Ndc
+	la.password = myLogin_.Pass
 	a.lA = la
-
-	time.Sleep(time.Second * 2)
+	var randomTime = time.Duration(rand.Intn(2) + 2)
+	time.Sleep(time.Second * randomTime)
 }
 
 func (a *authentification) getCipher() []byte {

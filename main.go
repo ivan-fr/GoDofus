@@ -1,8 +1,8 @@
 package main
 
 import (
-	"GoDofus/signer"
-	"GoDofus/socket"
+	"GoDofus/generates"
+	"GoDofus/sockets"
 	"flag"
 	"log"
 )
@@ -18,7 +18,7 @@ func main() {
 	flag.Parse()
 
 	if *rsa_ {
-		err := signer.Signature()
+		err := generates.Signature()
 		if err != nil {
 			panic(err)
 		}
@@ -26,12 +26,12 @@ func main() {
 	}
 
 	if *hosts != "" {
-		signer.GenerateHostsSignature(*hosts)
+		generates.GenerateHostsSignature(*hosts)
 		log.Println("HOSTS généré.")
 	}
 
 	if *XMLSPath != "" {
-		err := signer.GenerateXMLSignature(*XMLSPath)
+		err := generates.GenerateXMLSignature(*XMLSPath)
 		if err != nil {
 			return
 		}
@@ -39,10 +39,10 @@ func main() {
 	}
 
 	if *launchClient {
-		socket.LaunchClientSocket()
+		sockets.LaunchClientSocket()
 	}
 
 	if *msgName != "" && *msgId != 0 {
-		signer.GenerateMessage(*msgName, uint32(*msgId))
+		generates.GenerateMessage(*msgName, uint32(*msgId))
 	}
 }
