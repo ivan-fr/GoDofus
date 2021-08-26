@@ -251,8 +251,6 @@ func LaunchServerSocket() {
 		break
 	}
 
-	_ = connListener.SetReadDeadline(time.Now().Add(time.Millisecond * 500))
-
 	for connListener != nil {
 	}
 
