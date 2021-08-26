@@ -12,7 +12,7 @@ import (
 )
 
 var conn *net.TCPConn
-var connListener net.Conn
+var connListener net.Conn = nil
 var stop bool
 var Callback func([]byte, int)
 var Address string
@@ -154,7 +154,7 @@ func HandlingAuth(lecture []byte, n int) {
 
 func LaunchServerSocket() {
 	if connListener != nil {
-		fmt.Println("un connexion listener est déjà active")
+		panic("un connexion listener est déjà active")
 	}
 
 	l, err := net.Listen("tcp", "127.0.0.1:443")
@@ -166,20 +166,20 @@ func LaunchServerSocket() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		LaunchServerSocket()
 	}(l)
 	for {
 		connListener, err = l.Accept()
 		if err != nil {
 			log.Fatal(err)
 		}
+		fmt.Println("Listener: connexion avec l'esclave angagé")
 		break
 	}
 
 	lecture := make([]byte, 1024)
 
 	for connListener != nil {
-		n, err := conn.Read(lecture)
+		n, err := connListener.Read(lecture)
 
 		if err != nil {
 			log.Fatal(err)
@@ -192,10 +192,7 @@ func LaunchServerSocket() {
 		handlingListener(lecture, n)
 	}
 
-	err = l.Close()
-	if err != nil {
-		panic(err)
-	}
+	fmt.Println("Listener: connexion avec l'esclave perdu.")
 }
 
 func LaunchClientSocket() {
@@ -230,6 +227,7 @@ func LaunchClientSocket() {
 			err := connListener.Close()
 			if err != nil {
 			}
+			connListener = nil
 		}
 	}(conn)
 
