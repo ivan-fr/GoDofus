@@ -29,6 +29,7 @@ func Write(message messages.Message) []byte {
 	message.Serialize(buffMsg)
 
 	messageContent := buffMsg.Bytes()
+
 	packetId := uint16(message.GetPacketId())
 
 	instanceId++
@@ -52,6 +53,8 @@ func Write(message messages.Message) []byte {
 		var low = uint16(uint32(len(messageContent)) & uint32(math.MaxUint16))
 		_ = binary.Write(buff, binary.BigEndian, high)
 		_ = binary.Write(buff, binary.BigEndian, low)
+	case 0:
+		return buff.Bytes()
 	}
 
 	_ = binary.Write(buff, binary.BigEndian, messageContent)
