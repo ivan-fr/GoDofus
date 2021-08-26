@@ -94,7 +94,10 @@ func (a *Authentification) getCipher() []byte {
 func (a *Authentification) InitIdentificationMessage() {
 	a.initLoginAction()
 	identification := messages.GetIdentificationNOA()
-	identification.AesKEY_ = a.AESKey
+
+	identification.AesKEY_ = make([]byte, len(a.AESKey))
+	copy(identification.AesKEY_, a.AESKey)
+
 	identification.Lang = a.lang
 	identification.AutoSelectServer = a.lA.autoSelectServer
 

@@ -89,7 +89,7 @@ func (lSignal *lastSignal) update(request int, typeRequest int, containForType [
 }
 
 func commit() {
-	if lSignal.request >= 0 && lSignal.typeRequest == messageLength {
+	if lSignal.request >= 0 {
 		if lastWeft == nil {
 			return
 		}
@@ -105,9 +105,11 @@ func commit() {
 			return
 		}
 
-		lastWeft.Message = lSignal.containForType
-		pipeline.append(lastWeft)
-		lastWeft = nil
+		if lSignal.typeRequest == messageLength {
+			lastWeft.Message = lSignal.containForType
+			pipeline.append(lastWeft)
+			lastWeft = nil
+		}
 	}
 }
 
@@ -184,9 +186,11 @@ func readHeaderLength(reader *bytes.Reader) bool {
 		var specialCaseReader = bytes.NewReader(lSignal.containForType)
 		var firstByte uint8
 		_ = binary.Read(specialCaseReader, binary.BigEndian, &firstByte)
-		var twoBytes uint16
-		_ = binary.Read(specialCaseReader, binary.BigEndian, &twoBytes)
-		lastWeft.Length = uint32(firstByte)<<16 | uint32(twoBytes)
+		var secondByte uint8
+		_ = binary.Read(specialCaseReader, binary.BigEndian, &secondByte)
+		var thirdByte uint8
+		_ = binary.Read(specialCaseReader, binary.BigEndian, &thirdByte)
+		lastWeft.Length = (uint32(firstByte) << 16) + (uint32(secondByte) << 8) + (uint32(thirdByte) & 255)
 	case 2:
 		lastWeft.Length = uint32(binary.BigEndian.Uint16(lSignal.containForType))
 	case 1:
@@ -275,6 +279,7 @@ func Read(bytesPack []byte) bool {
 	case noType:
 		switch {
 		case bytesPack == nil:
+			commit()
 			return true
 		case lastWeft == nil:
 			reader := bytes.NewReader(bytesPack)

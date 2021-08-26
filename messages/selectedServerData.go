@@ -42,12 +42,8 @@ func (s *selectedServerData) Deserialize(reader *bytes.Reader) {
 	_ = binary.Read(reader, binary.BigEndian, &s.canCreateNewCharacter)
 
 	lenght := utils.ReadVarInt32(reader)
-
-	for i := int32(0); i < lenght; i++ {
-		var b byte
-		_ = binary.Read(reader, binary.BigEndian, &b)
-		s.ticket = append(s.ticket, b)
-	}
+	s.ticket = make([]byte, lenght)
+	_ = binary.Read(reader, binary.BigEndian, s.ticket)
 }
 
 func (s *selectedServerData) GetPacketId() uint32 {

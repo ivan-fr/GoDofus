@@ -12,8 +12,9 @@ import (
 )
 
 type rawData struct {
-	PacketId uint32
-	content  []byte
+	PacketId   uint32
+	content    []byte
+	AlreadyRaw bool
 }
 
 var rawData_ = &rawData{PacketId: RawDataID}
@@ -23,13 +24,26 @@ func GetRawDataNOA() *rawData {
 }
 
 func (r *rawData) Serialize(buff *bytes.Buffer) {
+	utils.WriteVarInt32(buff, int32(len(r.content)))
+	_ = binary.Write(buff, binary.BigEndian, r.content)
 
+	if !r.AlreadyRaw {
+		AesKey_ := GetIdentificationNOA().AesKEY_
+		utils.WriteVarInt32(buff, int32(len(AesKey_)))
+		_ = binary.Write(buff, binary.BigEndian, AesKey_)
+
+		ticket := GetSelectedServerDataExtendedNOA().SSD.ticket
+		utils.WriteVarInt32(buff, int32(len(ticket)))
+		_ = binary.Write(buff, binary.BigEndian, ticket)
+	}
 }
 
 func (r *rawData) Deserialize(reader *bytes.Reader) {
 	contentLen := utils.ReadVarInt32(reader)
 	r.content = make([]byte, contentLen)
 	_ = binary.Read(reader, binary.BigEndian, r.content)
+	readerContent := bytes.NewReader(r.content)
+	r.content = utils.DecryptV(readerContent)
 }
 
 func (r *rawData) GetPacketId() uint32 {

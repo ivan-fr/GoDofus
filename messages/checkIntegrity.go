@@ -19,8 +19,6 @@ type checkIntegrity struct {
 var checkIntegrity_ = &checkIntegrity{PacketId: CheckIntegrityID}
 
 func GetCheckIntegrityNOA() *checkIntegrity {
-	reader := bytes.NewReader(GetRawDataNOA().content)
-	checkIntegrity_.data = utils.DecryptV(reader)
 	return checkIntegrity_
 }
 
@@ -30,7 +28,9 @@ func (c *checkIntegrity) Serialize(buff *bytes.Buffer) {
 }
 
 func (c *checkIntegrity) Deserialize(reader *bytes.Reader) {
-
+	len := utils.ReadVarInt32(reader)
+	c.data = make([]byte, len)
+	_ = binary.Read(reader, binary.BigEndian, c.data)
 }
 
 func (c *checkIntegrity) GetPacketId() uint32 {

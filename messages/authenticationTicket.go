@@ -24,7 +24,7 @@ func GetAuthenticationTicketNOA() *authenticationTicket {
 
 func (a *authenticationTicket) Serialize(buff *bytes.Buffer) {
 	id := GetIdentificationNOA()
-	sSD := GetSelectedServerDataExtendedNOA().SSD
+	ticket := GetSelectedServerDataExtendedNOA().SSD.ticket
 	aesKey := GetIdentificationNOA().AesKEY_
 
 	block, err := aes.NewCipher(aesKey)
@@ -32,20 +32,20 @@ func (a *authenticationTicket) Serialize(buff *bytes.Buffer) {
 		panic(err)
 	}
 
-	if len(sSD.ticket) < aes.BlockSize {
+	if len(ticket) < aes.BlockSize {
 		panic("ciphertext too short")
 	}
-	iv := sSD.ticket[:aes.BlockSize]
-	ciphertext := sSD.ticket[aes.BlockSize:]
+	iv := aesKey[:aes.BlockSize]
 
-	if len(ciphertext)%aes.BlockSize != 0 {
+	if len(ticket)%aes.BlockSize != 0 {
 		panic("ciphertext is not a multiple of the block size")
 	}
+
 	mode := cipher.NewCBCDecrypter(block, iv)
-	mode.CryptBlocks(ciphertext, ciphertext)
+	mode.CryptBlocks(ticket, ticket)
 
 	utils.WriteUTF(buff, id.Lang)
-	utils.WriteUTF(buff, ciphertext)
+	utils.WriteUTF(buff, ticket)
 }
 
 func (a *authenticationTicket) Deserialize(reader *bytes.Reader) {

@@ -50,18 +50,17 @@ func Signature() error {
 		panic(err)
 	}
 
-	publicPemData := pem.EncodeToMemory(&pem.Block{
-		Type:  "PUBLIC KEY",
-		Bytes: pki,
-	})
-
 	privatePemData := pem.EncodeToMemory(&pem.Block{
 		Type:  "RSA PRIVATE KEY",
 		Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
 	})
 
 	_ = os.WriteFile("./sign/private_key.pem", privatePemData, 0644)
-	_ = os.WriteFile("./sign/public_key.pem", publicPemData, 0644)
+	_ = os.WriteFile("./sign/public_key.pem",
+		[]byte(
+			fmt.Sprintf("-----BEGIN PUBLIC KEY-----\n%s\n-----END PUBLIC KEY-----",
+				base64.StdEncoding.EncodeToString(pki))),
+		0644)
 	_ = os.WriteFile("./sign/signature.bin", buff.Bytes(), 0644)
 
 	return err

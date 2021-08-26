@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/binary"
+	"encoding/hex"
 	"io"
 	"math/big"
 	"strconv"
@@ -17,7 +18,7 @@ var PublicKeyHeader string = "DofusPublicKey"
 
 var PrivateKeyHeader string = "DofusPrivateKey"
 
-var publicV2Pem = ReadRSA("./binaryData/verify_key.bin")
+var publicV2Pem = ReadRSA("./binaryData/V2.bin")
 var blockV2 = DecodePem(publicV2Pem)
 var publicKeyV2 = PublicKeyOf(blockV2)
 var publicKeyV1 = getPublicKeyFromV1()
@@ -73,7 +74,10 @@ func v2(reader *bytes.Reader, headerPosition int64) []byte {
 		panic("wrong hashType")
 	}
 
-	if bytes.Compare(signHash, contentHash) != 0 {
+	contentHashHex := make([]byte, 32)
+	_ = hex.Encode(contentHashHex, contentHash)
+
+	if bytes.Compare(signHash, contentHashHex) != 0 {
 		panic("wrong hash")
 	}
 
@@ -148,7 +152,10 @@ func v1(reader *bytes.Reader) []byte {
 	contentHash := md5.Sum(output)
 	contentHash_ := contentHash[1:]
 
-	if bytes.Compare(signHash, contentHash_) == 0 && contentLen == int32(testedContentLen) {
+	contentHashHex := make([]byte, hex.EncodedLen(len(contentHash_)))
+	_ = hex.Encode(contentHashHex, contentHash_)
+
+	if bytes.Compare(signHash, contentHashHex) == 0 && contentLen == int32(testedContentLen) {
 		return output
 	}
 
