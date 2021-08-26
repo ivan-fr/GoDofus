@@ -196,10 +196,9 @@ func LaunchServerSocket() {
 }
 
 func LaunchClientSocket() {
-	LaunchServerSocket()
-
-	fmt.Println("Client esclave connecté...")
-
+	if connListener == nil {
+		go LaunchServerSocket()
+	}
 	for connListener == nil {
 		continue
 	}
