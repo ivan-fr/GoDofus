@@ -35,6 +35,13 @@ func GetIdentificationSuccessNOA() *identificationSuccess {
 }
 
 func (i *identificationSuccess) Serialize(buff *bytes.Buffer) {
+	var box uint32
+	box = utils.SetFlag(box, 0, i.hasRights)
+	box = utils.SetFlag(box, 1, i.hasConsoleRight)
+	box = utils.SetFlag(box, 2, i.wasAlreadyConnected)
+
+	_ = binary.Write(buff, binary.BigEndian, byte(box))
+
 	utils.WriteUTF(buff, i.login)
 	i.aTI.Serialize(buff)
 

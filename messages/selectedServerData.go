@@ -28,7 +28,18 @@ func GetSelectedServerDataNOA() *selectedServerData {
 }
 
 func (s *selectedServerData) Serialize(buff *bytes.Buffer) {
+	utils.WriteVarShort(buff, int32(s.serverId))
+	utils.WriteUTF(buff, s.Address)
+	_ = binary.Write(buff, binary.BigEndian, s.portsLen)
 
+	for i := uint16(0); i < s.portsLen; i++ {
+		utils.WriteVarShort(buff, s.Ports[i])
+	}
+
+	_ = binary.Write(buff, binary.BigEndian, s.canCreateNewCharacter)
+
+	utils.WriteVarInt32(buff, int32(len(s.ticket)))
+	_ = binary.Write(buff, binary.BigEndian, s.ticket)
 }
 
 func (s *selectedServerData) Deserialize(reader *bytes.Reader) {

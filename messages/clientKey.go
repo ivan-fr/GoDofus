@@ -12,13 +12,8 @@ type clientKey struct {
 }
 
 var cK = &clientKey{PacketId: ClientKeyID}
-var uid = []byte("a19fRCh9EAOvmumjSE")
 
 func GetClientKeyNOA() *clientKey {
-	if cK.key == nil {
-		cK.key = append(cK.key, uid...)
-		cK.key = append(cK.key, []byte("#01")...)
-	}
 	return cK
 }
 

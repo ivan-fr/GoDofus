@@ -27,7 +27,40 @@ func writeInListener(packet []byte, waitResponse bool) {
 
 	if waitResponse {
 		readInListener()
+	} else {
+		purgePacketListener(1)
 	}
+}
+
+func purgePacketListener(n uint32) {
+	blockServerRead = true
+
+	lecture := make([]byte, 1024)
+	var nPack uint32
+
+	for connListener != nil {
+		nRead, err := connListener.Read(lecture)
+
+		if err != nil {
+			panic(err)
+		}
+
+		if nRead == 0 {
+			continue
+		}
+
+		ok := pack.Read(lecture[:n])
+
+		if ok {
+			nPack++
+		}
+
+		if n == nPack {
+			break
+		}
+	}
+
+	blockServerRead = false
 }
 
 func readInListener() {
@@ -65,6 +98,14 @@ func handlingListener(n int) {
 		switch weft.PackId {
 		case messages.CheckIntegrityID:
 			msg := messages.GetCheckIntegrityNOA()
+			msg.Deserialize(bytes.NewReader(weft.Message))
+			fmt.Println(msg)
+			_, err := conn.Write(pack.Write(msg))
+			if err != nil {
+				panic(err)
+			}
+		case messages.ClientKeyID:
+			msg := messages.GetClientKeyNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
 			_, err := conn.Write(pack.Write(msg))
@@ -141,11 +182,7 @@ func HandlingAuth(lecture []byte, n int) {
 			if err != nil {
 				panic(err)
 			}
-			clientKey := messages.GetClientKeyNOA()
-			_, err = conn.Write(pack.Write(clientKey))
-			if err != nil {
-				panic(err)
-			}
+			readInListener()
 		case messages.ProtocolID:
 			msg := messages.GetProtocolNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
@@ -183,6 +220,7 @@ func HandlingAuth(lecture []byte, n int) {
 			msg := messages.GetCredentialsAcknowledgementNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
+			writeInListener(pack.Write(msg), false)
 		default:
 			fmt.Printf("Client: there is no traitment for %d ID\n", weft.PackId)
 		}
@@ -212,6 +250,8 @@ func LaunchServerSocket() {
 		fmt.Println("Listener: connexion avec l'esclave angagé")
 		break
 	}
+
+	_ = connListener.SetReadDeadline(time.Now().Add(time.Millisecond * 500))
 
 	for connListener != nil {
 	}

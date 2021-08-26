@@ -31,7 +31,19 @@ func GetGameServerInformationsNOA() *gameServerInformations {
 }
 
 func (g *gameServerInformations) Serialize(buff *bytes.Buffer) {
+	var box uint32
+	box = utils.SetFlag(box, 0, g.isMonoAccount)
+	box = utils.SetFlag(box, 1, g.isSelectable)
 
+	_ = binary.Write(buff, binary.BigEndian, byte(box))
+
+	_ = binary.Write(buff, binary.BigEndian, g.id)
+	_ = binary.Write(buff, binary.BigEndian, g.type_)
+	_ = binary.Write(buff, binary.BigEndian, g.status)
+	_ = binary.Write(buff, binary.BigEndian, g.completion)
+	_ = binary.Write(buff, binary.BigEndian, g.charactersCount)
+	_ = binary.Write(buff, binary.BigEndian, g.charactersSlots)
+	_ = binary.Write(buff, binary.BigEndian, g.date)
 }
 
 func (g *gameServerInformations) Deserialize(reader *bytes.Reader) {
