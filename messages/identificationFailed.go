@@ -17,6 +17,10 @@ func GetIdentificationFailedNOA() *identificationFailed {
 	return idf
 }
 
+func (f *identificationFailed) Serialize(buff *bytes.Buffer) {
+	_ = binary.Write(buff, binary.BigEndian, f.Reason)
+}
+
 func (f *identificationFailed) Deserialize(reader *bytes.Reader) {
 	_ = binary.Read(reader, binary.BigEndian, &f.Reason)
 }

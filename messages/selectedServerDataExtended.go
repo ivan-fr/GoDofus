@@ -6,6 +6,7 @@ package messages
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
 )
 
@@ -22,7 +23,11 @@ func GetSelectedServerDataExtendedNOA() *selectedServerDataExtended {
 }
 
 func (s *selectedServerDataExtended) Serialize(buff *bytes.Buffer) {
-
+	s.SSD.Serialize(buff)
+	_ = binary.Write(buff, binary.BigEndian, uint16(len(s.GSI)))
+	for i := 0; i < len(s.GSI); i++ {
+		s.GSI[i].Serialize(buff)
+	}
 }
 
 func (s *selectedServerDataExtended) Deserialize(reader *bytes.Reader) {
@@ -30,6 +35,7 @@ func (s *selectedServerDataExtended) Deserialize(reader *bytes.Reader) {
 	s.SSD.Deserialize(reader)
 
 	var serverLen uint16
+	_ = binary.Read(reader, binary.BigEndian, &serverLen)
 	for i := uint16(0); i < serverLen; i++ {
 		var gSI = new(gameServerInformations)
 		gSI.Deserialize(reader)

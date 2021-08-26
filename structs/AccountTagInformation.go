@@ -15,7 +15,8 @@ type AccountTagInformation struct {
 }
 
 func (A *AccountTagInformation) Serialize(buff *bytes.Buffer) {
-
+	utils.WriteUTF(buff, A.nickname)
+	utils.WriteUTF(buff, A.tagNumber)
 }
 
 func (A *AccountTagInformation) Deserialize(reader *bytes.Reader) {

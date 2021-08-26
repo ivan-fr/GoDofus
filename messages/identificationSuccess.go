@@ -35,7 +35,18 @@ func GetIdentificationSuccessNOA() *identificationSuccess {
 }
 
 func (i *identificationSuccess) Serialize(buff *bytes.Buffer) {
+	utils.WriteUTF(buff, i.login)
+	i.aTI.Serialize(buff)
 
+	_ = binary.Write(buff, binary.BigEndian, i.accoutId)
+	_ = binary.Write(buff, binary.BigEndian, i.communityId)
+
+	utils.WriteUTF(buff, i.secretQuestion)
+
+	_ = binary.Write(buff, binary.BigEndian, i.accountCreation)
+	_ = binary.Write(buff, binary.BigEndian, i.subscriptionElapsedDuration)
+	_ = binary.Write(buff, binary.BigEndian, i.subscriptionEndDate)
+	_ = binary.Write(buff, binary.BigEndian, i.havenbagAvailableRoom)
 }
 
 func (i *identificationSuccess) Deserialize(reader *bytes.Reader) {

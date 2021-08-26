@@ -23,7 +23,8 @@ func GetLoginQueueStatusNOA() *loginQueueStatus {
 }
 
 func (l *loginQueueStatus) Serialize(buff *bytes.Buffer) {
-
+	_ = binary.Write(buff, binary.BigEndian, l.position)
+	_ = binary.Write(buff, binary.BigEndian, l.total)
 }
 
 func (l *loginQueueStatus) Deserialize(reader *bytes.Reader) {

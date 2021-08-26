@@ -17,15 +17,48 @@ var stop bool
 var Callback func([]byte, int)
 var Address string
 var currentAddress string
+var blockServerRead bool
 
-func handlingListener(lecture []byte, n int) {
-	fmt.Printf("Listener: %d octets reçu\n", n)
-
-	ok := pack.Read(lecture[:n])
-
-	if !ok {
-		return
+func writeInListener(packet []byte, waitResponse bool) {
+	_, err := connListener.Write(packet)
+	if err != nil {
+		panic(err)
 	}
+
+	if waitResponse {
+		readInListener()
+	}
+}
+
+func readInListener() {
+	blockServerRead = true
+
+	lecture := make([]byte, 1024)
+
+	for connListener != nil {
+		n, err := connListener.Read(lecture)
+
+		if err != nil {
+			panic(err)
+		}
+
+		if n == 0 {
+			continue
+		}
+
+		ok := pack.Read(lecture[:n])
+
+		if ok {
+			handlingListener(n)
+			break
+		}
+	}
+
+	blockServerRead = false
+}
+
+func handlingListener(n int) {
+	fmt.Printf("Listener: %d octets reçu\n", n)
 
 	pipe := pack.GetPipeline()
 	for weft := pipe.Get(); weft != nil; weft = pipe.Get() {
@@ -44,7 +77,7 @@ func handlingListener(lecture []byte, n int) {
 	}
 }
 
-func HandlingGame(lecture []byte, n int) {
+func handlingGame(lecture []byte, n int) {
 	fmt.Printf("%d octets reçu\n", n)
 
 	ok := pack.Read(lecture[:n])
@@ -74,10 +107,7 @@ func HandlingGame(lecture []byte, n int) {
 			msg := messages.GetRawDataNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
-			_, err := connListener.Write(pack.Write(msg))
-			if err != nil {
-				panic(err)
-			}
+			writeInListener(pack.Write(msg), true)
 		default:
 			fmt.Printf("Client: there is no traitment for %d ID\n", weft.PackId)
 		}
@@ -97,9 +127,10 @@ func HandlingAuth(lecture []byte, n int) {
 	for weft := pipe.Get(); weft != nil; weft = pipe.Get() {
 		switch weft.PackId {
 		case messages.HelloConnectID:
-			hConnect := messages.GetHelloConnectNOA()
-			hConnect.Deserialize(bytes.NewReader(weft.Message))
-			fmt.Println(hConnect)
+			msg := messages.GetHelloConnectNOA()
+			msg.Deserialize(bytes.NewReader(weft.Message))
+			fmt.Println(msg)
+			writeInListener(pack.Write(msg), false)
 
 			fmt.Println("======= GO Identification =======")
 			mAuth := managers.GetAuthentification()
@@ -116,32 +147,38 @@ func HandlingAuth(lecture []byte, n int) {
 				panic(err)
 			}
 		case messages.ProtocolID:
-			protocol := messages.GetProtocolNOA()
-			protocol.Deserialize(bytes.NewReader(weft.Message))
-			fmt.Println(protocol)
+			msg := messages.GetProtocolNOA()
+			msg.Deserialize(bytes.NewReader(weft.Message))
+			writeInListener(pack.Write(msg), false)
+			fmt.Println(msg)
 		case messages.IdentificationFailedForBadVersionID:
 			msg := messages.GetIdentificationFailedForBadVersionNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
+			writeInListener(pack.Write(msg), false)
 		case messages.IdentificationFailedID:
 			msg := messages.GetIdentificationFailedNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
+			writeInListener(pack.Write(msg), false)
 		case messages.LoginQueueID:
 			msg := messages.GetLoginQueueStatusNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
+			writeInListener(pack.Write(msg), false)
 		case messages.IdentificationSuccessID:
 			msg := messages.GetIdentificationSuccessNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
+			writeInListener(pack.Write(msg), false)
 		case messages.SelectedServerDataExtendedID:
 			msg := messages.GetSelectedServerDataExtendedNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
+			writeInListener(pack.Write(msg), false)
 			stop = true
 			Address = fmt.Sprintf("%s:%d", msg.SSD.Address, msg.SSD.Ports[0])
-			Callback = HandlingGame
+			Callback = handlingGame
 		case messages.CredentialsAcknowledgementID:
 			msg := messages.GetCredentialsAcknowledgementNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
@@ -176,20 +213,7 @@ func LaunchServerSocket() {
 		break
 	}
 
-	lecture := make([]byte, 1024)
-
 	for connListener != nil {
-		n, err := connListener.Read(lecture)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		if n == 0 {
-			continue
-		}
-
-		handlingListener(lecture, n)
 	}
 
 	fmt.Println("Listener: connexion avec l'esclave perdu.")
@@ -237,10 +261,14 @@ func LaunchClientSocket() {
 			break
 		}
 
+		if blockServerRead {
+			continue
+		}
+
 		n, err := conn.Read(lecture)
 
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
 
 		if n == 0 {

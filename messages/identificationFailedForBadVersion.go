@@ -17,6 +17,11 @@ func GetIdentificationFailedForBadVersionNOA() *identificationFailedForBadVersio
 	return idfv
 }
 
+func (f *identificationFailedForBadVersion) Serialize(buff *bytes.Buffer) {
+	f.Idf.Serialize(buff)
+	f.Version.Serialize(buff)
+}
+
 func (f *identificationFailedForBadVersion) Deserialize(reader *bytes.Reader) {
 	f.Idf.Deserialize(reader)
 	f.Version.Deserialize(reader)
