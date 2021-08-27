@@ -26,7 +26,7 @@ type myLogin struct {
 func getConf() *myLogin {
 	var login = &myLogin{}
 
-	yamlFile, err := os.ReadFile("./login.yaml")
+	yamlFile, err := os.ReadFile("./settings.yaml")
 	if err != nil {
 		panic(err)
 	}

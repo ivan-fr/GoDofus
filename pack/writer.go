@@ -21,7 +21,7 @@ func computeTypeLength(messageLength uint32) uint16 {
 		return 1
 	}
 
-	panic("invalid message length")
+	return 0
 }
 
 func Write(message messages.Message, toClient bool) []byte {

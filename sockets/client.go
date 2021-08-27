@@ -6,23 +6,60 @@ import (
 	"GoDofus/pack"
 	"bytes"
 	"fmt"
+	"gopkg.in/yaml.v2"
 	"log"
 	"net"
+	"os"
 	"time"
 )
 
 var conn *net.TCPConn
+var listener net.Listener
 var connListener net.Conn = nil
+var toogleContinueToTryConnListener bool
+
 var stop bool
 var Callback func([]byte, int)
 var Address string
 var currentAddress string
 var blockServerRead bool
 
-func writeInListener(msg messages.Message, waitResponse bool) {
+func reloadConnListenerWrite(msg messages.Message) {
+	if listener == nil {
+		return
+	}
+
+	connListener = nil
+
+	tryConnListener(time.Second * 2)
+
 	_, err := connListener.Write(pack.Write(msg, true))
 	if err != nil {
 		panic(err)
+	}
+}
+
+func reloadConnListenerRead(lecture []byte) int {
+	if listener == nil {
+		return 0
+	}
+
+	connListener = nil
+
+	tryConnListener(time.Second * 2)
+
+	n, err := connListener.Read(lecture)
+	if err != nil {
+		panic(err)
+	}
+
+	return n
+}
+
+func writeInListener(msg messages.Message, waitResponse bool) {
+	_, err := connListener.Write(pack.Write(msg, true))
+	if err != nil {
+		reloadConnListenerWrite(msg)
 	}
 
 	if waitResponse {
@@ -40,7 +77,7 @@ func readInListener() {
 		n, err := connListener.Read(lecture)
 
 		if err != nil {
-			panic(err)
+			n = reloadConnListenerRead(lecture)
 		}
 
 		if n == 0 {
@@ -197,28 +234,53 @@ func HandlingAuth(lecture []byte, n int) {
 	}
 }
 
-func LaunchServerSocket() {
+type Server struct {
+	Address string `yaml:"localServer"`
+}
+
+var myServer = getConf()
+
+func getConf() *Server {
+	var server = &Server{}
+
+	yamlFile, err := os.ReadFile("./settings.yaml")
+	if err != nil {
+		panic(err)
+	}
+	err = yaml.Unmarshal(yamlFile, server)
+	if err != nil {
+		panic(err)
+	}
+
+	return server
+}
+
+func launchServerSocket() {
 	if connListener != nil {
 		panic("un connexion listener est déjà active")
 	}
 
-	l, err := net.Listen("tcp", "127.0.0.1:443")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer func(l net.Listener) {
-		err := l.Close()
+	var err error
+
+	if listener == nil {
+		listener, err = net.Listen("tcp", myServer.Address)
 		if err != nil {
 			log.Fatal(err)
 		}
-	}(l)
-	for {
-		connListener, err = l.Accept()
+	}
+
+	for toogleContinueToTryConnListener {
+		connListener, err = listener.Accept()
 		if err != nil {
 			log.Fatal(err)
 		}
 		fmt.Println("Listener: Go client !")
 		break
+	}
+
+	if !toogleContinueToTryConnListener {
+		toogleContinueToTryConnListener = true
+		return
 	}
 
 	for connListener != nil {
@@ -227,14 +289,44 @@ func LaunchServerSocket() {
 	fmt.Println("Listener: Go client lost !")
 }
 
-func LaunchClientSocket() {
+func tryConnListener(duration time.Duration) {
 	if connListener == nil {
-		go LaunchServerSocket()
+		go launchServerSocket()
+	}
+
+	done := make(chan bool)
+	go func() {
+		time.Sleep(duration)
+		done <- true
+	}()
+
+	for connListener == nil {
+		select {
+		case <-done:
+			toogleContinueToTryConnListener = false
+			break
+		default:
+			continue
+		}
+	}
+
+	if connListener == nil {
+		panic("tryConnListener: timout")
+	}
+}
+
+func waitMyClient() {
+	if connListener == nil {
+		go launchServerSocket()
 	}
 
 	for connListener == nil {
 		continue
 	}
+}
+
+func LaunchClientSocket() {
+	waitMyClient()
 
 	rAddr, err := net.ResolveTCPAddr("tcp", Address)
 	conn, err = net.DialTCP("tcp", nil, rAddr)
@@ -248,18 +340,25 @@ func LaunchClientSocket() {
 	stop = false
 
 	defer func(conn_ net.Conn) {
-		err := conn.Close()
+		err = conn.Close()
 		if err != nil {
 			log.Fatal(err)
 		}
 		conn = nil
-		if Address != currentAddress {
-			LaunchClientSocket()
-		} else {
-			err := connListener.Close()
+
+		if Address == currentAddress {
+			err = connListener.Close()
 			if err != nil {
 			}
 			connListener = nil
+
+			err = listener.Close()
+			if err != nil {
+				return
+			}
+			listener = nil
+		} else {
+			time.Sleep(time.Millisecond * 500)
 		}
 	}(conn)
 
@@ -269,6 +368,8 @@ func LaunchClientSocket() {
 		if stop {
 			break
 		}
+
+		waitMyClient()
 
 		if blockServerRead {
 			continue
