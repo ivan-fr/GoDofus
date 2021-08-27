@@ -8,13 +8,7 @@ import (
 	"time"
 )
 
-func handlingGame(lecture []byte, n int) {
-	ok := pack.ReadServer(lecture[:n])
-
-	if !ok {
-		return
-	}
-
+func handlingGame() {
 	pipe := pack.GetServerPipeline()
 	for weft := pipe.Get(); weft != nil; weft = pipe.Get() {
 		switch weft.PackId {

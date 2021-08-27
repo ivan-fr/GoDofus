@@ -15,7 +15,7 @@ var listener net.Listener
 var connListener net.Conn = nil
 
 var stop bool
-var Callback func([]byte, int)
+var Callback func()
 
 var Address string
 var currentAddress string
@@ -141,9 +141,6 @@ func launchServerSocket() {
 	}
 	fmt.Println("Listener: Go client !")
 
-	msg := messages.GetBasicPongNOA()
-	packToWrite := pack.Write(msg, true)
-
 	block := false
 
 	go func() {
@@ -158,23 +155,28 @@ func launchServerSocket() {
 		}
 	}()
 
+	lecture := make([]byte, 1)
 	for connListener != nil {
-		time.Sleep(time.Second * 5)
+		time.Sleep(time.Second)
 
 		if block {
 			continue
 		}
 
-		err = connListener.SetWriteDeadline(time.Now().Add(time.Second * 3))
-		if err != nil {
-			break
-		}
+		_ = connListener.SetReadDeadline(time.Now().Add(time.Second * 3))
 
 		blockServerToMyClientLinear = true
 		blockClientToAnkamaLinear = true
-		_, err = connListener.Write(packToWrite)
+		n, err := connListener.Read(lecture)
 		if err != nil {
+			err = connListener.Close()
+			if err != nil {
+			}
 			connListener = nil
+		}
+
+		if n > 0 {
+			_ = pack.ReadClient(lecture[:n])
 		}
 		blockServerToMyClientLinear = false
 		blockClientToAnkamaLinear = false
@@ -202,18 +204,12 @@ func tryReloadConnListener(duration time.Duration) {
 		select {
 		case <-done:
 			if listener != nil {
-				err := listener.Close()
+				_ = listener.Close()
 				listener = nil
-				if err != nil {
-					panic(err)
-				}
 			}
 			if connServer != nil {
-				err := connServer.Close()
+				_ = connServer.Close()
 				connServer = nil
-				if err != nil {
-					panic(err)
-				}
 			}
 			log.Fatal("Listener: Kill instant ! From Timeout.")
 		default:
@@ -308,6 +304,10 @@ func LaunchClientSocket() {
 		}
 		fmt.Printf("Server: %d octets reçu\n", n)
 
-		Callback(lecture, n)
+		ok := pack.ReadServer(lecture[:n])
+
+		if ok {
+			Callback()
+		}
 	}
 }

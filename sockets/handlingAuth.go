@@ -8,13 +8,7 @@ import (
 	"fmt"
 )
 
-func HandlingAuth(lecture []byte, n int) {
-	ok := pack.ReadServer(lecture[:n])
-
-	if !ok {
-		return
-	}
-
+func HandlingAuth() {
 	pipe := pack.GetServerPipeline()
 	for weft := pipe.Get(); weft != nil; weft = pipe.Get() {
 		switch weft.PackId {
