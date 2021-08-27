@@ -27,13 +27,13 @@ type pipe struct {
 	index int
 }
 
-var lSignal = &lastSignal{typeRequest: noType}
+var serverLastSignal = &lastSignal{typeRequest: noType}
 var pipeline = new(pipe)
-var aLWeft *weft = nil
+var serverLastWeft *weft = nil
 
-var lSignalSlave = &lastSignal{typeRequest: noType}
+var clientLastSignal = &lastSignal{typeRequest: noType}
 var clientPipeline = new(pipe)
-var aLWeftSlave *weft = nil
+var clientLastWeft *weft = nil
 
 const (
 	headerTwoFirstBytes = iota
@@ -341,9 +341,9 @@ func read(aPipeline *pipe, aLWeft **weft, aLSignal *lastSignal, isClient bool, b
 }
 
 func ReadServer(bytesPack []byte) bool {
-	return read(pipeline, &aLWeft, lSignal, false, bytesPack)
+	return read(pipeline, &serverLastWeft, serverLastSignal, false, bytesPack)
 }
 
 func ReadClient(bytesPack []byte) bool {
-	return read(clientPipeline, &aLWeftSlave, lSignalSlave, true, bytesPack)
+	return read(clientPipeline, &clientLastWeft, clientLastSignal, true, bytesPack)
 }
