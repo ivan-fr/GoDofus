@@ -17,23 +17,15 @@ type weft struct {
 
 type lastSignal struct {
 	request        int
-	typeRequest    int
+	TypeRequest    int
 	containForType []byte
 	containNoType  []byte
 }
 
-type pipe struct {
+type Pipe struct {
 	Wefts []*weft
 	index int
 }
-
-var serverLastSignal = &lastSignal{typeRequest: noType}
-var pipeline = new(pipe)
-var serverLastWeft *weft = nil
-
-var clientLastSignal = &lastSignal{typeRequest: noType}
-var clientPipeline = new(pipe)
-var clientLastWeft *weft = nil
 
 const (
 	headerTwoFirstBytes = iota
@@ -43,19 +35,11 @@ const (
 	noType
 )
 
-func GetClientPipeline() *pipe {
-	return clientPipeline
-}
-
-func GetServerPipeline() *pipe {
-	return pipeline
-}
-
-func (p *pipe) append(w *weft) {
+func (p *Pipe) append(w *weft) {
 	p.Wefts = append(p.Wefts, w)
 }
 
-func (p *pipe) Get() *weft {
+func (p *Pipe) Get() *weft {
 	if len(p.Wefts) == 0 {
 		return nil
 	}
@@ -65,7 +49,7 @@ func (p *pipe) Get() *weft {
 	return w
 }
 
-func (p *pipe) Contains(packetIDs map[uint16]bool) bool {
+func (p *Pipe) Contains(packetIDs map[uint16]bool) bool {
 	var found []uint16
 	for _, weftInPipe := range p.Wefts {
 		_, ok := packetIDs[weftInPipe.PackId]
@@ -83,16 +67,16 @@ func (p *pipe) Contains(packetIDs map[uint16]bool) bool {
 }
 
 func (lS *lastSignal) update(request int, typeRequest int, containForType []byte, containNoType []byte) {
-	if typeRequest == lS.typeRequest && lS.request < 0 && request <= lS.request {
+	if typeRequest == lS.TypeRequest && lS.request < 0 && request <= lS.request {
 		return
 	}
 
-	if typeRequest == lS.typeRequest && lS.request < 0 && request > lS.request {
+	if typeRequest == lS.TypeRequest && lS.request < 0 && request > lS.request {
 		lS.request = request
 		lS.containForType = append(lS.containForType, containForType...)
 	} else if lS.request == 0 || typeRequest == noType {
 		lS.request = request
-		lS.typeRequest = typeRequest
+		lS.TypeRequest = typeRequest
 		lS.containForType = containForType
 		lS.containNoType = nil
 	} else {
@@ -108,7 +92,7 @@ func (lS *lastSignal) update(request int, typeRequest int, containForType []byte
 	}
 }
 
-func commit(aPipeline *pipe, aLWeft **weft, aLSignal *lastSignal) {
+func commit(aPipeline *Pipe, aLWeft **weft, aLSignal *lastSignal) {
 	if aLSignal.request >= 0 {
 		if *aLWeft == nil {
 			return
@@ -125,7 +109,7 @@ func commit(aPipeline *pipe, aLWeft **weft, aLSignal *lastSignal) {
 			return
 		}
 
-		if aLSignal.typeRequest == messageLength {
+		if aLSignal.TypeRequest == messageLength {
 			(*aLWeft).Message = aLSignal.containForType
 			aPipeline.append(*aLWeft)
 			*aLWeft = nil
@@ -225,8 +209,8 @@ func readHeaderLength(aLWeft *weft, aLSignal *lastSignal, reader *bytes.Reader) 
 	return true
 }
 
-func read(aPipeline *pipe, aLWeft **weft, aLSignal *lastSignal, isClient bool, bytesPack []byte) bool {
-	switch aLSignal.typeRequest {
+func read(aPipeline *Pipe, aLWeft **weft, aLSignal *lastSignal, isClient bool, bytesPack []byte) bool {
+	switch aLSignal.TypeRequest {
 	case messageLength:
 		switch {
 		case aLSignal.request == 0:
@@ -343,10 +327,16 @@ func read(aPipeline *pipe, aLWeft **weft, aLSignal *lastSignal, isClient bool, b
 	return false
 }
 
-func ReadServer(bytesPack []byte) bool {
-	return read(pipeline, &serverLastWeft, serverLastSignal, false, bytesPack)
+func NewServerReader() (func([]byte) bool, *Pipe) {
+	var aLSignal = &lastSignal{TypeRequest: noType}
+	var aPipeline = new(Pipe)
+	var aLWeft *weft = nil
+	return func(bytesPack []byte) bool { return read(aPipeline, &aLWeft, aLSignal, false, bytesPack) }, aPipeline
 }
 
-func ReadClient(bytesPack []byte) bool {
-	return read(clientPipeline, &clientLastWeft, clientLastSignal, true, bytesPack)
+func NewClientReader() (func([]byte) bool, *Pipe) {
+	var aLSignal = &lastSignal{TypeRequest: noType}
+	var aPipeline = new(Pipe)
+	var aLWeft *weft = nil
+	return func(bytesPack []byte) bool { return read(aPipeline, &aLWeft, aLSignal, true, bytesPack) }, aPipeline
 }

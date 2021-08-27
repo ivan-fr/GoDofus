@@ -11,232 +11,270 @@ import (
 	"time"
 )
 
-var connServer *net.TCPConn
-var listener net.Listener
-var connListener net.Conn = nil
+var rAddr = getRAddr()
 
-var stop bool
-var Callback func()
-
-var Address string
-var currentAddress string
-
-var blockClientToAnkamaLinear bool
-var blockThreadServerToToMyClient = make(chan bool)
-
-func writeInMyClient(msg messages.Message) {
-	if connListener == nil {
-		tryReloadConnListener(time.Second * 8)
+func getRAddr() *net.TCPAddr {
+	rAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", settings.Settings.ServerAnkamaAddress, settings.Settings.ServerAnkamaPort))
+	if err != nil {
+		panic(err)
 	}
 
-	blockClientToAnkamaLinear = true
-	blockThreadServerToToMyClient <- true
-
-	_ = connListener.SetWriteDeadline(time.Now().Add(time.Second))
-	_, _ = connListener.Write(pack.Write(msg, true))
-
-	blockClientToAnkamaLinear = false
-	blockThreadServerToToMyClient <- false
+	return rAddr
 }
 
-func launchServerSocket() {
-	if connListener != nil {
-		panic("a listener connexion is already active")
-	}
+func channelWriter(aChan chan messages.Message, aConn net.Conn, toClient bool) {
+	for {
+		msg := <-aChan
+		_, err := aConn.Write(pack.Write(msg, toClient))
+		closed := handleErrReadWrite(aConn, err)
 
-	var err error
-
-	if listener == nil {
-		listener, err = net.Listen("tcp", fmt.Sprintf("%s:%d", settings.Settings.LocalAddress, settings.Settings.LocalPort))
-		if err != nil {
-			log.Fatal(err)
+		if closed {
+			break
 		}
 	}
+}
 
-	connListener, err = listener.Accept()
-	if err != nil {
-		if connListener != nil {
-			err = connListener.Close()
-			if err != nil {
+func syncStop(myClientContinueChan, ankamaServerContinueChan chan bool) {
+	verif := make([]bool, 2)
+	for {
+		select {
+		case next := <-myClientContinueChan:
+			if !next {
+				verif[0] = true
 			}
-			connListener = nil
+		case next := <-ankamaServerContinueChan:
+			if !next {
+				verif[1] = true
+			}
 		}
 
-		return
-	}
-	fmt.Println("Listener: Go client !")
+		var ok bool
 
-	block := false
-
-	go func() {
-		for {
-			select {
-			case block = <-blockThreadServerToToMyClient:
-			default:
-			}
-			if connListener == nil {
+		for i := 0; i < len(verif); i++ {
+			if !verif[i] {
+				ok = false
 				break
 			}
 		}
-	}()
 
-	lecture := make([]byte, 1024)
-	for connListener != nil {
-
-		if block {
-			continue
-		}
-
-		_ = connListener.SetReadDeadline(time.Now().Add(time.Second * 1))
-		blockClientToAnkamaLinear = true
-		n, err := connListener.Read(lecture)
-		if errNet, ok := err.(net.Error); ok {
-			if !errNet.Timeout() {
-				err := connListener.Close()
-				if err != nil {
-				}
-				connListener = nil
-			}
-		} else if err == io.EOF {
-			err := connListener.Close()
-			if err != nil {
-			}
-			connListener = nil
-		}
-
-		if n > 0 {
-			_ = pack.ReadClient(lecture[:n])
-			if len(pack.GetClientPipeline().Wefts) > 0 {
-				handlingMyClient()
-			}
-		}
-		blockClientToAnkamaLinear = false
-	}
-
-	fmt.Println("Listener: Go client lost !")
-}
-
-func tryReloadConnListener(duration time.Duration) {
-	if connListener != nil {
-		return
-
-	}
-
-	fmt.Println("Try connect a listener...")
-	go launchServerSocket()
-
-	done := make(chan bool)
-	go func() {
-		time.Sleep(duration)
-		done <- true
-	}()
-
-	for connListener == nil {
-		select {
-		case <-done:
-			if listener != nil {
-				_ = listener.Close()
-				listener = nil
-			}
-			if connServer != nil {
-				_ = connServer.Close()
-				connServer = nil
-			}
-			log.Fatal("Listener: Kill instant ! From Timeout.")
-		default:
-			continue
+		if ok {
+			break
 		}
 	}
 }
 
-func waitMyClient() {
-	if connListener != nil {
-		return
-	} else {
-		go launchServerSocket()
+func loginListener() {
+	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", settings.Settings.LocalAddress, settings.Settings.LocalLoginPort))
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	for connListener == nil {
-		continue
+	var instance uint
+
+	for {
+		myConnToMyClient, err := listener.Accept()
+		if err != nil {
+			break
+		}
+		instance++
+
+		go func() {
+			myClientContinueChan := make(chan bool)
+			ankamaServerContinueChan := make(chan bool)
+
+			writeInMyClientChan := make(chan messages.Message)
+			writeToAnkamaServerChan := make(chan messages.Message)
+
+			callback := HandlingAuth(writeInMyClientChan, writeToAnkamaServerChan, myClientContinueChan, ankamaServerContinueChan)
+
+			go channelWriter(writeInMyClientChan, myConnToMyClient, true)
+			go launchLoginServerForMyClientSocket(myConnToMyClient, myClientContinueChan)
+			go launchLoginClientToAnkamaSocket(writeToAnkamaServerChan, ankamaServerContinueChan, callback, instance)
+			syncStop(myClientContinueChan, ankamaServerContinueChan)
+			_ = myConnToMyClient.Close()
+		}()
 	}
 }
 
-func LaunchClientSocket() {
-	waitMyClient()
+func gameListener() {
+	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", settings.Settings.LocalAddress, settings.Settings.LocalGamePort))
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	rAddr, err := net.ResolveTCPAddr("tcp", Address)
-	connServer, err = net.DialTCP("tcp", nil, rAddr)
+	var instance uint
+
+	for {
+		myConnToMyClient, err := listener.Accept()
+		if err != nil {
+			break
+		}
+		instance++
+
+		go func() {
+			myClientContinueChan := make(chan bool)
+			ankamaServerContinueChan := make(chan bool)
+
+			writeInMyClientChan := make(chan messages.Message)
+			writeToAnkamaServerChan := make(chan messages.Message)
+
+			callback := HandlingAuth(writeInMyClientChan, writeToAnkamaServerChan, myClientContinueChan, ankamaServerContinueChan)
+
+			go channelWriter(writeInMyClientChan, myConnToMyClient, true)
+			go launchLoginServerForMyClientSocket(myConnToMyClient, myClientContinueChan)
+			go launchLoginClientToAnkamaSocket(writeToAnkamaServerChan, ankamaServerContinueChan, callback, instance)
+			syncStop(myClientContinueChan, ankamaServerContinueChan)
+			_ = myConnToMyClient.Close()
+		}()
+	}
+}
+
+func GoSocket() {
+	go loginListener()
+	go gameListener()
+}
+
+func launchServerClientToAnkamaSocket(writeToAnkamaServerChan chan messages.Message, ankamaServerContinueChan chan bool, callBack func(pipe *pack.Pipe), instance uint) {
+	myConnServer, err := net.DialTCP("tcp", nil, rAddr)
+	myReadServer, myPipeline := pack.NewServerReader()
 
 	if err != nil {
-		log.Fatalf("Failed to dial: %v", err)
+		log.Printf("Failed to dial: %v", err)
+		return
 	} else {
 		log.Println("Connexion to server OK.")
 	}
-	currentAddress = Address
-	stop = false
+
+	go channelWriter(writeToAnkamaServerChan, myConnServer, false)
 
 	defer func(conn_ net.Conn) {
-		if connServer != nil {
-			err = connServer.Close()
-			if err != nil {
-				log.Fatal(err)
-			}
-			connServer = nil
+		_ = myConnServer.Close()
+	}(myConnServer)
+
+	myLecture := make([]byte, 1024)
+
+	next := true
+	for next {
+		select {
+		case next = <-ankamaServerContinueChan:
+			ankamaServerContinueChan <- false
+		default:
 		}
 
-		if Address == currentAddress {
-			if listener == nil {
-				return
-			}
-
-			if connListener != nil {
-				err = connListener.Close()
-				if err != nil {
-				}
-				log.Println("ICI")
-				connListener = nil
-			}
-
-			err = listener.Close()
-			if err != nil {
-			}
-			listener = nil
-		} else {
-			LaunchClientSocket()
-		}
-	}(connServer)
-
-	lecture := make([]byte, 1024)
-
-	for connServer != nil {
-		if stop {
+		err := myConnServer.SetReadDeadline(time.Now().Add(time.Second * 2))
+		if err != nil {
 			break
 		}
+		n, err := myConnServer.Read(myLecture)
+		closed := handleErrReadWrite(myConnServer, err)
 
-		if connListener == nil {
-			tryReloadConnListener(time.Second * 8)
-		}
-
-		if blockClientToAnkamaLinear {
-			continue
-		}
-
-		blockThreadServerToToMyClient <- true
-		n, err := connServer.Read(lecture)
-		if err != nil {
-			panic(err)
+		if closed {
+			break
 		}
 
 		if n == 0 {
 			continue
 		}
-		fmt.Printf("Server: %d octets reçu\n", n)
+		fmt.Printf("Server n°%d: %d octets reçu\n", instance, n)
 
-		_ = pack.ReadServer(lecture[:n])
-		blockThreadServerToToMyClient <- false
+		_ = myReadServer(myLecture[:n])
 
-		if len(pack.GetServerPipeline().Wefts) > 0 {
-			Callback()
+		if len(myPipeline.Wefts) > 0 {
+			callBack(myPipeline)
 		}
 	}
+}
+
+func launchLoginClientToAnkamaSocket(writeToAnkamaServerChan chan messages.Message, ankamaServerContinueChan chan bool, callBack func(pipe *pack.Pipe), instance uint) {
+	myConnServer, err := net.DialTCP("tcp", nil, rAddr)
+	myReadServer, myPipeline := pack.NewServerReader()
+
+	if err != nil {
+		log.Printf("Failed to dial: %v", err)
+		return
+	} else {
+		log.Println("Connexion to server OK.")
+	}
+
+	go channelWriter(writeToAnkamaServerChan, myConnServer, false)
+
+	defer func(conn_ net.Conn) {
+		_ = myConnServer.Close()
+	}(myConnServer)
+
+	myLecture := make([]byte, 1024)
+
+	next := true
+	for next {
+		select {
+		case next = <-ankamaServerContinueChan:
+			ankamaServerContinueChan <- false
+		default:
+		}
+
+		err := myConnServer.SetReadDeadline(time.Now().Add(time.Second * 2))
+		if err != nil {
+			break
+		}
+		n, err := myConnServer.Read(myLecture)
+		closed := handleErrReadWrite(myConnServer, err)
+
+		if closed {
+			break
+		}
+
+		if n == 0 {
+			continue
+		}
+		fmt.Printf("Server n°%d: %d octets reçu\n", instance, n)
+
+		_ = myReadServer(myLecture[:n])
+
+		if len(myPipeline.Wefts) > 0 {
+			callBack(myPipeline)
+		}
+	}
+}
+
+func launchLoginServerForMyClientSocket(myConnToMyClient net.Conn, myClientContinueChan chan bool) {
+	myReadClient, myPipeline := pack.NewClientReader()
+
+	lecture := make([]byte, 1024)
+	next := true
+	for next {
+		select {
+		case next = <-myClientContinueChan:
+			myClientContinueChan <- false
+		default:
+		}
+		_ = myConnToMyClient.SetReadDeadline(time.Now().Add(time.Millisecond * 500))
+		n, err := myConnToMyClient.Read(lecture)
+		closed := handleErrReadWrite(myConnToMyClient, err)
+
+		if n > 0 {
+			_ = myReadClient(lecture[:n])
+			if len(myPipeline.Wefts) > 0 {
+				handlingMyClient()
+			}
+		}
+
+		if closed {
+			break
+		}
+	}
+	log.Println("Listener: Go client lost !")
+}
+
+func handleErrReadWrite(conn net.Conn, err error) bool {
+	if errNet, ok := err.(net.Error); ok {
+		if !errNet.Timeout() {
+			_ = conn.Close()
+			return true
+		}
+	} else if err == io.EOF {
+		_ = conn.Close()
+		return true
+	}
+
+	return false
 }

@@ -6,10 +6,13 @@ import (
 )
 
 type settings struct {
-	Ndc          string `yaml:"nomdecompte"`
-	Pass         string `yaml:"motdepasse"`
-	LocalAddress string `yaml:"localAddress"`
-	LocalPort    int32  `yaml:"localPort"`
+	Ndc                 string `yaml:"nomdecompte"`
+	Pass                string `yaml:"motdepasse"`
+	LocalAddress        string `yaml:"localAddress"`
+	LocalLoginPort      int32  `yaml:"localLoginPort"`
+	LocalGamePort       int32  `yaml:"localGamePort"`
+	ServerAnkamaAddress string `yaml:"serverAnkamaAddress"`
+	ServerAnkamaPort    int32  `yaml:"serverAnkamaPort"`
 }
 
 func getConf() *settings {
