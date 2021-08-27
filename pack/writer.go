@@ -63,9 +63,9 @@ func Write(message messages.Message, toClient bool) []byte {
 	_ = binary.Write(buff, binary.BigEndian, messageContent)
 
 	if toClient {
-		fmt.Println("write to the client...")
+		fmt.Printf("write to the client %d...\n", packetId)
 	} else {
-		fmt.Println("write to the server")
+		fmt.Printf("write to the server %d...\n", packetId)
 	}
 
 	return buff.Bytes()

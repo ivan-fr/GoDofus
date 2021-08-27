@@ -51,18 +51,25 @@ func reloadConnListenerRead(lecture []byte) int {
 	return n
 }
 
-func writeInListener(msg messages.Message, waitResponse bool) {
+func writeInMyClient(msg messages.Message, waitResponses []int) {
 	_, err := connListener.Write(pack.Write(msg, true))
 	if err != nil {
 		reloadConnListenerWrite(msg)
 	}
 
-	if waitResponse {
-		readInListener()
+	if waitResponses != nil {
+		readInListener(waitResponses)
 	}
 }
 
-func readInListener() {
+func readInListener(responses []int) {
+	var packetIds map[uint16]bool
+	pipe := pack.GetClientPipeline()
+
+	for _, packetId := range responses {
+		packetIds[uint16(packetId)] = true
+	}
+
 	blockServerRead = true
 
 	lecture := make([]byte, 1024)
@@ -78,23 +85,25 @@ func readInListener() {
 		if n == 0 {
 			continue
 		}
+		fmt.Printf("Listener: %d octets reçu\n", n)
 
 		ok := pack.ReadClient(lecture[:n])
 
-		if ok {
-			handlingListener(n)
+		if len(responses) == 0 && ok {
+			fmt.Println("end lecture listener")
+			handlingListener()
+			break
+		} else if pipe.Contains(packetIds) {
+			fmt.Println("end lecture listener")
+			handlingListener()
 			break
 		}
 	}
 
-	fmt.Println("end lecture listener")
-
 	blockServerRead = false
 }
 
-func handlingListener(n int) {
-	fmt.Printf("Listener: %d octets reçu\n", n)
-
+func handlingListener() {
 	pipe := pack.GetClientPipeline()
 	for weft := pipe.Get(); weft != nil; weft = pipe.Get() {
 		switch weft.PackId {
@@ -121,15 +130,13 @@ func handlingListener(n int) {
 }
 
 func handlingGame(lecture []byte, n int) {
-	fmt.Printf("%d octets reçu\n", n)
-
 	ok := pack.ReadServer(lecture[:n])
 
 	if !ok {
 		return
 	}
 
-	pipe := pack.GetPipeline()
+	pipe := pack.GetServerPipeline()
 	for weft := pipe.Get(); weft != nil; weft = pipe.Get() {
 		switch weft.PackId {
 		case messages.ProtocolID:
@@ -150,7 +157,7 @@ func handlingGame(lecture []byte, n int) {
 			msg := messages.GetRawDataNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
-			writeInListener(msg, true)
+			writeInMyClient(msg, []int{messages.CheckIntegrityID})
 		default:
 			fmt.Printf("Client: there is no traitment for %d ID\n", weft.PackId)
 		}
@@ -158,15 +165,13 @@ func handlingGame(lecture []byte, n int) {
 }
 
 func HandlingAuth(lecture []byte, n int) {
-	fmt.Printf("%d octets reçu\n", n)
-
 	ok := pack.ReadServer(lecture[:n])
 
 	if !ok {
 		return
 	}
 
-	pipe := pack.GetPipeline()
+	pipe := pack.GetServerPipeline()
 	for weft := pipe.Get(); weft != nil; weft = pipe.Get() {
 		switch weft.PackId {
 		case messages.HelloConnectID:
@@ -174,7 +179,7 @@ func HandlingAuth(lecture []byte, n int) {
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
 
-			writeInListener(msg, true)
+			writeInMyClient(msg, []int{messages.ClientKeyID})
 
 			fmt.Println("======= GO Identification =======")
 			mAuth := managers.GetAuthentification()
@@ -188,33 +193,33 @@ func HandlingAuth(lecture []byte, n int) {
 		case messages.ProtocolID:
 			msg := messages.GetProtocolNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
-			writeInListener(msg, false)
+			writeInMyClient(msg, nil)
 			fmt.Println(msg)
 		case messages.IdentificationFailedForBadVersionID:
 			msg := messages.GetIdentificationFailedForBadVersionNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
-			writeInListener(msg, false)
+			writeInMyClient(msg, nil)
 		case messages.IdentificationFailedID:
 			msg := messages.GetIdentificationFailedNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
-			writeInListener(msg, false)
+			writeInMyClient(msg, nil)
 		case messages.LoginQueueID:
 			msg := messages.GetLoginQueueStatusNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
-			writeInListener(msg, false)
+			writeInMyClient(msg, nil)
 		case messages.IdentificationSuccessID:
 			msg := messages.GetIdentificationSuccessNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
-			writeInListener(msg, false)
+			writeInMyClient(msg, nil)
 		case messages.SelectedServerDataExtendedID:
 			msg := messages.GetSelectedServerDataExtendedNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
-			writeInListener(msg, false)
+			writeInMyClient(msg, nil)
 			stop = true
 			Address = fmt.Sprintf("%s:%d", msg.SSD.Address, msg.SSD.Ports[0])
 			Callback = handlingGame
@@ -222,7 +227,7 @@ func HandlingAuth(lecture []byte, n int) {
 			msg := messages.GetCredentialsAcknowledgementNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
-			writeInListener(msg, false)
+			writeInMyClient(msg, nil)
 		default:
 			fmt.Printf("Client: there is no traitment for %d ID\n", weft.PackId)
 		}
@@ -266,7 +271,14 @@ func launchServerSocket() {
 
 	connListener, err = listener.Accept()
 	if err != nil {
-		log.Fatal(err)
+		if connListener != nil {
+			err = connListener.Close()
+			if err != nil {
+			}
+			connListener = nil
+		}
+
+		return
 	}
 	fmt.Println("Listener: Go client !")
 
@@ -296,12 +308,14 @@ func tryReloadConnListener(duration time.Duration) {
 		case <-done:
 			if listener != nil {
 				err := listener.Close()
+				listener = nil
 				if err != nil {
 					panic(err)
 				}
 			}
 			if connServer != nil {
 				err := connServer.Close()
+				connServer = nil
 				if err != nil {
 					panic(err)
 				}
@@ -336,7 +350,7 @@ func LaunchClientSocket() {
 	if err != nil {
 		log.Fatalf("Failed to dial: %v", err)
 	} else {
-		log.Println("La connexion to server OK.")
+		log.Println("Connexion to server OK.")
 	}
 	currentAddress = Address
 	stop = false
@@ -372,7 +386,7 @@ func LaunchClientSocket() {
 
 	lecture := make([]byte, 1024)
 
-	for {
+	for connServer != nil {
 		if stop {
 			break
 		}
@@ -392,6 +406,7 @@ func LaunchClientSocket() {
 		if n == 0 {
 			continue
 		}
+		fmt.Printf("Server: %d octets reçu\n", n)
 
 		Callback(lecture, n)
 	}

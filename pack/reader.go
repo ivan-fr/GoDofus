@@ -47,7 +47,7 @@ func GetClientPipeline() *pipe {
 	return clientPipeline
 }
 
-func GetPipeline() *pipe {
+func GetServerPipeline() *pipe {
 	return pipeline
 }
 
@@ -65,18 +65,21 @@ func (p *pipe) Get() *weft {
 	return w
 }
 
-func (p *pipe) appendSlave(w *weft) {
-	p.Wefts = append(p.Wefts, w)
-}
+func (p *pipe) Contains(packetIDs map[uint16]bool) bool {
+	var found []uint16
+	for _, weftInPipe := range p.Wefts {
+		_, ok := packetIDs[weftInPipe.PackId]
 
-func (p *pipe) GetSalve() *weft {
-	if len(p.Wefts) == 0 {
-		return nil
+		if ok {
+			found = append(found, weftInPipe.PackId)
+
+			if len(found) == len(packetIDs) {
+				return true
+			}
+		}
 	}
 
-	w := p.Wefts[0]
-	p.Wefts = p.Wefts[1:]
-	return w
+	return false
 }
 
 func (lS *lastSignal) update(request int, typeRequest int, containForType []byte, containNoType []byte) {
