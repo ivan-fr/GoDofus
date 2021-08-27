@@ -235,7 +235,7 @@ func HandlingAuth(lecture []byte, n int) {
 
 func launchServerSocket() {
 	if connListener != nil {
-		panic("un connexion listener est déjà active")
+		panic("a listener connexion is already active")
 	}
 
 	var err error
@@ -356,7 +356,6 @@ func LaunchClientSocket() {
 
 			err = listener.Close()
 			if err != nil {
-				return
 			}
 			listener = nil
 		} else {
