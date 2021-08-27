@@ -145,17 +145,26 @@ func launchServerSocket() {
 	packToWrite := pack.Write(msg, true)
 
 	block := false
-	for connListener != nil {
-		select {
-		case block = <-blockThreadServerToToMyClient:
-		default:
+
+	go func() {
+		for {
+			select {
+			case block = <-blockThreadServerToToMyClient:
+			default:
+			}
+			if connListener == nil {
+				break
+			}
 		}
+	}()
+
+	for connListener != nil {
+		time.Sleep(time.Second * 5)
 
 		if block {
 			continue
 		}
 
-		time.Sleep(time.Second * 3)
 		err = connListener.SetWriteDeadline(time.Now().Add(time.Second * 3))
 		if err != nil {
 			break
@@ -276,7 +285,9 @@ func LaunchClientSocket() {
 			break
 		}
 
-		waitMyClient()
+		if connListener == nil {
+			tryReloadConnListener(time.Second * 8)
+		}
 
 		if blockClientToAnkamaLinear {
 			continue
