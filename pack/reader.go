@@ -32,7 +32,7 @@ var pipeline = new(pipe)
 var lastWeft *weft = nil
 
 var lSignalSlave = &lastSignal{typeRequest: noType}
-var pipelineSlave = new(pipe)
+var clientPipeline = new(pipe)
 var lastWeftSlave *weft = nil
 
 const (
@@ -44,7 +44,7 @@ const (
 )
 
 func GetClientPipeline() *pipe {
-	return pipelineSlave
+	return clientPipeline
 }
 
 func GetPipeline() *pipe {
