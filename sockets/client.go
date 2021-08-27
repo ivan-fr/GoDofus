@@ -34,7 +34,7 @@ func readInListener() {
 	blockServerRead = true
 
 	lecture := make([]byte, 1024)
-	fmt.Println("Lecture listener")
+	fmt.Println("go Lecture listener")
 
 	for connListener != nil {
 		n, err := connListener.Read(lecture)
@@ -55,7 +55,7 @@ func readInListener() {
 		}
 	}
 
-	fmt.Println("fin lecture listener")
+	fmt.Println("end lecture listener")
 
 	blockServerRead = false
 }
@@ -142,8 +142,7 @@ func HandlingAuth(lecture []byte, n int) {
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
 
-			writeInListener(msg, false)
-			readInListener()
+			writeInListener(msg, true)
 
 			fmt.Println("======= GO Identification =======")
 			mAuth := managers.GetAuthentification()
@@ -218,14 +217,14 @@ func LaunchServerSocket() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println("Listener: connexion avec l'esclave angagé")
+		fmt.Println("Listener: Go client !")
 		break
 	}
 
 	for connListener != nil {
 	}
 
-	fmt.Println("Listener: connexion avec l'esclave perdu.")
+	fmt.Println("Listener: Go client lost !")
 }
 
 func LaunchClientSocket() {
@@ -243,7 +242,7 @@ func LaunchClientSocket() {
 	if err != nil {
 		log.Fatalf("Failed to dial: %v", err)
 	} else {
-		log.Println("La connexion au serveur est réussie.")
+		log.Println("La connexion to server OK.")
 	}
 	currentAddress = Address
 	stop = false
