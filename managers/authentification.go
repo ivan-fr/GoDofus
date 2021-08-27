@@ -2,6 +2,7 @@ package managers
 
 import (
 	"GoDofus/messages"
+	"GoDofus/settings"
 	"GoDofus/structs"
 	"GoDofus/utils"
 	"bytes"
@@ -12,31 +13,9 @@ import (
 	"encoding/binary"
 	"encoding/pem"
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"math/rand"
-	"os"
 	"time"
 )
-
-type myLogin struct {
-	Ndc  string `yaml:"nomdecompte"`
-	Pass string `yaml:"motdepasse"`
-}
-
-func getConf() *myLogin {
-	var login = &myLogin{}
-
-	yamlFile, err := os.ReadFile("./settings.yaml")
-	if err != nil {
-		panic(err)
-	}
-	err = yaml.Unmarshal(yamlFile, login)
-	if err != nil {
-		panic(err)
-	}
-
-	return login
-}
 
 type loginAction struct {
 	username         string
@@ -57,7 +36,6 @@ type Authentification struct {
 var authenticate_ = &Authentification{AESKey: generateAESKey(), lang: []byte("fr")}
 var AESLength = uint(32)
 
-var myLogin_ = getConf()
 var publicVerifyPem = utils.ReadRSA("./binaryData/verify_key.bin")
 var blockVerify = utils.DecodePem(publicVerifyPem)
 var publicKeyVerify = utils.PublicKeyOf(blockVerify)
@@ -68,8 +46,8 @@ func GetAuthentification() *Authentification {
 
 func (a *Authentification) initLoginAction() {
 	la := &loginAction{autoSelectServer: true}
-	la.username = myLogin_.Ndc
-	la.password = myLogin_.Pass
+	la.username = settings.Settings.Ndc
+	la.password = settings.Settings.Pass
 	a.lA = la
 	var randomTime = time.Duration(rand.Intn(2) + 2)
 	time.Sleep(time.Second * randomTime)

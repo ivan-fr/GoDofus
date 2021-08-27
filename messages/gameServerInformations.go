@@ -15,7 +15,7 @@ type gameServerInformations struct {
 	PacketId        uint32
 	isMonoAccount   bool
 	isSelectable    bool
-	id              uint16
+	id              int32
 	type_           byte
 	status          byte
 	completion      byte
@@ -37,7 +37,7 @@ func (g *gameServerInformations) Serialize(buff *bytes.Buffer) {
 
 	_ = binary.Write(buff, binary.BigEndian, byte(box))
 
-	_ = binary.Write(buff, binary.BigEndian, g.id)
+	utils.WriteVarShort(buff, g.id)
 	_ = binary.Write(buff, binary.BigEndian, g.type_)
 	_ = binary.Write(buff, binary.BigEndian, g.status)
 	_ = binary.Write(buff, binary.BigEndian, g.completion)
@@ -53,7 +53,7 @@ func (g *gameServerInformations) Deserialize(reader *bytes.Reader) {
 	g.isMonoAccount = utils.GetFlag(uint32(box), 0)
 	g.isSelectable = utils.GetFlag(uint32(box), 1)
 
-	_ = binary.Read(reader, binary.BigEndian, &g.id)
+	g.id = utils.ReadVarInt16(reader)
 	_ = binary.Read(reader, binary.BigEndian, &g.type_)
 	_ = binary.Read(reader, binary.BigEndian, &g.status)
 	_ = binary.Read(reader, binary.BigEndian, &g.completion)

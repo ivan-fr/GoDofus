@@ -4,12 +4,11 @@ import (
 	"GoDofus/managers"
 	"GoDofus/messages"
 	"GoDofus/pack"
+	"GoDofus/settings"
 	"bytes"
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"log"
 	"net"
-	"os"
 	"time"
 )
 
@@ -28,7 +27,7 @@ func reloadConnListenerWrite(msg messages.Message) {
 		return
 	}
 
-	tryReloadConnListener(time.Second * 5)
+	tryReloadConnListener(time.Second * 10)
 
 	_, err := connListener.Write(pack.Write(msg, true))
 	if err != nil {
@@ -41,7 +40,7 @@ func reloadConnListenerRead(lecture []byte) int {
 		return 0
 	}
 
-	tryReloadConnListener(time.Second * 5)
+	tryReloadConnListener(time.Second * 10)
 
 	n, err := connListener.Read(lecture)
 	if err != nil {
@@ -63,7 +62,7 @@ func writeInMyClient(msg messages.Message, waitResponses []int) {
 }
 
 func readInListener(responses []int) {
-	var packetIds map[uint16]bool
+	var packetIds = make(map[uint16]bool)
 	pipe := pack.GetClientPipeline()
 
 	for _, packetId := range responses {
@@ -234,27 +233,6 @@ func HandlingAuth(lecture []byte, n int) {
 	}
 }
 
-type Server struct {
-	Address string `yaml:"localServer"`
-}
-
-var myServer = getConf()
-
-func getConf() *Server {
-	var server = &Server{}
-
-	yamlFile, err := os.ReadFile("./settings.yaml")
-	if err != nil {
-		panic(err)
-	}
-	err = yaml.Unmarshal(yamlFile, server)
-	if err != nil {
-		panic(err)
-	}
-
-	return server
-}
-
 func launchServerSocket() {
 	if connListener != nil {
 		panic("un connexion listener est déjà active")
@@ -263,7 +241,7 @@ func launchServerSocket() {
 	var err error
 
 	if listener == nil {
-		listener, err = net.Listen("tcp", myServer.Address)
+		listener, err = net.Listen("tcp", fmt.Sprintf("%s:%d", settings.Settings.LocalAddress, settings.Settings.LocalPort))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -320,7 +298,7 @@ func tryReloadConnListener(duration time.Duration) {
 					panic(err)
 				}
 			}
-			panic("Listener: Kill instant ! From Timeout.")
+			log.Fatal("Listener: Kill instant ! From Timeout.")
 		default:
 			continue
 		}
@@ -356,11 +334,13 @@ func LaunchClientSocket() {
 	stop = false
 
 	defer func(conn_ net.Conn) {
-		err = connServer.Close()
-		if err != nil {
-			log.Fatal(err)
+		if connServer != nil {
+			err = connServer.Close()
+			if err != nil {
+				log.Fatal(err)
+			}
+			connServer = nil
 		}
-		connServer = nil
 
 		if Address == currentAddress {
 			if listener == nil {

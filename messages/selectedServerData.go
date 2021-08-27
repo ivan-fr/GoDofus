@@ -5,6 +5,7 @@
 package messages
 
 import (
+	"GoDofus/settings"
 	"GoDofus/utils"
 	"bytes"
 	"encoding/binary"
@@ -29,11 +30,11 @@ func GetSelectedServerDataNOA() *selectedServerData {
 
 func (s *selectedServerData) Serialize(buff *bytes.Buffer) {
 	utils.WriteVarShort(buff, int32(s.serverId))
-	utils.WriteUTF(buff, s.Address)
+	utils.WriteUTF(buff, []byte(settings.Settings.LocalAddress))
 	_ = binary.Write(buff, binary.BigEndian, s.portsLen)
 
 	for i := uint16(0); i < s.portsLen; i++ {
-		utils.WriteVarShort(buff, s.Ports[i])
+		utils.WriteVarShort(buff, settings.Settings.LocalPort)
 	}
 
 	_ = binary.Write(buff, binary.BigEndian, s.canCreateNewCharacter)
