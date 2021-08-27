@@ -47,7 +47,7 @@ func readInListener() {
 			continue
 		}
 
-		ok := pack.Read(lecture[:n])
+		ok := pack.ReadClient(lecture[:n])
 
 		if ok {
 			handlingListener(n)
@@ -63,7 +63,7 @@ func readInListener() {
 func handlingListener(n int) {
 	fmt.Printf("Listener: %d octets reçu\n", n)
 
-	pipe := pack.GetPipeline()
+	pipe := pack.GetClientPipeline()
 	for weft := pipe.Get(); weft != nil; weft = pipe.Get() {
 		switch weft.PackId {
 		case messages.CheckIntegrityID:
@@ -91,7 +91,7 @@ func handlingListener(n int) {
 func handlingGame(lecture []byte, n int) {
 	fmt.Printf("%d octets reçu\n", n)
 
-	ok := pack.Read(lecture[:n])
+	ok := pack.ReadServer(lecture[:n])
 
 	if !ok {
 		return
@@ -128,7 +128,7 @@ func handlingGame(lecture []byte, n int) {
 func HandlingAuth(lecture []byte, n int) {
 	fmt.Printf("%d octets reçu\n", n)
 
-	ok := pack.Read(lecture[:n])
+	ok := pack.ReadServer(lecture[:n])
 
 	if !ok {
 		return
