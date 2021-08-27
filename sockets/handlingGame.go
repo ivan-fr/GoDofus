@@ -37,6 +37,11 @@ func handlingGame(lecture []byte, n int) {
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
 			writeInMyClient(msg, []int{messages.CheckIntegrityID})
+		case messages.AuthenticationTicketAcceptedID:
+			msg := messages.GetAuthenticationTicketAcceptedNOA()
+			msg.Deserialize(bytes.NewReader(weft.Message))
+			fmt.Println(msg)
+			writeInMyClient(msg, nil)
 		default:
 			fmt.Printf("Client: there is no traitment for %d ID\n", weft.PackId)
 		}
