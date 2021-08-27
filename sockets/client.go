@@ -20,9 +20,9 @@ var Callback func([]byte, int)
 var Address string
 var currentAddress string
 
-var blockServerReadLinear bool
-var blockLinearReadGo = make(chan bool)
-var blockGoBlock = make(chan bool)
+var blockClientToAnkamaLinear bool
+var blockServerToMyClientLinear bool
+var blockThreadServerToToMyClient = make(chan bool)
 
 func reloadConnListenerWrite(msg messages.Message) {
 	if listener == nil {
@@ -53,10 +53,14 @@ func reloadConnListenerRead(lecture []byte) int {
 }
 
 func writeInMyClient(msg messages.Message, waitResponses []int) {
+	blockClientToAnkamaLinear = true
+	blockThreadServerToToMyClient <- true
 	_, err := connListener.Write(pack.Write(msg, true))
 	if err != nil {
 		reloadConnListenerWrite(msg)
 	}
+	blockClientToAnkamaLinear = false
+	blockThreadServerToToMyClient <- false
 
 	if waitResponses != nil {
 		readInListener(waitResponses)
@@ -71,20 +75,14 @@ func readInListener(responses []int) {
 		packetIds[uint16(packetId)] = true
 	}
 
-	blockServerReadLinear = true
-	blockGoBlock <- true
+	blockClientToAnkamaLinear = true
+	blockThreadServerToToMyClient <- true
 
 	lecture := make([]byte, 1024)
 	fmt.Println("go Lecture listener")
 
-	blockGo := false
 	for connListener != nil {
-		select {
-		case blockGo = <-blockLinearReadGo:
-		default:
-		}
-
-		if blockGo {
+		if blockServerToMyClientLinear {
 			continue
 		}
 
@@ -112,8 +110,8 @@ func readInListener(responses []int) {
 		}
 	}
 
-	blockServerReadLinear = false
-	blockGoBlock <- false
+	blockClientToAnkamaLinear = false
+	blockThreadServerToToMyClient <- false
 }
 
 func launchServerSocket() {
@@ -149,7 +147,7 @@ func launchServerSocket() {
 	block := false
 	for connListener != nil {
 		select {
-		case block = <-blockGoBlock:
+		case block = <-blockThreadServerToToMyClient:
 		default:
 		}
 
@@ -157,15 +155,20 @@ func launchServerSocket() {
 			continue
 		}
 
-		time.Sleep(time.Second * 2)
-		blockLinearReadGo <- true
-		_, err = connListener.Write(packToWrite)
+		time.Sleep(time.Second * 3)
+		err = connListener.SetWriteDeadline(time.Now().Add(time.Second * 3))
+		if err != nil {
+			break
+		}
 
+		blockServerToMyClientLinear = true
+		blockClientToAnkamaLinear = true
+		_, err = connListener.Write(packToWrite)
 		if err != nil {
 			connListener = nil
 		}
-
-		blockLinearReadGo <- false
+		blockServerToMyClientLinear = false
+		blockClientToAnkamaLinear = false
 	}
 
 	fmt.Println("Listener: Go client lost !")
@@ -268,7 +271,6 @@ func LaunchClientSocket() {
 
 	lecture := make([]byte, 1024)
 
-	blockGo := false
 	for connServer != nil {
 		if stop {
 			break
@@ -276,18 +278,15 @@ func LaunchClientSocket() {
 
 		waitMyClient()
 
-		select {
-		case blockGo = <-blockLinearReadGo:
-		default:
-		}
-
-		if blockServerReadLinear || blockGo {
+		if blockClientToAnkamaLinear {
 			continue
 		}
 
-		blockGoBlock <- true
+		blockThreadServerToToMyClient <- true
+		blockServerToMyClientLinear = true
 		n, err := connServer.Read(lecture)
-		blockGoBlock <- false
+		blockThreadServerToToMyClient <- false
+		blockServerToMyClientLinear = false
 
 		if err != nil {
 			panic(err)
