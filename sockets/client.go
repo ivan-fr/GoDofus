@@ -13,10 +13,9 @@ import (
 	"time"
 )
 
-var conn *net.TCPConn
+var connServer *net.TCPConn
 var listener net.Listener
 var connListener net.Conn = nil
-var toogleContinueToTryConnListener bool
 
 var stop bool
 var Callback func([]byte, int)
@@ -29,9 +28,7 @@ func reloadConnListenerWrite(msg messages.Message) {
 		return
 	}
 
-	connListener = nil
-
-	tryConnListener(time.Second * 2)
+	tryReloadConnListener(time.Second * 5)
 
 	_, err := connListener.Write(pack.Write(msg, true))
 	if err != nil {
@@ -44,9 +41,7 @@ func reloadConnListenerRead(lecture []byte) int {
 		return 0
 	}
 
-	connListener = nil
-
-	tryConnListener(time.Second * 2)
+	tryReloadConnListener(time.Second * 5)
 
 	n, err := connListener.Read(lecture)
 	if err != nil {
@@ -107,7 +102,7 @@ func handlingListener(n int) {
 			msg := messages.GetCheckIntegrityNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
-			_, err := conn.Write(pack.Write(msg, false))
+			_, err := connServer.Write(pack.Write(msg, false))
 			if err != nil {
 				panic(err)
 			}
@@ -115,7 +110,7 @@ func handlingListener(n int) {
 			msg := messages.GetClientKeyNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
-			_, err := conn.Write(pack.Write(msg, false))
+			_, err := connServer.Write(pack.Write(msg, false))
 			if err != nil {
 				panic(err)
 			}
@@ -147,7 +142,7 @@ func handlingGame(lecture []byte, n int) {
 			fmt.Println(msg)
 			time.Sleep(time.Millisecond * 150)
 			msg2 := messages.GetAuthenticationTicketNOA()
-			_, err := conn.Write(pack.Write(msg2, false))
+			_, err := connServer.Write(pack.Write(msg2, false))
 			if err != nil {
 				panic(err)
 			}
@@ -186,7 +181,7 @@ func HandlingAuth(lecture []byte, n int) {
 			mAuth.InitIdentificationMessage()
 
 			authMessage := messages.GetIdentificationNOA()
-			_, err := conn.Write(pack.Write(authMessage, false))
+			_, err := connServer.Write(pack.Write(authMessage, false))
 			if err != nil {
 				panic(err)
 			}
@@ -269,19 +264,11 @@ func launchServerSocket() {
 		}
 	}
 
-	for toogleContinueToTryConnListener {
-		connListener, err = listener.Accept()
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println("Listener: Go client !")
-		break
+	connListener, err = listener.Accept()
+	if err != nil {
+		log.Fatal(err)
 	}
-
-	if !toogleContinueToTryConnListener {
-		toogleContinueToTryConnListener = true
-		return
-	}
+	fmt.Println("Listener: Go client !")
 
 	for connListener != nil {
 	}
@@ -289,7 +276,11 @@ func launchServerSocket() {
 	fmt.Println("Listener: Go client lost !")
 }
 
-func tryConnListener(duration time.Duration) {
+func tryReloadConnListener(duration time.Duration) {
+	connListener = nil
+
+	fmt.Println("Try connect a listener...")
+
 	if connListener == nil {
 		go launchServerSocket()
 	}
@@ -303,19 +294,30 @@ func tryConnListener(duration time.Duration) {
 	for connListener == nil {
 		select {
 		case <-done:
-			toogleContinueToTryConnListener = false
-			break
+			if listener != nil {
+				err := listener.Close()
+				if err != nil {
+					panic(err)
+				}
+			}
+			if connServer != nil {
+				err := connServer.Close()
+				if err != nil {
+					panic(err)
+				}
+			}
+			panic("Listener: Kill instant ! From Timeout.")
 		default:
 			continue
 		}
 	}
-
-	if connListener == nil {
-		panic("tryConnListener: timout")
-	}
 }
 
 func waitMyClient() {
+	if connListener != nil {
+		return
+	}
+
 	if connListener == nil {
 		go launchServerSocket()
 	}
@@ -329,7 +331,7 @@ func LaunchClientSocket() {
 	waitMyClient()
 
 	rAddr, err := net.ResolveTCPAddr("tcp", Address)
-	conn, err = net.DialTCP("tcp", nil, rAddr)
+	connServer, err = net.DialTCP("tcp", nil, rAddr)
 
 	if err != nil {
 		log.Fatalf("Failed to dial: %v", err)
@@ -340,17 +342,23 @@ func LaunchClientSocket() {
 	stop = false
 
 	defer func(conn_ net.Conn) {
-		err = conn.Close()
+		err = connServer.Close()
 		if err != nil {
 			log.Fatal(err)
 		}
-		conn = nil
+		connServer = nil
 
 		if Address == currentAddress {
-			err = connListener.Close()
-			if err != nil {
+			if listener == nil {
+				return
 			}
-			connListener = nil
+
+			if connListener != nil {
+				err = connListener.Close()
+				if err != nil {
+				}
+				connListener = nil
+			}
 
 			err = listener.Close()
 			if err != nil {
@@ -358,9 +366,9 @@ func LaunchClientSocket() {
 			}
 			listener = nil
 		} else {
-			time.Sleep(time.Millisecond * 500)
+			LaunchClientSocket()
 		}
-	}(conn)
+	}(connServer)
 
 	lecture := make([]byte, 1024)
 
@@ -375,7 +383,7 @@ func LaunchClientSocket() {
 			continue
 		}
 
-		n, err := conn.Read(lecture)
+		n, err := connServer.Read(lecture)
 
 		if err != nil {
 			panic(err)
