@@ -19,4 +19,5 @@ const (
 	RawDataID                           = 124
 	CheckIntegrityID                    = 5541
 	AuthenticationTicketID              = 3920
+	AuthenticationTicketAcceptedID      = 8662
 )

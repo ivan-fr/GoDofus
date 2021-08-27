@@ -1,11 +1,9 @@
 package sockets
 
 import (
-	"GoDofus/managers"
 	"GoDofus/messages"
 	"GoDofus/pack"
 	"GoDofus/settings"
-	"bytes"
 	"fmt"
 	"log"
 	"net"
@@ -18,9 +16,13 @@ var connListener net.Conn = nil
 
 var stop bool
 var Callback func([]byte, int)
+
 var Address string
 var currentAddress string
-var blockServerRead bool
+
+var blockServerReadLinear bool
+var toggleServerReadGo = make(chan bool)
+var toggleClientBlock = make(chan bool)
 
 func reloadConnListenerWrite(msg messages.Message) {
 	if listener == nil {
@@ -69,7 +71,7 @@ func readInListener(responses []int) {
 		packetIds[uint16(packetId)] = true
 	}
 
-	blockServerRead = true
+	blockServerReadLinear = true
 
 	lecture := make([]byte, 1024)
 	fmt.Println("go Lecture listener")
@@ -99,138 +101,7 @@ func readInListener(responses []int) {
 		}
 	}
 
-	blockServerRead = false
-}
-
-func handlingListener() {
-	pipe := pack.GetClientPipeline()
-	for weft := pipe.Get(); weft != nil; weft = pipe.Get() {
-		switch weft.PackId {
-		case messages.CheckIntegrityID:
-			msg := messages.GetCheckIntegrityNOA()
-			msg.Deserialize(bytes.NewReader(weft.Message))
-			fmt.Println(msg)
-			_, err := connServer.Write(pack.Write(msg, false))
-			if err != nil {
-				panic(err)
-			}
-		case messages.ClientKeyID:
-			msg := messages.GetClientKeyNOA()
-			msg.Deserialize(bytes.NewReader(weft.Message))
-			fmt.Println(msg)
-			_, err := connServer.Write(pack.Write(msg, false))
-			if err != nil {
-				panic(err)
-			}
-		default:
-			fmt.Printf("Listener: there is no traitment for %d ID\n", weft.PackId)
-		}
-	}
-}
-
-func handlingGame(lecture []byte, n int) {
-	ok := pack.ReadServer(lecture[:n])
-
-	if !ok {
-		return
-	}
-
-	pipe := pack.GetServerPipeline()
-	for weft := pipe.Get(); weft != nil; weft = pipe.Get() {
-		switch weft.PackId {
-		case messages.ProtocolID:
-			msg := messages.GetProtocolNOA()
-			msg.Deserialize(bytes.NewReader(weft.Message))
-			fmt.Println(msg)
-		case messages.HelloGameID:
-			msg := messages.GetHelloGameNOA()
-			msg.Deserialize(bytes.NewReader(weft.Message))
-			fmt.Println(msg)
-			time.Sleep(time.Millisecond * 150)
-			msg2 := messages.GetAuthenticationTicketNOA()
-			_, err := connServer.Write(pack.Write(msg2, false))
-			if err != nil {
-				panic(err)
-			}
-		case messages.RawDataID:
-			msg := messages.GetRawDataNOA()
-			msg.Deserialize(bytes.NewReader(weft.Message))
-			fmt.Println(msg)
-			writeInMyClient(msg, []int{messages.CheckIntegrityID})
-		default:
-			fmt.Printf("Client: there is no traitment for %d ID\n", weft.PackId)
-		}
-	}
-}
-
-func HandlingAuth(lecture []byte, n int) {
-	ok := pack.ReadServer(lecture[:n])
-
-	if !ok {
-		return
-	}
-
-	pipe := pack.GetServerPipeline()
-	for weft := pipe.Get(); weft != nil; weft = pipe.Get() {
-		switch weft.PackId {
-		case messages.HelloConnectID:
-			msg := messages.GetHelloConnectNOA()
-			msg.Deserialize(bytes.NewReader(weft.Message))
-			fmt.Println(msg)
-
-			writeInMyClient(msg, []int{messages.ClientKeyID})
-
-			fmt.Println("======= GO Identification =======")
-			mAuth := managers.GetAuthentification()
-			mAuth.InitIdentificationMessage()
-
-			authMessage := messages.GetIdentificationNOA()
-			_, err := connServer.Write(pack.Write(authMessage, false))
-			if err != nil {
-				panic(err)
-			}
-		case messages.ProtocolID:
-			msg := messages.GetProtocolNOA()
-			msg.Deserialize(bytes.NewReader(weft.Message))
-			writeInMyClient(msg, nil)
-			fmt.Println(msg)
-		case messages.IdentificationFailedForBadVersionID:
-			msg := messages.GetIdentificationFailedForBadVersionNOA()
-			msg.Deserialize(bytes.NewReader(weft.Message))
-			fmt.Println(msg)
-			writeInMyClient(msg, nil)
-		case messages.IdentificationFailedID:
-			msg := messages.GetIdentificationFailedNOA()
-			msg.Deserialize(bytes.NewReader(weft.Message))
-			fmt.Println(msg)
-			writeInMyClient(msg, nil)
-		case messages.LoginQueueID:
-			msg := messages.GetLoginQueueStatusNOA()
-			msg.Deserialize(bytes.NewReader(weft.Message))
-			fmt.Println(msg)
-			writeInMyClient(msg, nil)
-		case messages.IdentificationSuccessID:
-			msg := messages.GetIdentificationSuccessNOA()
-			msg.Deserialize(bytes.NewReader(weft.Message))
-			fmt.Println(msg)
-			writeInMyClient(msg, nil)
-		case messages.SelectedServerDataExtendedID:
-			msg := messages.GetSelectedServerDataExtendedNOA()
-			msg.Deserialize(bytes.NewReader(weft.Message))
-			fmt.Println(msg)
-			writeInMyClient(msg, nil)
-			stop = true
-			Address = fmt.Sprintf("%s:%d", msg.SSD.Address, msg.SSD.Ports[0])
-			Callback = handlingGame
-		case messages.CredentialsAcknowledgementID:
-			msg := messages.GetCredentialsAcknowledgementNOA()
-			msg.Deserialize(bytes.NewReader(weft.Message))
-			fmt.Println(msg)
-			writeInMyClient(msg, nil)
-		default:
-			fmt.Printf("Client: there is no traitment for %d ID\n", weft.PackId)
-		}
-	}
+	blockServerReadLinear = false
 }
 
 func launchServerSocket() {
@@ -260,7 +131,36 @@ func launchServerSocket() {
 	}
 	fmt.Println("Listener: Go client !")
 
+	lecture := make([]byte, 1)
+	block := false
 	for connListener != nil {
+		select {
+		case <-toggleClientBlock:
+			block = !block
+		}
+
+		if block {
+			continue
+		}
+
+		time.Sleep(time.Second)
+		toggleServerReadGo <- true
+		n, err := connListener.Read(lecture)
+		toggleServerReadGo <- true
+
+		if err != nil {
+			connListener = nil
+		}
+
+		if n == 0 {
+			continue
+		}
+
+		ok := pack.ReadClient(lecture[:n])
+
+		if ok {
+			handlingListener()
+		}
 	}
 
 	fmt.Println("Listener: Go client lost !")
@@ -308,9 +208,7 @@ func tryReloadConnListener(duration time.Duration) {
 func waitMyClient() {
 	if connListener != nil {
 		return
-	}
-
-	if connListener == nil {
+	} else {
 		go launchServerSocket()
 	}
 
@@ -365,6 +263,7 @@ func LaunchClientSocket() {
 
 	lecture := make([]byte, 1024)
 
+	blockGo := false
 	for connServer != nil {
 		if stop {
 			break
@@ -372,11 +271,18 @@ func LaunchClientSocket() {
 
 		waitMyClient()
 
-		if blockServerRead {
+		select {
+		case <-toggleServerReadGo:
+			blockGo = !blockGo
+		}
+
+		if blockServerReadLinear || blockGo {
 			continue
 		}
 
+		toggleClientBlock <- true
 		n, err := connServer.Read(lecture)
+		toggleClientBlock <- true
 
 		if err != nil {
 			panic(err)
