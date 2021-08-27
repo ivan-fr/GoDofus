@@ -17,7 +17,7 @@ func HandlingAuth() {
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
 
-			writeInMyClient(msg, []int{messages.ClientKeyID})
+			writeInMyClient(msg)
 
 			fmt.Println("======= GO Identification =======")
 			mAuth := managers.GetAuthentification()
@@ -32,32 +32,32 @@ func HandlingAuth() {
 			msg := messages.GetProtocolNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
-			writeInMyClient(msg, nil)
+			writeInMyClient(msg)
 		case messages.IdentificationFailedForBadVersionID:
 			msg := messages.GetIdentificationFailedForBadVersionNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
-			writeInMyClient(msg, nil)
+			writeInMyClient(msg)
 		case messages.IdentificationFailedID:
 			msg := messages.GetIdentificationFailedNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
-			writeInMyClient(msg, nil)
+			writeInMyClient(msg)
 		case messages.LoginQueueID:
 			msg := messages.GetLoginQueueStatusNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
-			writeInMyClient(msg, nil)
+			writeInMyClient(msg)
 		case messages.IdentificationSuccessID:
 			msg := messages.GetIdentificationSuccessNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
-			writeInMyClient(msg, nil)
+			writeInMyClient(msg)
 		case messages.SelectedServerDataExtendedID:
 			msg := messages.GetSelectedServerDataExtendedNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
-			writeInMyClient(msg, nil)
+			writeInMyClient(msg)
 			stop = true
 			Address = fmt.Sprintf("%s:%d", msg.SSD.Address, msg.SSD.Ports[0])
 			Callback = handlingGame
@@ -65,7 +65,7 @@ func HandlingAuth() {
 			msg := messages.GetCredentialsAcknowledgementNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
-			writeInMyClient(msg, nil)
+			writeInMyClient(msg)
 		default:
 			fmt.Printf("Client: there is no traitment for %d ID\n", weft.PackId)
 		}

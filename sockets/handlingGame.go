@@ -30,12 +30,12 @@ func handlingGame() {
 			msg := messages.GetRawDataNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
-			writeInMyClient(msg, []int{messages.CheckIntegrityID})
+			writeInMyClient(msg)
 		case messages.AuthenticationTicketAcceptedID:
 			msg := messages.GetAuthenticationTicketAcceptedNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
-			writeInMyClient(msg, nil)
+			writeInMyClient(msg)
 		default:
 			fmt.Printf("Client: there is no traitment for %d ID\n", weft.PackId)
 		}

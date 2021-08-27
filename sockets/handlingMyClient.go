@@ -7,7 +7,7 @@ import (
 	"fmt"
 )
 
-func handlingListener() {
+func handlingMyClient() {
 	pipe := pack.GetClientPipeline()
 	for weft := pipe.Get(); weft != nil; weft = pipe.Get() {
 		switch weft.PackId {

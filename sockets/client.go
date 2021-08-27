@@ -5,6 +5,7 @@ import (
 	"GoDofus/pack"
 	"GoDofus/settings"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"time"
@@ -21,94 +22,18 @@ var Address string
 var currentAddress string
 
 var blockClientToAnkamaLinear bool
-var blockServerToMyClientLinear bool
 var blockThreadServerToToMyClient = make(chan bool)
 
-func reloadConnListenerWrite(msg messages.Message) {
-	if listener == nil {
-		return
-	}
-
-	tryReloadConnListener(time.Second * 10)
-
-	_, err := connListener.Write(pack.Write(msg, true))
-	if err != nil {
-		panic(err)
-	}
-}
-
-func reloadConnListenerRead(lecture []byte) int {
-	if listener == nil {
-		return 0
-	}
-
-	tryReloadConnListener(time.Second * 10)
-
-	n, err := connListener.Read(lecture)
-	if err != nil {
-		panic(err)
-	}
-
-	return n
-}
-
-func writeInMyClient(msg messages.Message, waitResponses []int) {
-	blockClientToAnkamaLinear = true
-	blockThreadServerToToMyClient <- true
-	_, err := connListener.Write(pack.Write(msg, true))
-	if err != nil {
-		reloadConnListenerWrite(msg)
-	}
-	blockClientToAnkamaLinear = false
-	blockThreadServerToToMyClient <- false
-
-	if waitResponses != nil {
-		readInListener(waitResponses)
-	}
-}
-
-func readInListener(responses []int) {
-	var packetIds = make(map[uint16]bool)
-	pipe := pack.GetClientPipeline()
-
-	for _, packetId := range responses {
-		packetIds[uint16(packetId)] = true
+func writeInMyClient(msg messages.Message) {
+	if connListener == nil {
+		tryReloadConnListener(time.Second * 8)
 	}
 
 	blockClientToAnkamaLinear = true
 	blockThreadServerToToMyClient <- true
 
-	lecture := make([]byte, 1024)
-	fmt.Println("go Lecture listener")
-
-	for connListener != nil {
-		if blockServerToMyClientLinear {
-			continue
-		}
-
-		n, err := connListener.Read(lecture)
-
-		if err != nil {
-			n = reloadConnListenerRead(lecture)
-		}
-
-		if n == 0 {
-			continue
-		}
-		fmt.Printf("Listener: %d octets reçu\n", n)
-
-		ok := pack.ReadClient(lecture[:n])
-
-		if len(responses) == 0 && ok {
-			fmt.Println("end lecture listener")
-			handlingListener()
-			break
-		} else if pipe.Contains(packetIds) {
-			fmt.Println("end lecture listener")
-			handlingListener()
-			break
-		}
-	}
+	_ = connListener.SetWriteDeadline(time.Now().Add(time.Second))
+	_, _ = connListener.Write(pack.Write(msg, true))
 
 	blockClientToAnkamaLinear = false
 	blockThreadServerToToMyClient <- false
@@ -155,21 +80,25 @@ func launchServerSocket() {
 		}
 	}()
 
-	lecture := make([]byte, 1)
+	lecture := make([]byte, 1024)
 	for connListener != nil {
-		time.Sleep(time.Second)
 
 		if block {
 			continue
 		}
 
-		_ = connListener.SetReadDeadline(time.Now().Add(time.Second * 3))
-
-		blockServerToMyClientLinear = true
+		_ = connListener.SetReadDeadline(time.Now().Add(time.Second * 1))
 		blockClientToAnkamaLinear = true
 		n, err := connListener.Read(lecture)
-		if err != nil {
-			err = connListener.Close()
+		if errNet, ok := err.(net.Error); ok {
+			if !errNet.Timeout() {
+				err := connListener.Close()
+				if err != nil {
+				}
+				connListener = nil
+			}
+		} else if err == io.EOF {
+			err := connListener.Close()
 			if err != nil {
 			}
 			connListener = nil
@@ -177,8 +106,10 @@ func launchServerSocket() {
 
 		if n > 0 {
 			_ = pack.ReadClient(lecture[:n])
+			if len(pack.GetClientPipeline().Wefts) > 0 {
+				handlingMyClient()
+			}
 		}
-		blockServerToMyClientLinear = false
 		blockClientToAnkamaLinear = false
 	}
 
@@ -186,13 +117,13 @@ func launchServerSocket() {
 }
 
 func tryReloadConnListener(duration time.Duration) {
-	connListener = nil
+	if connListener != nil {
+		return
+
+	}
 
 	fmt.Println("Try connect a listener...")
-
-	if connListener == nil {
-		go launchServerSocket()
-	}
+	go launchServerSocket()
 
 	done := make(chan bool)
 	go func() {
@@ -262,6 +193,7 @@ func LaunchClientSocket() {
 				err = connListener.Close()
 				if err != nil {
 				}
+				log.Println("ICI")
 				connListener = nil
 			}
 
@@ -290,11 +222,7 @@ func LaunchClientSocket() {
 		}
 
 		blockThreadServerToToMyClient <- true
-		blockServerToMyClientLinear = true
 		n, err := connServer.Read(lecture)
-		blockThreadServerToToMyClient <- false
-		blockServerToMyClientLinear = false
-
 		if err != nil {
 			panic(err)
 		}
@@ -304,9 +232,10 @@ func LaunchClientSocket() {
 		}
 		fmt.Printf("Server: %d octets reçu\n", n)
 
-		ok := pack.ReadServer(lecture[:n])
+		_ = pack.ReadServer(lecture[:n])
+		blockThreadServerToToMyClient <- false
 
-		if ok {
+		if len(pack.GetServerPipeline().Wefts) > 0 {
 			Callback()
 		}
 	}
