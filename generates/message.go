@@ -24,7 +24,7 @@ type {{ .Name }} struct {
 	PacketId uint32
 }
 
-var {{ .Name }}_ = &{{ .Name }}{PacketId: {{ .Id }}}
+var {{ .Name }}_ = &{{ .Name }}{PacketId: {{ .NameCapFirst }}ID}
 
 func Get{{ .NameCapFirst }}NOA() *{{ .Name }} {
 	return {{ .Name }}_
@@ -54,21 +54,23 @@ var packageIDSTemplate = template.Must(template.New("").Parse(`// Code generated
 package messages
 
 const (
-	{{ .constBefore }}
-	{{ .NameCapFirst }} = {{ .Id }}}
+	{{ .ConstBefore }}	{{ .NameCapFirst }}ID = {{ .Id }}
 )
 `))
 
 func GenerateMessage(Name string, packetId uint32) {
-	f, err := os.Create(fmt.Sprintf("./messages/%s.go", Name))
-	f2, err := os.Create("./messages/IDS.go")
-
 	constIDS, _ := os.ReadFile("./messages/IDS.go")
 
 	constIDString := string(constIDS)
-	var rgx = regexp.MustCompile(`^[^(]+([^)])+.*$`)
+	var rgx = regexp.MustCompile(`^[^(]+\([^a-zA-z]*([^)]+).*`)
 	rs := rgx.FindStringSubmatch(constIDString)
 
+	f, err := os.Create(fmt.Sprintf("./messages/%s.go", Name))
+	if err != nil {
+		panic(err)
+	}
+
+	f2, err := os.Create("./messages/IDS.go")
 	if err != nil {
 		panic(err)
 	}
@@ -84,12 +86,12 @@ func GenerateMessage(Name string, packetId uint32) {
 		Timestamp    time.Time
 		NameCapFirst string
 		Id           uint32
-		constBefore  string
+		ConstBefore  string
 	}{
 		Timestamp:    time.Now(),
 		NameCapFirst: strings.Title(Name),
 		Id:           packetId,
-		constBefore:  rs[1],
+		ConstBefore:  rs[1],
 	})
 	if err != nil {
 		panic(err)
@@ -99,7 +101,6 @@ func GenerateMessage(Name string, packetId uint32) {
 		Timestamp    time.Time
 		NameCapFirst string
 		Name         string
-		Id           uint32
 		FistLetter   string
 	}{
 		Timestamp:    time.Now(),

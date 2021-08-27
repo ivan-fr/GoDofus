@@ -21,8 +21,8 @@ var Address string
 var currentAddress string
 
 var blockServerReadLinear bool
-var toggleServerReadGo = make(chan bool)
-var toggleClientBlock = make(chan bool)
+var blockLinearReadGo = make(chan bool)
+var blockGoBlock = make(chan bool)
 
 func reloadConnListenerWrite(msg messages.Message) {
 	if listener == nil {
@@ -72,11 +72,22 @@ func readInListener(responses []int) {
 	}
 
 	blockServerReadLinear = true
+	blockGoBlock <- true
 
 	lecture := make([]byte, 1024)
 	fmt.Println("go Lecture listener")
 
+	blockGo := false
 	for connListener != nil {
+		select {
+		case blockGo = <-blockLinearReadGo:
+		default:
+		}
+
+		if blockGo {
+			continue
+		}
+
 		n, err := connListener.Read(lecture)
 
 		if err != nil {
@@ -102,6 +113,7 @@ func readInListener(responses []int) {
 	}
 
 	blockServerReadLinear = false
+	blockGoBlock <- false
 }
 
 func launchServerSocket() {
@@ -131,36 +143,29 @@ func launchServerSocket() {
 	}
 	fmt.Println("Listener: Go client !")
 
-	lecture := make([]byte, 1)
+	msg := messages.GetBasicPongNOA()
+	packToWrite := pack.Write(msg, true)
+
 	block := false
 	for connListener != nil {
 		select {
-		case <-toggleClientBlock:
-			block = !block
+		case block = <-blockGoBlock:
+		default:
 		}
 
 		if block {
 			continue
 		}
 
-		time.Sleep(time.Second)
-		toggleServerReadGo <- true
-		n, err := connListener.Read(lecture)
-		toggleServerReadGo <- true
+		time.Sleep(time.Second * 2)
+		blockLinearReadGo <- true
+		_, err = connListener.Write(packToWrite)
 
 		if err != nil {
 			connListener = nil
 		}
 
-		if n == 0 {
-			continue
-		}
-
-		ok := pack.ReadClient(lecture[:n])
-
-		if ok {
-			handlingListener()
-		}
+		blockLinearReadGo <- false
 	}
 
 	fmt.Println("Listener: Go client lost !")
@@ -272,17 +277,17 @@ func LaunchClientSocket() {
 		waitMyClient()
 
 		select {
-		case <-toggleServerReadGo:
-			blockGo = !blockGo
+		case blockGo = <-blockLinearReadGo:
+		default:
 		}
 
 		if blockServerReadLinear || blockGo {
 			continue
 		}
 
-		toggleClientBlock <- true
+		blockGoBlock <- true
 		n, err := connServer.Read(lecture)
-		toggleClientBlock <- true
+		blockGoBlock <- false
 
 		if err != nil {
 			panic(err)

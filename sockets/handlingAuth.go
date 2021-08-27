@@ -37,8 +37,8 @@ func HandlingAuth(lecture []byte, n int) {
 		case messages.ProtocolID:
 			msg := messages.GetProtocolNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
-			writeInMyClient(msg, nil)
 			fmt.Println(msg)
+			writeInMyClient(msg, nil)
 		case messages.IdentificationFailedForBadVersionID:
 			msg := messages.GetIdentificationFailedForBadVersionNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
