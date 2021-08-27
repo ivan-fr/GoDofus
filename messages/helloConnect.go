@@ -3,8 +3,14 @@ package messages
 import (
 	"GoDofus/utils"
 	"bytes"
+	"crypto"
+	"crypto/rsa"
+	"crypto/x509"
 	"encoding/binary"
+	"encoding/pem"
 	"fmt"
+	"log"
+	"os"
 )
 
 type helloConnect struct {
@@ -14,6 +20,8 @@ type helloConnect struct {
 }
 
 var hConnect = &helloConnect{PacketId: HelloConnectID}
+var privateKey *rsa.PrivateKey
+var publicHelloKey []byte
 
 func GetHelloConnectNOA() *helloConnect {
 	return hConnect
@@ -21,8 +29,29 @@ func GetHelloConnectNOA() *helloConnect {
 
 func (h *helloConnect) Serialize(buff *bytes.Buffer) {
 	utils.WriteUTF(buff, h.Salt)
-	utils.WriteVarInt32(buff, int32(len(h.Key)))
-	_ = binary.Write(buff, binary.BigEndian, h.Key)
+
+	if privateKey == nil {
+		privatePam, _ := os.ReadFile("./sign/private_key.pem")
+		block, _ := pem.Decode(privatePam)
+		if block == nil {
+			log.Fatal("failed to decode PEM block containing private key")
+		}
+
+		privateKey, _ = x509.ParsePKCS1PrivateKey(block.Bytes)
+
+		pubHelloPam, _ := os.ReadFile("./sign/hello_public_key.pem")
+		block, _ = pem.Decode(pubHelloPam)
+		if block == nil {
+			log.Fatal("failed to decode PEM block containing pub hello key")
+		}
+
+		publicHelloKey = block.Bytes
+	}
+
+	key, _ := rsa.SignPKCS1v15(nil, privateKey, crypto.Hash(0), publicHelloKey)
+
+	utils.WriteVarInt32(buff, int32(len(key)))
+	_ = binary.Write(buff, binary.BigEndian, key)
 }
 
 func (h *helloConnect) Deserialize(reader *bytes.Reader) {

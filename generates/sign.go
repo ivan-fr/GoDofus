@@ -20,6 +20,34 @@ import (
 	"time"
 )
 
+func HelloConnectPair() error {
+	privateKey, err := rsa.GenerateKey(cryptoRand.Reader, 1024)
+	if err != nil {
+		panic(err)
+	}
+
+	publicKey := privateKey.PublicKey
+
+	pki, err := x509.MarshalPKIXPublicKey(&publicKey)
+	if err != nil {
+		panic(err)
+	}
+
+	publicPemData := pem.EncodeToMemory(&pem.Block{
+		Type:  "PUBLIC KEY",
+		Bytes: pki,
+	})
+
+	privatePemData := pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
+	})
+
+	_ = os.WriteFile("./sign/hello_private_key.pem", privatePemData, 0644)
+	_ = os.WriteFile("./sign/hello_public_key.pem", publicPemData, 0644)
+	return err
+}
+
 func Signature() error {
 	privateKey, err := rsa.GenerateKey(cryptoRand.Reader, 2048)
 	if err != nil {

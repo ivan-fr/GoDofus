@@ -20,53 +20,21 @@ var currentAddress string
 var blockServerRead bool
 
 func writeInListener(msg messages.Message, waitResponse bool) {
-	_, err := connListener.Write(pack.Write(msg))
+	_, err := connListener.Write(pack.Write(msg, true))
 	if err != nil {
 		panic(err)
 	}
 
 	if waitResponse {
 		readInListener()
-	} else {
-		purgePacketListener(1)
 	}
-}
-
-func purgePacketListener(n uint32) {
-	blockServerRead = true
-
-	lecture := make([]byte, 1024)
-	var nPack uint32
-
-	for connListener != nil {
-		nRead, err := connListener.Read(lecture)
-
-		if err != nil {
-			panic(err)
-		}
-
-		if nRead == 0 {
-			continue
-		}
-
-		ok := pack.Read(lecture[:n])
-
-		if ok {
-			nPack++
-		}
-
-		if n == nPack {
-			break
-		}
-	}
-
-	blockServerRead = false
 }
 
 func readInListener() {
 	blockServerRead = true
 
 	lecture := make([]byte, 1024)
+	fmt.Println("Lecture listener")
 
 	for connListener != nil {
 		n, err := connListener.Read(lecture)
@@ -87,6 +55,8 @@ func readInListener() {
 		}
 	}
 
+	fmt.Println("fin lecture listener")
+
 	blockServerRead = false
 }
 
@@ -100,7 +70,7 @@ func handlingListener(n int) {
 			msg := messages.GetCheckIntegrityNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
-			_, err := conn.Write(pack.Write(msg))
+			_, err := conn.Write(pack.Write(msg, false))
 			if err != nil {
 				panic(err)
 			}
@@ -108,7 +78,7 @@ func handlingListener(n int) {
 			msg := messages.GetClientKeyNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
-			_, err := conn.Write(pack.Write(msg))
+			_, err := conn.Write(pack.Write(msg, false))
 			if err != nil {
 				panic(err)
 			}
@@ -140,7 +110,7 @@ func handlingGame(lecture []byte, n int) {
 			fmt.Println(msg)
 			time.Sleep(time.Millisecond * 150)
 			msg2 := messages.GetAuthenticationTicketNOA()
-			_, err := conn.Write(pack.Write(msg2))
+			_, err := conn.Write(pack.Write(msg2, false))
 			if err != nil {
 				panic(err)
 			}
@@ -171,18 +141,19 @@ func HandlingAuth(lecture []byte, n int) {
 			msg := messages.GetHelloConnectNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))
 			fmt.Println(msg)
+
 			writeInListener(msg, false)
+			readInListener()
 
 			fmt.Println("======= GO Identification =======")
 			mAuth := managers.GetAuthentification()
 			mAuth.InitIdentificationMessage()
 
 			authMessage := messages.GetIdentificationNOA()
-			_, err := conn.Write(pack.Write(authMessage))
+			_, err := conn.Write(pack.Write(authMessage, false))
 			if err != nil {
 				panic(err)
 			}
-			readInListener()
 		case messages.ProtocolID:
 			msg := messages.GetProtocolNOA()
 			msg.Deserialize(bytes.NewReader(weft.Message))

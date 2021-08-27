@@ -24,7 +24,7 @@ func computeTypeLength(messageLength uint32) uint16 {
 	panic("invalid message length")
 }
 
-func Write(message messages.Message) []byte {
+func Write(message messages.Message, toSlave bool) []byte {
 	buffMsg := new(bytes.Buffer)
 	message.Serialize(buffMsg)
 
@@ -39,7 +39,10 @@ func Write(message messages.Message) []byte {
 
 	twoBytesHeader := packetId<<2 | typeLength
 	_ = binary.Write(buff, binary.BigEndian, twoBytesHeader)
-	_ = binary.Write(buff, binary.BigEndian, instanceId)
+
+	if !toSlave {
+		_ = binary.Write(buff, binary.BigEndian, instanceId)
+	}
 
 	switch typeLength {
 	case 1:
