@@ -136,6 +136,85 @@ func WriteVarLong(buff *bytes.Buffer, value float64) {
 	}
 }
 
+func ReadVarInt64(reader *bytes.Reader) int64 {
+	var b byte
+	var result int64
+	var low = int32(result & 0xffffffff)
+	var high = int32(result >> 32)
+	var i uint32
+	for {
+		_ = binary.Read(reader, binary.BigEndian, &b)
+		if i == 28 {
+			break
+		}
+		if b < 128 {
+			low |= int32(b) << i
+		}
+		i += 7
+	}
+	if b >= 128 {
+		b &= 127
+		low |= int32(b) << i
+		high = int32(b) >> 4
+		i = 3
+		for {
+			_ = binary.Read(reader, binary.BigEndian, &b)
+			if i < 32 {
+				if b < 128 {
+					break
+				}
+				high |= (int32(b) & 127) << i
+			}
+			i += 7
+		}
+		high |= int32(b) << i
+		return int64(high)<<32 | int64(low)
+	}
+	low |= int32(b) << i
+	high = int32(b) >> 4
+	return int64(high)<<32 | int64(low)
+}
+
+func ReadVarUInt64(reader *bytes.Reader) uint64 {
+	var b byte
+	var result uint64
+	var low = uint32(result & 0xffffffff)
+	var high = uint32(result >> 32)
+	var i uint32
+	for {
+		_ = binary.Read(reader, binary.BigEndian, &b)
+		if i == 28 {
+			break
+		}
+		if b < 128 {
+			low |= uint32(b) << i
+		}
+		i += 7
+	}
+	if b >= 128 {
+		b &= 127
+		low |= uint32(b) << i
+		high = uint32(b) >> 4
+		i = 3
+
+		for {
+			_ = binary.Read(reader, binary.BigEndian, &b)
+			if i < 32 {
+				if b < 128 {
+					break
+				}
+				high |= (uint32(b) & 127) << i
+			}
+			i += 7
+		}
+		high |= uint32(b) << i
+		return uint64(high)<<32 | uint64(low)
+	}
+	low |= uint32(b) << i
+	high = uint32(b) >> 4
+	return uint64(high)<<32 | uint64(low)
+}
+
 func writeSpecialInt32(buff *bytes.Buffer, value int32) {
 	for value >= 128 {
 		_ = binary.Write(buff, binary.BigEndian, uint8(value&127|128))

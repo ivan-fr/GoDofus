@@ -37,14 +37,6 @@ func getRAddr() *net.TCPAddr {
 func channelWriter(aChanMessage chan messages.Message, aChanConnexion chan net.Conn, toClient bool, instance uint) {
 	aConn := <-aChanConnexion
 
-	defer func() {
-		if err := recover(); err != nil {
-			log.Fatalf("FATAL ChannelWriter: closed: %v, to client: %t, for conn: %v", err, toClient, aConn)
-		}
-
-		log.Fatalf("BREAK ChannelWriter: closed: to client: %t, for conn: %v", toClient, aConn)
-	}()
-
 	for {
 		select {
 		case msg := <-aChanMessage:
@@ -217,6 +209,7 @@ func factoryServerClientToOfficial(myConnServer net.Conn,
 		if n == 0 {
 			continue
 		}
+		log.Printf("Dial: server official from instance n°%d: read %d octets\n", instance, n)
 
 		_ = myReadServer(myLecture[:n])
 

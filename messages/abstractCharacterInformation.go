@@ -7,7 +7,6 @@ package messages
 import (
 	"GoDofus/utils"
 	"bytes"
-	"encoding/binary"
 	"fmt"
 )
 
@@ -34,9 +33,7 @@ func (a *abstractCharacterInformation) Serialize(buff *bytes.Buffer) {
 }
 
 func (a *abstractCharacterInformation) Deserialize(reader *bytes.Reader) {
-	var aId uint64
-	_ = binary.Read(reader, binary.BigEndian, &aId)
-	a.id = float64(aId)
+	a.id = float64(utils.ReadVarUInt64(reader))
 }
 
 func (a *abstractCharacterInformation) GetPacketId() uint32 {

@@ -76,14 +76,12 @@ func (id *identification) Deserialize(reader *bytes.Reader) {
 
 	_ = binary.Read(reader, binary.BigEndian, &id.ServerId)
 
-	var saltSession int64
-	_ = binary.Read(reader, binary.BigEndian, &saltSession)
-	id.SessionOptionalSalt = float64(saltSession)
+	id.SessionOptionalSalt = float64(utils.ReadVarInt64(reader))
 
 	var failsLen uint16
 	_ = binary.Read(reader, binary.BigEndian, &failsLen)
-	id.FailedAttempts = nil
 
+	id.FailedAttempts = nil
 	for i := uint16(0); i < failsLen; i++ {
 		id.FailedAttempts = append(id.FailedAttempts, uint32(utils.ReadVarInt16(reader)))
 	}

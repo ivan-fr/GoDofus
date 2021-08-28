@@ -209,19 +209,19 @@ func readHeaderLength(aLWeft *Weft, aLSignal *lastSignal, reader *bytes.Reader) 
 	return true
 }
 
-func read(aPipeline *Pipe, aLWeft **Weft, aLSignal *lastSignal, isClient bool, bytesPack []byte) bool {
+func read(aPipeline *Pipe, aLWeft **Weft, aLSignal *lastSignal, toClient bool, bytesPack []byte) bool {
 	switch aLSignal.TypeRequest {
 	case messageLength:
 		switch {
 		case aLSignal.request == 0:
 			commit(aPipeline, aLWeft, aLSignal)
 			aLSignal.update(0, noType, nil, nil)
-			return read(aPipeline, aLWeft, aLSignal, isClient, bytesPack)
+			return read(aPipeline, aLWeft, aLSignal, toClient, bytesPack)
 		case aLSignal.request > 0:
 			commit(aPipeline, aLWeft, aLSignal)
 			newBytesPack := append(aLSignal.containNoType, bytesPack...)
 			aLSignal.update(0, noType, nil, nil)
-			return read(aPipeline, aLWeft, aLSignal, isClient, newBytesPack)
+			return read(aPipeline, aLWeft, aLSignal, toClient, newBytesPack)
 		case aLSignal.request < 0:
 			reader := bytes.NewReader(bytesPack)
 			ok := tryRead(aLSignal, reader, messageLength, uint(-aLSignal.request))
@@ -233,7 +233,7 @@ func read(aPipeline *Pipe, aLWeft **Weft, aLSignal *lastSignal, isClient bool, b
 			commit(aPipeline, aLWeft, aLSignal)
 			newBytesPack := aLSignal.containNoType
 			aLSignal.update(0, noType, nil, nil)
-			return read(aPipeline, aLWeft, aLSignal, isClient, newBytesPack)
+			return read(aPipeline, aLWeft, aLSignal, toClient, newBytesPack)
 		}
 	case headerTwoFirstBytes:
 		switch {
@@ -246,7 +246,7 @@ func read(aPipeline *Pipe, aLWeft **Weft, aLSignal *lastSignal, isClient bool, b
 
 			newBytesPack := aLSignal.containNoType
 			aLSignal.update(0, noType, nil, nil)
-			return read(aPipeline, aLWeft, aLSignal, isClient, newBytesPack)
+			return read(aPipeline, aLWeft, aLSignal, toClient, newBytesPack)
 		default:
 			panic("incoherence, last signal can't be positive")
 		}
@@ -261,7 +261,7 @@ func read(aPipeline *Pipe, aLWeft **Weft, aLSignal *lastSignal, isClient bool, b
 
 			newBytesPack := aLSignal.containNoType
 			aLSignal.update(0, noType, nil, nil)
-			return read(aPipeline, aLWeft, aLSignal, isClient, newBytesPack)
+			return read(aPipeline, aLWeft, aLSignal, toClient, newBytesPack)
 		default:
 			panic("incoherence, last signal can't be positive")
 		}
@@ -276,7 +276,7 @@ func read(aPipeline *Pipe, aLWeft **Weft, aLSignal *lastSignal, isClient bool, b
 
 			newBytesPack := aLSignal.containNoType
 			aLSignal.update(0, noType, nil, nil)
-			return read(aPipeline, aLWeft, aLSignal, isClient, newBytesPack)
+			return read(aPipeline, aLWeft, aLSignal, toClient, newBytesPack)
 		default:
 			panic("incoherence, last signal can't be positive")
 		}
@@ -294,8 +294,8 @@ func read(aPipeline *Pipe, aLWeft **Weft, aLSignal *lastSignal, isClient bool, b
 
 			newBytesPack := aLSignal.containNoType
 			aLSignal.update(0, noType, nil, nil)
-			return read(aPipeline, aLWeft, aLSignal, isClient, newBytesPack)
-		case (*aLWeft).instanceID == 0 && isClient:
+			return read(aPipeline, aLWeft, aLSignal, toClient, newBytesPack)
+		case (*aLWeft).instanceID == 0 && toClient:
 			reader := bytes.NewReader(bytesPack)
 			ok := readHeaderInstance(*aLWeft, aLSignal, reader)
 			if !ok {
@@ -304,7 +304,7 @@ func read(aPipeline *Pipe, aLWeft **Weft, aLSignal *lastSignal, isClient bool, b
 
 			newBytesPack := aLSignal.containNoType
 			aLSignal.update(0, noType, nil, nil)
-			return read(aPipeline, aLWeft, aLSignal, isClient, newBytesPack)
+			return read(aPipeline, aLWeft, aLSignal, toClient, newBytesPack)
 		case (*aLWeft).waitLength:
 			reader := bytes.NewReader(bytesPack)
 			ok := readHeaderLength(*aLWeft, aLSignal, reader)
@@ -314,11 +314,11 @@ func read(aPipeline *Pipe, aLWeft **Weft, aLSignal *lastSignal, isClient bool, b
 
 			newBytesPack := aLSignal.containNoType
 			aLSignal.update(0, noType, nil, nil)
-			return read(aPipeline, aLWeft, aLSignal, isClient, newBytesPack)
+			return read(aPipeline, aLWeft, aLSignal, toClient, newBytesPack)
 		default:
 			reader := bytes.NewReader(bytesPack)
 			_ = tryRead(aLSignal, reader, messageLength, uint((*aLWeft).Length))
-			return read(aPipeline, aLWeft, aLSignal, isClient, nil)
+			return read(aPipeline, aLWeft, aLSignal, toClient, nil)
 		}
 	default:
 		panic("program don't know the step.")

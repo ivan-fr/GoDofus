@@ -45,12 +45,12 @@ func (e *entityLook) Serialize(buff *bytes.Buffer) {
 	_ = binary.Write(buff, binary.BigEndian, e.indexedColors)
 
 	_ = binary.Write(buff, binary.BigEndian, uint16(len(e.scales)))
-	for i := 0; i < len(e.skins); i++ {
+	for i := 0; i < len(e.scales); i++ {
 		utils.WriteVarShort(buff, e.scales[i])
 	}
 
 	_ = binary.Write(buff, binary.BigEndian, uint16(len(e.subentities)))
-	for i := 0; i < len(e.skins); i++ {
+	for i := 0; i < len(e.subentities); i++ {
 		e.subentities[i].Serialize(buff)
 	}
 }
@@ -60,8 +60,9 @@ func (e *entityLook) Deserialize(reader *bytes.Reader) {
 
 	var len0_ uint16
 	_ = binary.Read(reader, binary.BigEndian, &len0_)
+	e.skins = nil
 	for i := 0; i < int(len0_); i++ {
-		e.skins[i] = utils.ReadVarInt16(reader)
+		e.skins = append(e.skins, utils.ReadVarInt32(reader))
 	}
 
 	var len1_ uint16
@@ -71,12 +72,14 @@ func (e *entityLook) Deserialize(reader *bytes.Reader) {
 
 	var len2_ uint16
 	_ = binary.Read(reader, binary.BigEndian, &len2_)
+	e.scales = nil
 	for i := 0; i < int(len2_); i++ {
-		e.scales[i] = utils.ReadVarInt32(reader)
+		e.scales = append(e.scales, utils.ReadVarInt32(reader))
 	}
 
 	var len3_ uint16
 	_ = binary.Read(reader, binary.BigEndian, &len3_)
+	e.subentities = nil
 	for i := 0; i < int(len3_); i++ {
 		aSubEntity := new(subEntity)
 		aSubEntity.Deserialize(reader)
