@@ -34,7 +34,7 @@ func getRAddr() *net.TCPAddr {
 	return rAddr
 }
 
-func channelWriter(aChanMessage chan messages.Message, aChanConnexion chan net.Conn, toClient bool) {
+func channelWriter(aChanMessage chan messages.Message, aChanConnexion chan net.Conn, toClient bool, instance uint) {
 	aConn := <-aChanConnexion
 
 	defer func() {
@@ -49,7 +49,7 @@ func channelWriter(aChanMessage chan messages.Message, aChanConnexion chan net.C
 			if aConn == nil {
 				aConn = <-aChanConnexion
 			}
-			_, err := aConn.Write(pack.Write(msg, toClient))
+			_, err := aConn.Write(pack.Write(msg, toClient, instance))
 			bug := handleErrReadWrite(err)
 
 			if bug {
@@ -99,7 +99,7 @@ func loginListener(wg *sync.WaitGroup,
 			myClientContinueChan := make(chan bool)
 			officialServerContinueChan := make(chan bool)
 
-			go channelWriter(writeInMyClientChan, myConnToMyClientChan, true)
+			go channelWriter(writeInMyClientChan, myConnToMyClientChan, true, instance)
 			myConnToMyClientChan <- myConnToMyClient
 
 			go func() {
@@ -281,7 +281,7 @@ func launchLoginClientToOfficialSocket(wg *sync.WaitGroup,
 		log.Printf("Connexion to server for instance n°%d OK.\n", instance)
 	}
 
-	go channelWriter(writeToOfficialServerChan, myConnToOfficialChan, false)
+	go channelWriter(writeToOfficialServerChan, myConnToOfficialChan, false, instance)
 	myConnToOfficialChan <- myConnServer
 
 	factoryServerClientToOfficial(myConnServer, myReadServer, myPipeline, officialServerContinueChan, callBack, instance)
@@ -306,7 +306,7 @@ func launchServerForMyClientSocket(wg *sync.WaitGroup, myConnToMyClient net.Conn
 		if err != nil {
 			break
 		}
-		_, err = myConnToMyClient.Write(pack.Write(messages.GetBasicPongNOA(instance), true))
+		_, err = myConnToMyClient.Write(pack.Write(messages.GetBasicPongNOA(instance), true, instance))
 		if err != nil {
 			break
 		}

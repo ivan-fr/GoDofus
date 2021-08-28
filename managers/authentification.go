@@ -58,7 +58,7 @@ func (a *Authentification) initLoginAction() {
 	la.username = settings.Settings.Ndc
 	la.password = settings.Settings.Pass
 	a.lA = la
-	var randomTime = time.Duration(rand.Intn(2) + 2)
+	var randomTime = time.Duration(rand.Intn(1) + 1)
 	time.Sleep(time.Second * randomTime)
 }
 
