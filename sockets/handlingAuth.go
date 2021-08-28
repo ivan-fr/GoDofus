@@ -8,7 +8,7 @@ import (
 	"fmt"
 )
 
-func handlingAuth(writeInMyClientChan, writeToAnkamaServerChan chan messages.Message, ankamaServerContinueChan chan bool, instance uint) func(*pack.Pipe) {
+func handlingAuth(writeInMyClientChan, writeToAnkamaServerChan chan messages.Message, myClientContinueChan, officialServerContinueChan chan bool, instance uint) func(*pack.Pipe) {
 	return func(pipe *pack.Pipe) {
 		for weft := pipe.Get(); weft != nil; weft = pipe.Get() {
 			switch weft.PackId {
@@ -55,7 +55,8 @@ func handlingAuth(writeInMyClientChan, writeToAnkamaServerChan chan messages.Mes
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)
 				writeInMyClientChan <- msg
-				ankamaServerContinueChan <- false
+				myClientContinueChan <- false
+				officialServerContinueChan <- false
 			case messages.CredentialsAcknowledgementID:
 				msg := messages.GetCredentialsAcknowledgementNOA(instance)
 				msg.Deserialize(bytes.NewReader(weft.Message))

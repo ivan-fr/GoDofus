@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func handlingGame(writeInMyClientChan, writeToAnkamaServerChan chan messages.Message, ankamaServerContinueChan chan bool, instance uint) func(*pack.Pipe) {
+func handlingGame(writeInMyClientChan, writeToAnkamaServerChan chan messages.Message, myClientContinueChan, officialServerContinueChan chan bool, instance uint) func(*pack.Pipe) {
 	return func(pipe *pack.Pipe) {
 		for weft := pipe.Get(); weft != nil; weft = pipe.Get() {
 			switch weft.PackId {

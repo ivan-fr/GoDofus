@@ -50,9 +50,7 @@ func channelWriter(aChanMessage chan messages.Message, aChanConnexion chan net.C
 				aConn = <-aChanConnexion
 			}
 			_, err := aConn.Write(pack.Write(msg, toClient, instance))
-			bug := handleErrReadWrite(err)
-
-			if bug {
+			if _, ok := err.(net.Error); ok {
 				break
 			}
 		case aConn = <-aChanConnexion:
@@ -105,15 +103,15 @@ func loginListener(wg *sync.WaitGroup,
 			go func() {
 				var myWg sync.WaitGroup
 				myWg.Add(1)
-				callbackOfficialServer := handlingAuth(writeInMyClientChan, writeToOfficialServerChan, officialServerContinueChan, instance)
+				callbackOfficialServer := handlingAuth(writeInMyClientChan, writeToOfficialServerChan, myClientContinueChan, officialServerContinueChan, instance)
 				go launchLoginClientToOfficialSocket(&myWg, writeToOfficialServerChan, officialServerContinueChan, callbackOfficialServer, instance, myConnToOfficialChan)
 				myWg.Wait()
-				callbackOfficialServer = handlingGame(writeInMyClientChan, writeToOfficialServerChan, officialServerContinueChan, instance)
+				callbackOfficialServer = handlingGame(writeInMyClientChan, writeToOfficialServerChan, myClientContinueChan, officialServerContinueChan, instance)
 				go launchGameClientToOfficialSocket(nil, officialServerContinueChan, callbackOfficialServer, instance, myConnToOfficialChan)
 			}()
 
 			go func() {
-				callbackInMyClient := handlingMyClient(writeInMyClientChan, writeToOfficialServerChan, officialServerContinueChan, instance)
+				callbackInMyClient := handlingMyClient(writeInMyClientChan, writeToOfficialServerChan, myClientContinueChan, officialServerContinueChan, instance)
 
 				var myWg sync.WaitGroup
 				myWg.Add(1)
@@ -171,7 +169,7 @@ func gameListener(wg *sync.WaitGroup,
 			myClientContinueChan := make(chan bool)
 			officialServerContinueChan := make(chan bool)
 
-			callbackInMyClient := handlingMyClient(writeChan[0], writeChan[1], officialServerContinueChan, instance)
+			callbackInMyClient := handlingMyClient(writeChan[0], writeChan[1], myClientContinueChan, officialServerContinueChan, instance)
 
 			var myWg sync.WaitGroup
 			myWg.Add(1)
@@ -204,9 +202,7 @@ func factoryServerClientToOfficial(myConnServer net.Conn,
 		}
 
 		n, err := myConnServer.Read(myLecture)
-		bug := handleErrReadWrite(err)
-
-		if bug {
+		if _, ok := err.(net.Error); ok {
 			break
 		}
 
@@ -302,29 +298,12 @@ func launchServerForMyClientSocket(wg *sync.WaitGroup, myConnToMyClient net.Conn
 		default:
 		}
 
-		err := myConnToMyClient.SetWriteDeadline(time.Now().Add(100 * time.Millisecond))
-		if err != nil {
-			break
-		}
-		_, err = myConnToMyClient.Write(pack.Write(messages.GetBasicPongNOA(instance), true, instance))
-		if err != nil {
-			break
-		}
-
-		bug := handleErrReadWrite(err)
-		if bug {
-			break
-		}
-
-		err = myConnToMyClient.SetReadDeadline(time.Now().Add(500 * time.Millisecond))
-		if err != nil {
-			return
-		}
+		_ = myConnToMyClient.SetReadDeadline(time.Now().Add(500 * time.Millisecond))
 		n, err := myConnToMyClient.Read(lecture)
-		bug = handleErrReadWrite(err)
-
-		if bug {
-			break
+		if netErr, ok := err.(net.Error); ok {
+			if !netErr.Timeout() {
+				break
+			}
 		}
 
 		if n > 0 {
@@ -335,12 +314,4 @@ func launchServerForMyClientSocket(wg *sync.WaitGroup, myConnToMyClient net.Conn
 		}
 	}
 	log.Printf("Listener: Go client lost from instance n°%d !\n", instance)
-}
-
-func handleErrReadWrite(err error) bool {
-	if _, ok := err.(net.Error); ok {
-		return true
-	}
-
-	return false
 }
