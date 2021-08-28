@@ -40,6 +40,7 @@ func (b *basicCharactersList) Deserialize(reader *bytes.Reader) {
 	var len_ uint16
 	_ = binary.Read(reader, binary.BigEndian, &len_)
 
+	fmt.Println(len_, "kokokokoko")
 	for i := 0; i < int(len_); i++ {
 		var item_ = new(item)
 		item_.Deserialize(reader)

@@ -78,7 +78,9 @@ func (e *entityLook) Deserialize(reader *bytes.Reader) {
 	var len3_ uint16
 	_ = binary.Read(reader, binary.BigEndian, &len3_)
 	for i := 0; i < int(len3_); i++ {
-		e.subentities[i].Deserialize(reader)
+		aSubEntity := new(subEntity)
+		aSubEntity.Deserialize(reader)
+		e.subentities = append(e.subentities, aSubEntity)
 	}
 }
 
