@@ -63,20 +63,27 @@ func syncStop(myClientContinueChan, ankamaServerContinueChan chan bool) {
 	}
 }
 
-func loginListener() {
+func loginListener(instanceChan chan uint) {
 	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", settings.Settings.LocalAddress, settings.Settings.LocalLoginPort))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	var instance uint
+	log.Println("Login listener ready.")
 
+	defer func(listener net.Listener) {
+		_ = listener.Close()
+	}(listener)
+
+	var instance uint
 	for {
 		myConnToMyClient, err := listener.Accept()
 		if err != nil {
-			break
+			log.Fatal(err)
 		}
+
 		instance++
+		log.Printf("Login listener: connexion instance n°%d\n", instance)
 
 		go func() {
 			myClientContinueChan := make(chan bool)
@@ -88,28 +95,35 @@ func loginListener() {
 			callback := HandlingAuth(writeInMyClientChan, writeToAnkamaServerChan, myClientContinueChan, ankamaServerContinueChan)
 
 			go channelWriter(writeInMyClientChan, myConnToMyClient, true)
-			go launchLoginServerForMyClientSocket(myConnToMyClient, myClientContinueChan)
+			go launchServerForMyClientSocket(myConnToMyClient, myClientContinueChan)
 			go launchLoginClientToAnkamaSocket(writeToAnkamaServerChan, ankamaServerContinueChan, callback, instance)
 			syncStop(myClientContinueChan, ankamaServerContinueChan)
+			instanceChan <- instance
 			_ = myConnToMyClient.Close()
 		}()
 	}
 }
 
-func gameListener() {
+func gameListener(instanceChan chan uint) {
 	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", settings.Settings.LocalAddress, settings.Settings.LocalGamePort))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	var instance uint
+	log.Println("Game listener ready.")
 
+	defer func(listener net.Listener) {
+		_ = listener.Close()
+	}(listener)
+
+	var instance uint
 	for {
 		myConnToMyClient, err := listener.Accept()
 		if err != nil {
-			break
+			log.Fatal(err)
 		}
-		instance++
+		instance = <-instanceChan
+		log.Printf("Game listener: connexion instance n°%d\n", instance)
 
 		go func() {
 			myClientContinueChan := make(chan bool)
@@ -121,8 +135,8 @@ func gameListener() {
 			callback := HandlingAuth(writeInMyClientChan, writeToAnkamaServerChan, myClientContinueChan, ankamaServerContinueChan)
 
 			go channelWriter(writeInMyClientChan, myConnToMyClient, true)
-			go launchLoginServerForMyClientSocket(myConnToMyClient, myClientContinueChan)
-			go launchLoginClientToAnkamaSocket(writeToAnkamaServerChan, ankamaServerContinueChan, callback, instance)
+			go launchServerForMyClientSocket(myConnToMyClient, myClientContinueChan)
+			go launchGameClientToAnkamaSocket(writeToAnkamaServerChan, ankamaServerContinueChan, callback, instance)
 			syncStop(myClientContinueChan, ankamaServerContinueChan)
 			_ = myConnToMyClient.Close()
 		}()
@@ -130,19 +144,21 @@ func gameListener() {
 }
 
 func GoSocket() {
-	go loginListener()
-	go gameListener()
+	instanceChan := make(chan uint)
+	go loginListener(instanceChan)
+	go gameListener(instanceChan)
 }
 
-func launchServerClientToAnkamaSocket(writeToAnkamaServerChan chan messages.Message, ankamaServerContinueChan chan bool, callBack func(pipe *pack.Pipe), instance uint) {
-	myConnServer, err := net.DialTCP("tcp", nil, rAddr)
-	myReadServer, myPipeline := pack.NewServerReader()
+func factoryServerClientToAnkama(myConnServer net.Conn, err error, myReadServer func([]byte) bool, myPipeline *pack.Pipe,
+	writeToAnkamaServerChan chan messages.Message,
+	ankamaServerContinueChan chan bool,
+	callBack func(pipe *pack.Pipe), instance uint) {
 
 	if err != nil {
 		log.Printf("Failed to dial: %v", err)
 		return
 	} else {
-		log.Println("Connexion to server OK.")
+		log.Printf("Connexion to server instance n°%d OK.\n", instance)
 	}
 
 	go channelWriter(writeToAnkamaServerChan, myConnServer, false)
@@ -183,60 +199,21 @@ func launchServerClientToAnkamaSocket(writeToAnkamaServerChan chan messages.Mess
 			callBack(myPipeline)
 		}
 	}
+}
+
+func launchGameClientToAnkamaSocket(writeToAnkamaServerChan chan messages.Message, ankamaServerContinueChan chan bool, callBack func(pipe *pack.Pipe), instance uint) {
+	myReadServer, myPipeline := pack.NewServerReader()
+	myConnServer, err := net.DialTCP("tcp", nil, rAddr)
+	factoryServerClientToAnkama(myConnServer, err, myReadServer, myPipeline, writeToAnkamaServerChan, ankamaServerContinueChan, callBack, instance)
 }
 
 func launchLoginClientToAnkamaSocket(writeToAnkamaServerChan chan messages.Message, ankamaServerContinueChan chan bool, callBack func(pipe *pack.Pipe), instance uint) {
-	myConnServer, err := net.DialTCP("tcp", nil, rAddr)
 	myReadServer, myPipeline := pack.NewServerReader()
-
-	if err != nil {
-		log.Printf("Failed to dial: %v", err)
-		return
-	} else {
-		log.Println("Connexion to server OK.")
-	}
-
-	go channelWriter(writeToAnkamaServerChan, myConnServer, false)
-
-	defer func(conn_ net.Conn) {
-		_ = myConnServer.Close()
-	}(myConnServer)
-
-	myLecture := make([]byte, 1024)
-
-	next := true
-	for next {
-		select {
-		case next = <-ankamaServerContinueChan:
-			ankamaServerContinueChan <- false
-		default:
-		}
-
-		err := myConnServer.SetReadDeadline(time.Now().Add(time.Second * 2))
-		if err != nil {
-			break
-		}
-		n, err := myConnServer.Read(myLecture)
-		closed := handleErrReadWrite(myConnServer, err)
-
-		if closed {
-			break
-		}
-
-		if n == 0 {
-			continue
-		}
-		fmt.Printf("Server n°%d: %d octets reçu\n", instance, n)
-
-		_ = myReadServer(myLecture[:n])
-
-		if len(myPipeline.Wefts) > 0 {
-			callBack(myPipeline)
-		}
-	}
+	myConnServer, err := net.DialTCP("tcp", nil, rAddr)
+	factoryServerClientToAnkama(myConnServer, err, myReadServer, myPipeline, writeToAnkamaServerChan, ankamaServerContinueChan, callBack, instance)
 }
 
-func launchLoginServerForMyClientSocket(myConnToMyClient net.Conn, myClientContinueChan chan bool) {
+func launchServerForMyClientSocket(myConnToMyClient net.Conn, myClientContinueChan chan bool) {
 	myReadClient, myPipeline := pack.NewClientReader()
 
 	lecture := make([]byte, 1024)
