@@ -15,11 +15,12 @@ import (
 func GoSocket() {
 	instanceChan := make(chan uint)
 	connToMyClientChanChan := make(chan chan net.Conn)
+	writeTChanChan := make(chan [2]chan messages.Message)
 
 	var wg sync.WaitGroup
 	wg.Add(2)
-	go loginListener(&wg, instanceChan, connToMyClientChanChan)
-	go gameListener(&wg, instanceChan, connToMyClientChanChan)
+	go loginListener(&wg, instanceChan, connToMyClientChanChan, writeTChanChan)
+	go gameListener(&wg, instanceChan, connToMyClientChanChan, writeTChanChan)
 	wg.Wait()
 }
 
@@ -34,17 +35,17 @@ func getRAddr() *net.TCPAddr {
 	return rAddr
 }
 
-func channelWriter(aChan chan messages.Message, aChanConnexion chan net.Conn, toClient bool) {
+func channelWriter(aChanMessage chan messages.Message, aChanConnexion chan net.Conn, toClient bool) {
 	defer func() {
 		if err := recover(); err != nil {
-			log.Println("ChannelWriter: error", err)
+			log.Println("ChannelWriter: closed", err)
 		}
 	}()
 
 	aConn := <-aChanConnexion
 	for {
 		select {
-		case msg := <-aChan:
+		case msg := <-aChanMessage:
 			if aConn == nil {
 				aConn = <-aChanConnexion
 			}
@@ -54,12 +55,15 @@ func channelWriter(aChan chan messages.Message, aChanConnexion chan net.Conn, to
 			if closed {
 				break
 			}
-		case aChan = <-aChanConnexion:
+		case aConn = <-aChanConnexion:
 		}
 	}
 }
 
-func loginListener(wg *sync.WaitGroup, instanceChan chan uint, connToMyClientChanChan chan chan net.Conn) {
+func loginListener(wg *sync.WaitGroup,
+	instanceChan chan uint,
+	connToMyClientChanChan chan chan net.Conn,
+	writeTChanChan chan [2]chan messages.Message) {
 	defer wg.Done()
 
 	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", settings.Settings.LocalAddress, settings.Settings.LocalLoginPort))
@@ -87,36 +91,49 @@ func loginListener(wg *sync.WaitGroup, instanceChan chan uint, connToMyClientCha
 
 		go func() {
 			myConnToMyClientChan := make(chan net.Conn)
-
-			myClientContinueChan := make(chan bool)
-			ankamaServerContinueChan := make(chan bool)
+			myConnToOfficialChan := make(chan net.Conn)
 
 			writeInMyClientChan := make(chan messages.Message)
-			writeToAnkamaServerChan := make(chan messages.Message)
+			writeToOfficialServerChan := make(chan messages.Message)
 
-			callbackAnkamaServer := handlingAuth(writeInMyClientChan, writeToAnkamaServerChan, ankamaServerContinueChan, instance)
-			callbackInMyClient := handlingMyClient(writeInMyClientChan, writeToAnkamaServerChan, ankamaServerContinueChan, instance)
+			myClientContinueChan := make(chan bool)
+			officialServerContinueChan := make(chan bool)
 
 			go channelWriter(writeInMyClientChan, myConnToMyClientChan, true)
 			myConnToMyClientChan <- myConnToMyClient
 
-			go launchLoginClientToAnkamaSocket(writeToAnkamaServerChan, ankamaServerContinueChan, callbackAnkamaServer, instance)
+			go func() {
+				var myWg sync.WaitGroup
+				myWg.Add(1)
+				callbackOfficialServer := handlingAuth(writeInMyClientChan, writeToOfficialServerChan, officialServerContinueChan, instance)
+				go launchLoginClientToOfficialSocket(&myWg, writeToOfficialServerChan, officialServerContinueChan, callbackOfficialServer, instance, myConnToOfficialChan)
+				myWg.Wait()
+				callbackOfficialServer = handlingGame(writeInMyClientChan, writeToOfficialServerChan, officialServerContinueChan, instance)
+				go launchGameClientToOfficialSocket(nil, officialServerContinueChan, callbackOfficialServer, instance, myConnToOfficialChan)
+			}()
 
-			var myWg sync.WaitGroup
-			myWg.Add(1)
-			go launchServerForMyClientSocket(&myWg, myConnToMyClient, myClientContinueChan, callbackInMyClient)
-			myWg.Wait()
+			go func() {
+				callbackInMyClient := handlingMyClient(writeInMyClientChan, writeToOfficialServerChan, officialServerContinueChan, instance)
 
-			myConnToMyClientChan <- nil
-			_ = myConnToMyClient.Close()
+				var myWg sync.WaitGroup
+				myWg.Add(1)
+				go launchServerForMyClientSocket(nil, myConnToMyClient, myClientContinueChan, callbackInMyClient)
+				myWg.Wait()
+				myConnToMyClientChan <- nil
 
-			instanceChan <- instance
-			connToMyClientChanChan <- myConnToMyClientChan
+				_ = myConnToMyClient.Close()
+				instanceChan <- instance
+				connToMyClientChanChan <- myConnToMyClientChan
+				writeTChanChan <- [2]chan messages.Message{writeInMyClientChan, writeToOfficialServerChan}
+			}()
 		}()
 	}
 }
 
-func gameListener(wg *sync.WaitGroup, instanceChan chan uint, connToMyClientChanChan chan chan net.Conn) {
+func gameListener(wg *sync.WaitGroup,
+	instanceChan chan uint,
+	connToMyClientChanChan chan chan net.Conn,
+	writeTChanChan chan [2]chan messages.Message) {
 	defer wg.Done()
 
 	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", settings.Settings.LocalAddress, settings.Settings.LocalGamePort))
@@ -140,58 +157,43 @@ func gameListener(wg *sync.WaitGroup, instanceChan chan uint, connToMyClientChan
 		instance := <-instanceChan
 		myConnToMyClientChan := <-connToMyClientChanChan
 		myConnToMyClientChan <- myConnToMyClient
+		writeChan := <-writeTChanChan
 
 		log.Printf("Game listener: connexion instance n°%d\n", instance)
 
 		go func() {
 			myClientContinueChan := make(chan bool)
-			ankamaServerContinueChan := make(chan bool)
+			officialServerContinueChan := make(chan bool)
 
-			writeInMyClientChan := make(chan messages.Message)
-			writeToAnkamaServerChan := make(chan messages.Message)
-
-			callbackAnkamaServer := handlingGame(writeInMyClientChan, writeToAnkamaServerChan, ankamaServerContinueChan, instance)
-			callbackInMyClient := handlingMyClient(writeInMyClientChan, writeToAnkamaServerChan, ankamaServerContinueChan, instance)
-
-			go launchGameClientToAnkamaSocket(writeToAnkamaServerChan, ankamaServerContinueChan, callbackAnkamaServer, instance)
+			callbackInMyClient := handlingMyClient(writeChan[0], writeChan[1], officialServerContinueChan, instance)
 
 			var myWg sync.WaitGroup
 			myWg.Add(1)
 			go launchServerForMyClientSocket(&myWg, myConnToMyClient, myClientContinueChan, callbackInMyClient)
 			myWg.Wait()
+			myConnToMyClientChan <- nil
 
 			_ = myConnToMyClient.Close()
 		}()
 	}
 }
 
-func factoryServerClientToAnkama(myConnServer net.Conn, err error,
+func factoryServerClientToOfficial(myConnServer net.Conn,
 	myReadServer func([]byte) bool, myPipeline *pack.Pipe,
-	writeToAnkamaServerChan chan messages.Message, ankamaServerContinueChan chan bool,
+	officialServerContinueChan chan bool,
 	callBack func(pipe *pack.Pipe), instance uint) {
 
-	if err != nil {
-		log.Printf("Failed to dial: %v", err)
-		return
-	} else {
-		log.Printf("Connexion to server instance n°%d OK.\n", instance)
-	}
 	defer func(conn_ net.Conn) {
 		_ = conn_.Close()
-		writeToAnkamaServerChan <- messages.GetAuthenticationTicketAcceptedNOA(instance)
 	}(myConnServer)
-
-	myConnServerChan := make(chan net.Conn)
-	go channelWriter(writeToAnkamaServerChan, myConnServerChan, false)
-	myConnServerChan <- myConnServer
 
 	myLecture := make([]byte, 1024)
 
 	next := true
 	for next {
 		select {
-		case next = <-ankamaServerContinueChan:
-			ankamaServerContinueChan <- false
+		case next = <-officialServerContinueChan:
+			officialServerContinueChan <- false
 		default:
 		}
 
@@ -219,7 +221,14 @@ func factoryServerClientToAnkama(myConnServer net.Conn, err error,
 	}
 }
 
-func launchGameClientToAnkamaSocket(writeToAnkamaServerChan chan messages.Message, ankamaServerContinueChan chan bool, callBack func(pipe *pack.Pipe), instance uint) {
+func launchGameClientToOfficialSocket(wg *sync.WaitGroup,
+	officialServerContinueChan chan bool,
+	callBack func(pipe *pack.Pipe),
+	instance uint, myConnToOfficialChan chan net.Conn) {
+	if wg != nil {
+		defer wg.Done()
+		myConnToOfficialChan <- nil
+	}
 	myReadServer, myPipeline := pack.NewServerReader()
 
 	selectedServerDataExtended := messages.GetSelectedServerDataExtendedNOA(instance)
@@ -229,17 +238,49 @@ func launchGameClientToAnkamaSocket(writeToAnkamaServerChan chan messages.Messag
 		return
 	}
 	myConnServer, err := net.DialTCP("tcp", nil, gameRAddr)
-	factoryServerClientToAnkama(myConnServer, err, myReadServer, myPipeline, writeToAnkamaServerChan, ankamaServerContinueChan, callBack, instance)
+
+	if err != nil {
+		log.Printf("Failed to dial: %v", err)
+		return
+	} else {
+		log.Printf("Connexion to server instance n°%d OK.\n", instance)
+	}
+
+	myConnToOfficialChan <- myConnServer
+	factoryServerClientToOfficial(myConnServer, myReadServer, myPipeline, officialServerContinueChan, callBack, instance)
 }
 
-func launchLoginClientToAnkamaSocket(writeToAnkamaServerChan chan messages.Message, ankamaServerContinueChan chan bool, callBack func(pipe *pack.Pipe), instance uint) {
+func launchLoginClientToOfficialSocket(wg *sync.WaitGroup,
+	writeToOfficialServerChan chan messages.Message,
+	officialServerContinueChan chan bool,
+	callBack func(pipe *pack.Pipe),
+	instance uint, myConnToOfficialChan chan net.Conn) {
+	if wg != nil {
+		defer func() {
+			wg.Done()
+			myConnToOfficialChan <- nil
+		}()
+	}
 	myReadServer, myPipeline := pack.NewServerReader()
 	myConnServer, err := net.DialTCP("tcp", nil, rAddr)
-	factoryServerClientToAnkama(myConnServer, err, myReadServer, myPipeline, writeToAnkamaServerChan, ankamaServerContinueChan, callBack, instance)
+
+	if err != nil {
+		log.Printf("Failed to dial with server for instance n°%d OK.\n", instance)
+		return
+	} else {
+		log.Printf("Connexion to server for instance n°%d OK.\n", instance)
+	}
+
+	go channelWriter(writeToOfficialServerChan, myConnToOfficialChan, false)
+	myConnToOfficialChan <- myConnServer
+
+	factoryServerClientToOfficial(myConnServer, myReadServer, myPipeline, officialServerContinueChan, callBack, instance)
 }
 
 func launchServerForMyClientSocket(wg *sync.WaitGroup, myConnToMyClient net.Conn, myClientContinueChan chan bool, callBack func(pipe *pack.Pipe)) {
-	defer wg.Done()
+	if wg != nil {
+		defer wg.Done()
+	}
 
 	myReadClient, myPipeline := pack.NewClientReader()
 
@@ -255,15 +296,15 @@ func launchServerForMyClientSocket(wg *sync.WaitGroup, myConnToMyClient net.Conn
 		n, err := myConnToMyClient.Read(lecture)
 		closed := handleErrReadWrite(myConnToMyClient, err)
 
+		if closed {
+			break
+		}
+
 		if n > 0 {
 			_ = myReadClient(lecture[:n])
 			if len(myPipeline.Wefts) > 0 {
 				callBack(myPipeline)
 			}
-		}
-
-		if closed {
-			break
 		}
 	}
 	log.Println("Listener: Go client lost !")
