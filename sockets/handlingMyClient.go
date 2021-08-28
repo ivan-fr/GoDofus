@@ -7,7 +7,7 @@ import (
 	"fmt"
 )
 
-func handlingMyClient(writeInMyClientChan, writeToOfficialServerServerChan chan messages.Message, myClientContinueChan, officialServerContinueChan chan bool, instance uint) func(chan *pack.Weft) {
+func handlingMyClient(writeInMyClientChan, writeToOfficialServerChan chan messages.Message, myClientContinueChan, officialServerContinueChan chan bool, instance uint) func(chan *pack.Weft) {
 	return func(weftChan chan *pack.Weft) {
 		for {
 			weft := <-weftChan
@@ -17,16 +17,22 @@ func handlingMyClient(writeInMyClientChan, writeToOfficialServerServerChan chan 
 			}
 
 			switch weft.PackId {
+			case messages.HaapiApiKeyRequestID:
+				msg2 := messages.GetHaapiApiKeyRequestNOA(instance)
+				writeToOfficialServerChan <- msg2
+			case messages.CharactersListRequestID:
+				msg := messages.GetCharactersListRequestNOA(instance)
+				writeToOfficialServerChan <- msg
 			case messages.CheckIntegrityID:
 				msg := messages.GetCheckIntegrityNOA(instance)
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)
-				writeToOfficialServerServerChan <- msg
+				writeToOfficialServerChan <- msg
 			case messages.ClientKeyID:
 				msg := messages.GetClientKeyNOA(instance)
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)
-				writeToOfficialServerServerChan <- msg
+				writeToOfficialServerChan <- msg
 			default:
 				fmt.Printf("Listener: there is no traitment for %d ID\n", weft.PackId)
 			}

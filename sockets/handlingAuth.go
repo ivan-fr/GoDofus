@@ -8,7 +8,7 @@ import (
 	"fmt"
 )
 
-func handlingAuth(writeInMyClientChan, writeToAnkamaServerChan chan messages.Message, myClientContinueChan, officialServerContinueChan chan bool, instance uint) func(chan *pack.Weft) {
+func handlingAuth(writeInMyClientChan, writeToOfficialServerChan chan messages.Message, myClientContinueChan, officialServerContinueChan chan bool, instance uint) func(chan *pack.Weft) {
 	return func(weftChan chan *pack.Weft) {
 		for {
 			weft := <-weftChan
@@ -30,7 +30,7 @@ func handlingAuth(writeInMyClientChan, writeToAnkamaServerChan chan messages.Mes
 				mAuth.InitIdentificationMessage()
 
 				authMessage := messages.GetIdentificationNOA(instance)
-				writeToAnkamaServerChan <- authMessage
+				writeToOfficialServerChan <- authMessage
 			case messages.ProtocolID:
 				msg := messages.GetProtocolNOA(instance)
 				msg.Deserialize(bytes.NewReader(weft.Message))
