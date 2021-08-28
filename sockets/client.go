@@ -115,13 +115,11 @@ func loginListener(wg *sync.WaitGroup,
 
 				var myWg sync.WaitGroup
 				myWg.Add(1)
-				go launchServerForMyClientSocket(nil, myConnToMyClient, myClientContinueChan, callbackInMyClient, instance)
+				go launchServerForMyClientSocket(&myWg, myConnToMyClient, myClientContinueChan, callbackInMyClient, instance)
 				myWg.Wait()
 
-				log.Println("myConnToMyClientChan is CLOSE")
 				myConnToMyClientChan <- nil
 				_ = myConnToMyClient.Close()
-				log.Println("myConnToMyClientChan is CLOSE")
 
 				instanceChan <- instance
 				connToMyClientChanChan <- myConnToMyClientChan
