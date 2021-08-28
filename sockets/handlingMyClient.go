@@ -17,6 +17,9 @@ func handlingMyClient(writeInMyClientChan, writeToOfficialServerChan chan messag
 			}
 
 			switch weft.PackId {
+			case messages.AuthenticationTicketID:
+				msg2 := messages.GetAuthenticationTicketNOA(instance)
+				writeToOfficialServerChan <- msg2
 			case messages.HaapiApiKeyRequestID:
 				msg2 := messages.GetHaapiApiKeyRequestNOA(instance)
 				writeToOfficialServerChan <- msg2

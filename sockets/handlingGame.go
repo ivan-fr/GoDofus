@@ -31,8 +31,6 @@ func handlingGame(writeInMyClientChan, writeToOfficialServerChan chan messages.M
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)
 				writeInMyClientChan <- msg
-				msg2 := messages.GetAuthenticationTicketNOA(instance)
-				writeToOfficialServerChan <- msg2
 			case messages.RawDataID:
 				msg := messages.GetRawDataNOA(instance)
 				msg.Deserialize(bytes.NewReader(weft.Message))
