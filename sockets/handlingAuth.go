@@ -68,6 +68,11 @@ func handlingAuth(writeInMyClientChan, writeToAnkamaServerChan chan messages.Mes
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)
 				writeInMyClientChan <- msg
+			case messages.AuthenticationTicketAcceptedID:
+				msg := messages.GetAuthenticationTicketAcceptedNOA(instance)
+				msg.Deserialize(bytes.NewReader(weft.Message))
+				fmt.Println(msg)
+				writeInMyClientChan <- msg
 			default:
 				fmt.Printf("Client: there is no traitment for %d ID\n", weft.PackId)
 			}
