@@ -50,7 +50,7 @@ func GetAuthentificationManager(instance uint) *Authentification {
 	}
 
 	authentificationMap[instance] = &Authentification{AESKey: generateAESKey(), lang: []byte("fr"), instance: instance}
-	return authentificationMap_
+	return authentificationMap[instance]
 }
 
 func (a *Authentification) initLoginAction() {
