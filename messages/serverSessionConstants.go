@@ -32,7 +32,6 @@ func (s *serverSessionConstants) Serialize(buff *bytes.Buffer) {
 	_ = binary.Write(buff, binary.BigEndian, uint16(len(s.variables)))
 
 	for i := 0; i < len(s.variables); i++ {
-		_ = binary.Write(buff, binary.BigEndian, uint16(s.variables[i].id))
 		s.variables[i].Serialize(buff)
 	}
 }
@@ -42,8 +41,6 @@ func (s *serverSessionConstants) Deserialize(reader *bytes.Reader) {
 	_ = binary.Read(reader, binary.BigEndian, &len_)
 
 	for i := 0; i < int(len_); i++ {
-		var id uint16
-		_ = binary.Read(reader, binary.BigEndian, &id)
 		var item = new(item)
 		item.Deserialize(reader)
 		s.variables = append(s.variables, item)
