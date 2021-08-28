@@ -80,7 +80,8 @@ func loginListener(instanceChan chan uint) {
 	for {
 		myConnToMyClient, err := listener.Accept()
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
+			break
 		}
 
 		instance++
@@ -123,7 +124,8 @@ func gameListener(instanceChan chan uint) {
 	for {
 		myConnToMyClient, err := listener.Accept()
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
+			break
 		}
 		instance = <-instanceChan
 		log.Printf("Game listener: connexion instance n°%d\n", instance)
@@ -207,7 +209,12 @@ func factoryServerClientToAnkama(myConnServer net.Conn, err error, myReadServer 
 
 func launchGameClientToAnkamaSocket(writeToAnkamaServerChan chan messages.Message, ankamaServerContinueChan chan bool, callBack func(pipe *pack.Pipe), instance uint) {
 	myReadServer, myPipeline := pack.NewServerReader()
-	myConnServer, err := net.DialTCP("tcp", nil, rAddr)
+	gameRAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", settings.Settings.ServerAnkamaAddress, settings.Settings.ServerAnkamaPort))
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	myConnServer, err := net.DialTCP("tcp", nil, gameRAddr)
 	factoryServerClientToAnkama(myConnServer, err, myReadServer, myPipeline, writeToAnkamaServerChan, ankamaServerContinueChan, callBack, instance)
 }
 
