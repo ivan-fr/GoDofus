@@ -40,10 +40,12 @@ func (s *serverSessionConstants) Deserialize(reader *bytes.Reader) {
 	var len_ uint16
 	_ = binary.Read(reader, binary.BigEndian, &len_)
 
+	fmt.Println(len_, "kokoko")
+
 	for i := 0; i < int(len_); i++ {
-		var item = new(item)
-		item.Deserialize(reader)
-		s.variables = append(s.variables, item)
+		var item_ = new(item)
+		item_.Deserialize(reader)
+		s.variables = append(s.variables, item_)
 	}
 }
 
