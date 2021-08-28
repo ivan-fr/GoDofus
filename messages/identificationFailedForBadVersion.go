@@ -23,7 +23,7 @@ func GetIdentificationFailedForBadVersionNOA(instance uint) *identificationFaile
 	identificationFailedForBadVersionMap[instance] = &identificationFailedForBadVersion{PacketId: IdentificationFailedForBadVersionID,
 		Idf:     new(identificationFailed),
 		Version: new(version)}
-	return identificationFailedForBadVersion_
+	return identificationFailedForBadVersionMap[instance]
 }
 
 func (f *identificationFailedForBadVersion) Serialize(buff *bytes.Buffer) {

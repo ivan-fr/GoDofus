@@ -32,7 +32,7 @@ func GetSelectedServerDataNOA(instance uint) *selectedServerData {
 	}
 
 	selectedServerDataMap[instance] = &selectedServerData{PacketId: SelectedServerDataID}
-	return selectedServerData_
+	return selectedServerDataMap[instance]
 }
 
 func (s *selectedServerData) Serialize(buff *bytes.Buffer) {

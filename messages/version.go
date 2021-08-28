@@ -24,7 +24,7 @@ func GetVersionNOA(instance uint) *version {
 	}
 
 	versionMap[instance] = &version{PacketId: VersionID}
-	return version_
+	return versionMap[instance]
 }
 
 func (v *version) Serialize(buff *bytes.Buffer) {

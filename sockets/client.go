@@ -55,7 +55,7 @@ func loginListener(wg *sync.WaitGroup, instanceChan chan uint) {
 		log.Fatal(err)
 	}
 
-	log.Println("Login listener ready.")
+	log.Println("Login listener ready", fmt.Sprintf("%s:%d", settings.Settings.LocalAddress, settings.Settings.LocalLoginPort))
 
 	defer func(listener net.Listener) {
 		_ = listener.Close()
@@ -104,7 +104,7 @@ func gameListener(wg *sync.WaitGroup, instanceChan chan uint) {
 		log.Fatal(err)
 	}
 
-	log.Println("Game listener ready.")
+	log.Println("Game listener ready", fmt.Sprintf("%s:%d", settings.Settings.LocalAddress, settings.Settings.LocalGamePort))
 
 	defer func(listener net.Listener) {
 		_ = listener.Close()

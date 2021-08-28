@@ -22,7 +22,7 @@ func GetTrustCertificateNOA(instance uint) *trustCertificate {
 	}
 
 	trustCertificateMap[instance] = &trustCertificate{PacketId: TrustCertificateID}
-	return trustCertificate_
+	return trustCertificateMap[instance]
 }
 
 func (t *trustCertificate) Serialize(buff *bytes.Buffer) {

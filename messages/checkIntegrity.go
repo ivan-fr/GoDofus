@@ -26,7 +26,7 @@ func GetCheckIntegrityNOA(instance uint) *checkIntegrity {
 	}
 
 	checkIntegrityMap[instance] = &checkIntegrity{PacketId: CheckIntegrityID}
-	return checkIntegrity_
+	return checkIntegrityMap[instance]
 }
 
 func (c *checkIntegrity) Serialize(buff *bytes.Buffer) {

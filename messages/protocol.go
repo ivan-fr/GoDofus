@@ -21,7 +21,7 @@ func GetProtocolNOA(instance uint) *protocol {
 	}
 
 	protocolMap[instance] = &protocol{PacketId: ProtocolID}
-	return protocol_
+	return protocolMap[instance]
 }
 
 func (p *protocol) Serialize(buff *bytes.Buffer) {

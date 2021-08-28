@@ -23,7 +23,7 @@ func GetHelloGameNOA(instance uint) *helloGame {
 	}
 
 	helloGameMap[instance] = &helloGame{PacketId: HelloGameID}
-	return helloGame_
+	return helloGameMap[instance]
 }
 
 func (h *helloGame) Serialize(buff *bytes.Buffer) {

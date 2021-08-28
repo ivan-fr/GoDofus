@@ -27,7 +27,7 @@ func GetAuthenticationTicketNOA(instance uint) *authenticationTicket {
 	}
 
 	authenticationTicketMap[instance] = &authenticationTicket{PacketId: AuthenticationTicketID, instance: instance}
-	return authenticationTicket_
+	return authenticationTicketMap[instance]
 }
 
 func (a *authenticationTicket) Serialize(buff *bytes.Buffer) {

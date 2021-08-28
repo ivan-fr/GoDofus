@@ -38,7 +38,7 @@ func GetIdentificationSuccessNOA(instance uint) *identificationSuccess {
 	}
 
 	identificationSuccessMap[instance] = &identificationSuccess{PacketId: IdentificationSuccessID}
-	return identificationSuccess_
+	return identificationSuccessMap[instance]
 }
 
 func (i *identificationSuccess) Serialize(buff *bytes.Buffer) {

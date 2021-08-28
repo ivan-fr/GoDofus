@@ -21,7 +21,7 @@ func GetClientKeyNOA(instance uint) *clientKey {
 	}
 
 	clientKeyMap[instance] = &clientKey{PacketId: ClientKeyID}
-	return clientKey_
+	return clientKeyMap[instance]
 }
 
 func (ck *clientKey) Serialize(buff *bytes.Buffer) {

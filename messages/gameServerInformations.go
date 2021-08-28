@@ -34,7 +34,7 @@ func GetGameServerInformationsNOA(instance uint) *gameServerInformations {
 	}
 
 	gameServerInformationsMap[instance] = &gameServerInformations{PacketId: GameServerInformationID}
-	return gameServerInformations_
+	return gameServerInformationsMap[instance]
 }
 
 func (g *gameServerInformations) Serialize(buff *bytes.Buffer) {

@@ -28,7 +28,7 @@ func GetRawDataNOA(instance uint) *rawData {
 	}
 
 	rawDataMap[instance] = &rawData{PacketId: RawDataID, instance: instance}
-	return rawData_
+	return rawDataMap[instance]
 }
 
 func (r *rawData) Serialize(buff *bytes.Buffer) {

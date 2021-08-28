@@ -32,7 +32,7 @@ func GetIdentificationNOA(instance uint) *identification {
 
 	identificationMap[instance] = &identification{PacketId: IdentificationID, Version: new(version),
 		UseCertificate: false, UseLoginToken: false, ServerId: 0}
-	return identification_
+	return identificationMap[instance]
 }
 
 func (id *identification) Serialize(buff *bytes.Buffer) {

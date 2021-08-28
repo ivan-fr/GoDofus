@@ -26,7 +26,7 @@ func GetSelectedServerDataExtendedNOA(instance uint) *selectedServerDataExtended
 	}
 
 	selectedServerDataExtendedMap[instance] = &selectedServerDataExtended{PacketId: SelectedServerDataExtendedID}
-	return selectedServerDataExtended_
+	return selectedServerDataExtendedMap[instance]
 }
 
 func (s *selectedServerDataExtended) Serialize(buff *bytes.Buffer) {

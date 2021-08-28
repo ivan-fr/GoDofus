@@ -26,7 +26,7 @@ func GetLoginQueueStatusNOA(instance uint) *loginQueueStatus {
 	}
 
 	loginQueueStatusMap[instance] = &loginQueueStatus{PacketId: LoginQueueStatueID}
-	return loginQueueStatus_
+	return loginQueueStatusMap[instance]
 }
 
 func (l *loginQueueStatus) Serialize(buff *bytes.Buffer) {

@@ -21,7 +21,7 @@ func GetIdentificationFailedNOA(instance uint) *identificationFailed {
 	}
 
 	identificationFailedMap[instance] = &identificationFailed{PacketId: IdentificationFailedID}
-	return identificationFailed_
+	return identificationFailedMap[instance]
 }
 
 func (f *identificationFailed) Serialize(buff *bytes.Buffer) {

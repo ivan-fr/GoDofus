@@ -32,7 +32,7 @@ func GetHelloConnectNOA(instance uint) *helloConnect {
 	}
 
 	hConnectMap[instance] = &helloConnect{PacketId: HelloConnectID}
-	return hConnect_
+	return hConnectMap[instance]
 }
 
 func (h *helloConnect) Serialize(buff *bytes.Buffer) {

@@ -25,7 +25,7 @@ func GetBasicPongNOA(instance uint) *basicPong {
 	}
 
 	basicPongMap[instance] = &basicPong{PacketId: BasicPongID}
-	return basicPongè_
+	return basicPongMap[instance]
 }
 
 func (b *basicPong) Serialize(buff *bytes.Buffer) {
