@@ -32,6 +32,14 @@ func Write(message messages.Message, toClient bool, instance uint) []byte {
 
 	packetId := uint16(message.GetPacketId())
 
+	defer func() {
+		if toClient {
+			fmt.Printf("Instance n°%d: write to the client %d...\n", instance, packetId)
+		} else {
+			fmt.Printf("Instance n°%d: write to the official server %d...\n", instance, packetId)
+		}
+	}()
+
 	buff := new(bytes.Buffer)
 
 	typeLength := computeTypeLength(uint32(len(messageContent)))
@@ -61,12 +69,6 @@ func Write(message messages.Message, toClient bool, instance uint) []byte {
 	}
 
 	_ = binary.Write(buff, binary.BigEndian, messageContent)
-
-	if toClient {
-		fmt.Printf("Instance n°%d: write to the client %d...\n", instance, packetId)
-	} else {
-		fmt.Printf("Instance n°%d: write to the official server %d...\n", instance, packetId)
-	}
 
 	return buff.Bytes()
 }

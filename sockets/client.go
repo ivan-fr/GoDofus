@@ -39,8 +39,10 @@ func channelWriter(aChanMessage chan messages.Message, aChanConnexion chan net.C
 
 	defer func() {
 		if err := recover(); err != nil {
-			log.Fatalf("ChannelWriter: closed: %v, to client: %t, for conn: %v", err, toClient, aConn)
+			log.Fatalf("FATAL ChannelWriter: closed: %v, to client: %t, for conn: %v", err, toClient, aConn)
 		}
+
+		log.Fatalf("BREAK ChannelWriter: closed: to client: %t, for conn: %v", toClient, aConn)
 	}()
 
 	for {
@@ -48,12 +50,14 @@ func channelWriter(aChanMessage chan messages.Message, aChanConnexion chan net.C
 		case msg := <-aChanMessage:
 			if aConn == nil {
 				aConn = <-aChanConnexion
+				log.Printf("Writer instance n°%d updated\n", instance)
 			}
 			_, err := aConn.Write(pack.Write(msg, toClient, instance))
 			if _, ok := err.(net.Error); ok {
 				break
 			}
 		case aConn = <-aChanConnexion:
+			log.Printf("Writer instance n°%d updated\n", instance)
 		}
 	}
 }
@@ -251,7 +255,7 @@ func launchGameClientToOfficialSocket(wg *sync.WaitGroup,
 		log.Printf("Failed to dial: %v", err)
 		return
 	} else {
-		log.Printf("Connexion to server instance n°%d OK.\n", instance)
+		log.Printf("Connexion to official server GAME instance n°%d OK.\n", instance)
 	}
 
 	myConnToOfficialChan <- myConnServer
@@ -278,7 +282,7 @@ func launchLoginClientToOfficialSocket(wg *sync.WaitGroup,
 		log.Printf("Failed to dial with server for instance n°%d OK.\n", instance)
 		return
 	} else {
-		log.Printf("Connexion to server for instance n°%d OK.\n", instance)
+		log.Printf("Connexion to official server LOGIN for instance n°%d OK.\n", instance)
 	}
 
 	go channelWriter(writeToOfficialServerChan, myConnToOfficialChan, false, instance)
