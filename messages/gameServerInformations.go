@@ -24,9 +24,16 @@ type gameServerInformations struct {
 	date            float64
 }
 
-var gameServerInformations_ = &gameServerInformations{PacketId: gameServerInformationID}
+var gameServerInformationsMap = make(map[uint]*gameServerInformations)
 
-func GetGameServerInformationsNOA() *gameServerInformations {
+func GetGameServerInformationsNOA(instance uint) *gameServerInformations {
+	gameServerInformations_, ok := gameServerInformationsMap[instance]
+
+	if ok {
+		return gameServerInformations_
+	}
+
+	gameServerInformationsMap[instance] = &gameServerInformations{PacketId: GameServerInformationID}
 	return gameServerInformations_
 }
 

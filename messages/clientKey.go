@@ -11,10 +11,17 @@ type clientKey struct {
 	key      []byte
 }
 
-var cK = &clientKey{PacketId: ClientKeyID}
+var clientKeyMap = make(map[uint]*clientKey)
 
-func GetClientKeyNOA() *clientKey {
-	return cK
+func GetClientKeyNOA(instance uint) *clientKey {
+	clientKey_, ok := clientKeyMap[instance]
+
+	if ok {
+		return clientKey_
+	}
+
+	clientKeyMap[instance] = &clientKey{PacketId: ClientKeyID}
+	return clientKey_
 }
 
 func (ck *clientKey) Serialize(buff *bytes.Buffer) {

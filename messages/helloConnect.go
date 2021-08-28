@@ -19,12 +19,20 @@ type helloConnect struct {
 	Key      []byte
 }
 
-var hConnect = &helloConnect{PacketId: HelloConnectID}
 var privateKey *rsa.PrivateKey
 var publicHelloKey []byte
 
-func GetHelloConnectNOA() *helloConnect {
-	return hConnect
+var hConnectMap = make(map[uint]*helloConnect)
+
+func GetHelloConnectNOA(instance uint) *helloConnect {
+	hConnect_, ok := hConnectMap[instance]
+
+	if ok {
+		return hConnect_
+	}
+
+	hConnectMap[instance] = &helloConnect{PacketId: HelloConnectID}
+	return hConnect_
 }
 
 func (h *helloConnect) Serialize(buff *bytes.Buffer) {

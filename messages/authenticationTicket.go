@@ -14,18 +14,26 @@ import (
 
 type authenticationTicket struct {
 	PacketId uint32
+	instance uint
 }
 
-var authenticationTicket_ = &authenticationTicket{PacketId: AuthenticationTicketID}
+var authenticationTicketMap = make(map[uint]*authenticationTicket)
 
-func GetAuthenticationTicketNOA() *authenticationTicket {
+func GetAuthenticationTicketNOA(instance uint) *authenticationTicket {
+	authenticationTicket_, ok := authenticationTicketMap[instance]
+
+	if ok {
+		return authenticationTicket_
+	}
+
+	authenticationTicketMap[instance] = &authenticationTicket{PacketId: AuthenticationTicketID, instance: instance}
 	return authenticationTicket_
 }
 
 func (a *authenticationTicket) Serialize(buff *bytes.Buffer) {
-	id := GetIdentificationNOA()
-	ticket := GetSelectedServerDataExtendedNOA().SSD.ticket
-	aesKey := GetIdentificationNOA().AesKEY_
+	id := GetIdentificationNOA(a.instance)
+	ticket := GetSelectedServerDataExtendedNOA(a.instance).SSD.ticket
+	aesKey := GetIdentificationNOA(a.instance).AesKEY_
 
 	block, err := aes.NewCipher(aesKey)
 	if err != nil {

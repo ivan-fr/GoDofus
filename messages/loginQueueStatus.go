@@ -16,9 +16,16 @@ type loginQueueStatus struct {
 	total    uint16
 }
 
-var loginQueueStatus_ = &loginQueueStatus{PacketId: LoginQueueID}
+var loginQueueStatusMap = make(map[uint]*loginQueueStatus)
 
-func GetLoginQueueStatusNOA() *loginQueueStatus {
+func GetLoginQueueStatusNOA(instance uint) *loginQueueStatus {
+	loginQueueStatus_, ok := loginQueueStatusMap[instance]
+
+	if ok {
+		return loginQueueStatus_
+	}
+
+	loginQueueStatusMap[instance] = &loginQueueStatus{PacketId: LoginQueueStatueID}
 	return loginQueueStatus_
 }
 

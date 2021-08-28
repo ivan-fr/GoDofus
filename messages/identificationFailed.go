@@ -11,10 +11,17 @@ type identificationFailed struct {
 	Reason   uint8
 }
 
-var idf = &identificationFailed{PacketId: IdentificationFailedID}
+var identificationFailedMap = make(map[uint]*identificationFailed)
 
-func GetIdentificationFailedNOA() *identificationFailed {
-	return idf
+func GetIdentificationFailedNOA(instance uint) *identificationFailed {
+	identificationFailed_, ok := identificationFailedMap[instance]
+
+	if ok {
+		return identificationFailed_
+	}
+
+	identificationFailedMap[instance] = &identificationFailed{PacketId: IdentificationFailedID}
+	return identificationFailed_
 }
 
 func (f *identificationFailed) Serialize(buff *bytes.Buffer) {

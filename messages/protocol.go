@@ -11,10 +11,17 @@ type protocol struct {
 	Version  []byte
 }
 
-var proto = &protocol{PacketId: ProtocolID}
+var protocolMap = make(map[uint]*protocol)
 
-func GetProtocolNOA() *protocol {
-	return proto
+func GetProtocolNOA(instance uint) *protocol {
+	protocol_, ok := protocolMap[instance]
+
+	if ok {
+		return protocol_
+	}
+
+	protocolMap[instance] = &protocol{PacketId: ProtocolID}
+	return protocol_
 }
 
 func (p *protocol) Serialize(buff *bytes.Buffer) {

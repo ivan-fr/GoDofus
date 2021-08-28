@@ -11,10 +11,19 @@ type identificationFailedForBadVersion struct {
 	Version  *version
 }
 
-var idfv = &identificationFailedForBadVersion{PacketId: VersionID, Idf: new(identificationFailed), Version: new(version)}
+var identificationFailedForBadVersionMap = make(map[uint]*identificationFailedForBadVersion)
 
-func GetIdentificationFailedForBadVersionNOA() *identificationFailedForBadVersion {
-	return idfv
+func GetIdentificationFailedForBadVersionNOA(instance uint) *identificationFailedForBadVersion {
+	identificationFailedForBadVersion_, ok := identificationFailedForBadVersionMap[instance]
+
+	if ok {
+		return identificationFailedForBadVersion_
+	}
+
+	identificationFailedForBadVersionMap[instance] = &identificationFailedForBadVersion{PacketId: IdentificationFailedForBadVersionID,
+		Idf:     new(identificationFailed),
+		Version: new(version)}
+	return identificationFailedForBadVersion_
 }
 
 func (f *identificationFailedForBadVersion) Serialize(buff *bytes.Buffer) {

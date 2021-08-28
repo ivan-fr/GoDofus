@@ -16,9 +16,16 @@ type checkIntegrity struct {
 	data     []byte
 }
 
-var checkIntegrity_ = &checkIntegrity{PacketId: CheckIntegrityID}
+var checkIntegrityMap = make(map[uint]*checkIntegrity)
 
-func GetCheckIntegrityNOA() *checkIntegrity {
+func GetCheckIntegrityNOA(instance uint) *checkIntegrity {
+	checkIntegrity_, ok := checkIntegrityMap[instance]
+
+	if ok {
+		return checkIntegrity_
+	}
+
+	checkIntegrityMap[instance] = &checkIntegrity{PacketId: CheckIntegrityID}
 	return checkIntegrity_
 }
 

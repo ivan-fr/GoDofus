@@ -13,9 +13,16 @@ type helloGame struct {
 	PacketId uint32
 }
 
-var helloGame_ = &helloGame{PacketId: HelloGameID}
+var helloGameMap = make(map[uint]*helloGame)
 
-func GetHelloGameNOA() *helloGame {
+func GetHelloGameNOA(instance uint) *helloGame {
+	helloGame_, ok := helloGameMap[instance]
+
+	if ok {
+		return helloGame_
+	}
+
+	helloGameMap[instance] = &helloGame{PacketId: HelloGameID}
 	return helloGame_
 }
 

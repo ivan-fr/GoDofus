@@ -15,10 +15,17 @@ type basicPong struct {
 	quiet    bool
 }
 
-var BasicPong_ = &basicPong{PacketId: BasicPongID}
+var basicPongMap = make(map[uint]*basicPong)
 
-func GetBasicPongNOA() *basicPong {
-	return BasicPong_
+func GetBasicPongNOA(instance uint) *basicPong {
+	basicPongè_, ok := basicPongMap[instance]
+
+	if ok {
+		return basicPongè_
+	}
+
+	basicPongMap[instance] = &basicPong{PacketId: BasicPongID}
+	return basicPongè_
 }
 
 func (b *basicPong) Serialize(buff *bytes.Buffer) {

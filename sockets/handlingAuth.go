@@ -40,7 +40,7 @@ func handlingAuth(writeInMyClientChan, writeToAnkamaServerChan chan messages.Mes
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)
 				writeInMyClientChan <- msg
-			case messages.LoginQueueID:
+			case messages.LoginQueueStatueID:
 				msg := messages.GetLoginQueueStatusNOA()
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)

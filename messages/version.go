@@ -14,10 +14,17 @@ type version struct {
 	BuildType uint8
 }
 
-var ve = &version{PacketId: VersionID}
+var versionMap = make(map[uint]*version)
 
-func GetVersionNOA() *version {
-	return ve
+func GetVersionNOA(instance uint) *version {
+	version_, ok := versionMap[instance]
+
+	if ok {
+		return version_
+	}
+
+	versionMap[instance] = &version{PacketId: VersionID}
+	return version_
 }
 
 func (v *version) Serialize(buff *bytes.Buffer) {

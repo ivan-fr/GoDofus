@@ -13,10 +13,17 @@ type credentialsAcknowledgement struct {
 	PacketId uint32
 }
 
-var credentialsAcknowledgement_ = &credentialsAcknowledgement{PacketId: CredentialsAcknowledgementID}
+var credentialsAcknowledgement_ = make(map[uint]*credentialsAcknowledgement)
 
-func GetCredentialsAcknowledgementNOA() *credentialsAcknowledgement {
-	return credentialsAcknowledgement_
+func GetCredentialsAcknowledgementNOA(instance uint) *credentialsAcknowledgement {
+	clientKey_, ok := credentialsAcknowledgement_[instance]
+
+	if ok {
+		return clientKey_
+	}
+
+	credentialsAcknowledgement_[instance] = &credentialsAcknowledgement{PacketId: CredentialsAcknowledgementID}
+	return clientKey_
 }
 
 func (c *credentialsAcknowledgement) Serialize(buff *bytes.Buffer) {

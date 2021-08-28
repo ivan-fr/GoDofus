@@ -13,9 +13,16 @@ type authenticationTicketAccepted struct {
 	PacketId uint32
 }
 
-var authenticationTicketAccepted_ = &authenticationTicketAccepted{PacketId: AuthenticationTicketAcceptedID}
+var authenticationTicketAcceptedMap = make(map[uint]*authenticationTicketAccepted)
 
-func GetAuthenticationTicketAcceptedNOA() *authenticationTicketAccepted {
+func GetAuthenticationTicketAcceptedNOA(instance uint) *authenticationTicketAccepted {
+	authenticationTicketAccepted_, ok := authenticationTicketAcceptedMap[instance]
+
+	if ok {
+		return authenticationTicketAccepted_
+	}
+
+	authenticationTicketAcceptedMap[instance] = &authenticationTicketAccepted{PacketId: AuthenticationTicketAcceptedID}
 	return authenticationTicketAccepted_
 }
 

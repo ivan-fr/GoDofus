@@ -21,11 +21,18 @@ type identification struct {
 	AesKEY_             []byte
 }
 
-var idCation = &identification{PacketId: IdentificationID, Version: new(version),
-	UseCertificate: false, UseLoginToken: false, ServerId: 0}
+var identificationMap = make(map[uint]*identification)
 
-func GetIdentificationNOA() *identification {
-	return idCation
+func GetIdentificationNOA(instance uint) *identification {
+	identification_, ok := identificationMap[instance]
+
+	if ok {
+		return identification_
+	}
+
+	identificationMap[instance] = &identification{PacketId: IdentificationID, Version: new(version),
+		UseCertificate: false, UseLoginToken: false, ServerId: 0}
+	return identification_
 }
 
 func (id *identification) Serialize(buff *bytes.Buffer) {

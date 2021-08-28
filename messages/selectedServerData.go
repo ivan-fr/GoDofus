@@ -22,9 +22,16 @@ type selectedServerData struct {
 	ticket                []byte
 }
 
-var selectedServerData_ = &selectedServerData{PacketId: SelectedServerDataID}
+var selectedServerDataMap = make(map[uint]*selectedServerData)
 
-func GetSelectedServerDataNOA() *selectedServerData {
+func GetSelectedServerDataNOA(instance uint) *selectedServerData {
+	selectedServerData_, ok := selectedServerDataMap[instance]
+
+	if ok {
+		return selectedServerData_
+	}
+
+	selectedServerDataMap[instance] = &selectedServerData{PacketId: SelectedServerDataID}
 	return selectedServerData_
 }
 
@@ -34,7 +41,7 @@ func (s *selectedServerData) Serialize(buff *bytes.Buffer) {
 	_ = binary.Write(buff, binary.BigEndian, s.portsLen)
 
 	for i := uint16(0); i < s.portsLen; i++ {
-		utils.WriteVarShort(buff, settings.Settings.LocalPort)
+		utils.WriteVarShort(buff, settings.Settings.LocalGamePort)
 	}
 
 	_ = binary.Write(buff, binary.BigEndian, s.canCreateNewCharacter)

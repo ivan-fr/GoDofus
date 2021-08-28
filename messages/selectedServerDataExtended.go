@@ -16,9 +16,16 @@ type selectedServerDataExtended struct {
 	GSI      []*gameServerInformations
 }
 
-var selectedServerDataExtended_ = &selectedServerDataExtended{PacketId: SelectedServerDataExtendedID}
+var selectedServerDataExtendedMap = make(map[uint]*selectedServerDataExtended)
 
-func GetSelectedServerDataExtendedNOA() *selectedServerDataExtended {
+func GetSelectedServerDataExtendedNOA(instance uint) *selectedServerDataExtended {
+	selectedServerDataExtended_, ok := selectedServerDataExtendedMap[instance]
+
+	if ok {
+		return selectedServerDataExtended_
+	}
+
+	selectedServerDataExtendedMap[instance] = &selectedServerDataExtended{PacketId: SelectedServerDataExtendedID}
 	return selectedServerDataExtended_
 }
 

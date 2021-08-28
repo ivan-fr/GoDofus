@@ -28,9 +28,16 @@ type identificationSuccess struct {
 	havenbagAvailableRoom       uint8
 }
 
-var identificationSuccess_ = &identificationSuccess{PacketId: IdentificationSuccessID}
+var identificationSuccessMap = make(map[uint]*identificationSuccess)
 
-func GetIdentificationSuccessNOA() *identificationSuccess {
+func GetIdentificationSuccessNOA(instance uint) *identificationSuccess {
+	identificationSuccess_, ok := identificationSuccessMap[instance]
+
+	if ok {
+		return identificationSuccess_
+	}
+
+	identificationSuccessMap[instance] = &identificationSuccess{PacketId: IdentificationSuccessID}
 	return identificationSuccess_
 }
 

@@ -15,11 +15,19 @@ type rawData struct {
 	PacketId   uint32
 	content    []byte
 	AlreadyRaw bool
+	instance   uint
 }
 
-var rawData_ = &rawData{PacketId: RawDataID}
+var rawDataMap = make(map[uint]*rawData)
 
-func GetRawDataNOA() *rawData {
+func GetRawDataNOA(instance uint) *rawData {
+	rawData_, ok := rawDataMap[instance]
+
+	if ok {
+		return rawData_
+	}
+
+	rawDataMap[instance] = &rawData{PacketId: RawDataID, instance: instance}
 	return rawData_
 }
 
@@ -28,11 +36,11 @@ func (r *rawData) Serialize(buff *bytes.Buffer) {
 	_ = binary.Write(buff, binary.BigEndian, r.content)
 
 	if !r.AlreadyRaw {
-		AesKey_ := GetIdentificationNOA().AesKEY_
+		AesKey_ := GetIdentificationNOA(r.instance).AesKEY_
 		utils.WriteVarInt32(buff, int32(len(AesKey_)))
 		_ = binary.Write(buff, binary.BigEndian, AesKey_)
 
-		ticket := GetSelectedServerDataExtendedNOA().SSD.ticket
+		ticket := GetSelectedServerDataExtendedNOA(r.instance).SSD.ticket
 		utils.WriteVarInt32(buff, int32(len(ticket)))
 		_ = binary.Write(buff, binary.BigEndian, ticket)
 	}

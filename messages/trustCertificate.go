@@ -12,10 +12,17 @@ type trustCertificate struct {
 	hash     []byte
 }
 
-var tCertif = &trustCertificate{PacketId: TrustCertificateID}
+var trustCertificateMap = make(map[uint]*trustCertificate)
 
-func GetTrustCertificateNOA() *trustCertificate {
-	return tCertif
+func GetTrustCertificateNOA(instance uint) *trustCertificate {
+	trustCertificate_, ok := trustCertificateMap[instance]
+
+	if ok {
+		return trustCertificate_
+	}
+
+	trustCertificateMap[instance] = &trustCertificate{PacketId: TrustCertificateID}
+	return trustCertificate_
 }
 
 func (t *trustCertificate) Serialize(buff *bytes.Buffer) {
