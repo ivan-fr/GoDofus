@@ -193,7 +193,6 @@ func factoryServerClientToOfficial(myConnServer net.Conn,
 	for next {
 		select {
 		case next = <-officialServerContinueChan:
-			officialServerContinueChan <- false
 		default:
 		}
 
@@ -225,10 +224,14 @@ func launchGameClientToOfficialSocket(wg *sync.WaitGroup,
 	officialServerContinueChan chan bool,
 	callBack func(pipe *pack.Pipe),
 	instance uint, myConnToOfficialChan chan net.Conn) {
+
+	defer func() {
+		myConnToOfficialChan <- nil
+	}()
 	if wg != nil {
 		defer wg.Done()
-		myConnToOfficialChan <- nil
 	}
+
 	myReadServer, myPipeline := pack.NewServerReader()
 
 	selectedServerDataExtended := messages.GetSelectedServerDataExtendedNOA(instance)
@@ -255,12 +258,14 @@ func launchLoginClientToOfficialSocket(wg *sync.WaitGroup,
 	officialServerContinueChan chan bool,
 	callBack func(pipe *pack.Pipe),
 	instance uint, myConnToOfficialChan chan net.Conn) {
+
+	defer func() {
+		myConnToOfficialChan <- nil
+	}()
 	if wg != nil {
-		defer func() {
-			wg.Done()
-			myConnToOfficialChan <- nil
-		}()
+		defer wg.Done()
 	}
+
 	myReadServer, myPipeline := pack.NewServerReader()
 	myConnServer, err := net.DialTCP("tcp", nil, rAddr)
 
