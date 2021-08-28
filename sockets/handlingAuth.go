@@ -8,7 +8,7 @@ import (
 	"fmt"
 )
 
-func HandlingAuth(writeInMyClientChan, writeToAnkamaServerChan chan messages.Message, myClientContinueChan, ankamaServerContinueChan chan bool) func(*pack.Pipe) {
+func handlingAuth(writeInMyClientChan, writeToAnkamaServerChan chan messages.Message, myClientContinueChan, ankamaServerContinueChan chan bool) func(*pack.Pipe) {
 	return func(pipe *pack.Pipe) {
 		for weft := pipe.Get(); weft != nil; weft = pipe.Get() {
 			switch weft.PackId {
