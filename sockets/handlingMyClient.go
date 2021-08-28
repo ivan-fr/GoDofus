@@ -7,7 +7,7 @@ import (
 	"fmt"
 )
 
-func handlingMyClient(writeInMyClientChan, writeToAnkamaServerChan chan messages.Message, myClientContinueChan, officialServerContinueChan chan bool, instance uint) func(chan *pack.Weft) {
+func handlingMyClient(writeInMyClientChan, writeToOfficialServerServerChan chan messages.Message, myClientContinueChan, officialServerContinueChan chan bool, instance uint) func(chan *pack.Weft) {
 	return func(weftChan chan *pack.Weft) {
 		for {
 			weft := <-weftChan
@@ -21,12 +21,12 @@ func handlingMyClient(writeInMyClientChan, writeToAnkamaServerChan chan messages
 				msg := messages.GetCheckIntegrityNOA(instance)
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)
-				writeToAnkamaServerChan <- msg
+				writeToOfficialServerServerChan <- msg
 			case messages.ClientKeyID:
 				msg := messages.GetClientKeyNOA(instance)
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)
-				writeToAnkamaServerChan <- msg
+				writeToOfficialServerServerChan <- msg
 			default:
 				fmt.Printf("Listener: there is no traitment for %d ID\n", weft.PackId)
 			}

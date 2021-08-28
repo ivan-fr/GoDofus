@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func handlingGame(writeInMyClientChan, writeToAnkamaServerChan chan messages.Message, myClientContinueChan, officialServerContinueChan chan bool, instance uint) func(chan *pack.Weft) {
+func handlingGame(writeInMyClientChan, writeToOfficialServerServerChan chan messages.Message, myClientContinueChan, officialServerContinueChan chan bool, instance uint) func(chan *pack.Weft) {
 	return func(weftChan chan *pack.Weft) {
 		for {
 			weft := <-weftChan
@@ -25,9 +25,10 @@ func handlingGame(writeInMyClientChan, writeToAnkamaServerChan chan messages.Mes
 				msg := messages.GetHelloGameNOA(instance)
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)
+				writeInMyClientChan <- msg
 				time.Sleep(time.Millisecond * 150)
 				msg2 := messages.GetAuthenticationTicketNOA(instance)
-				writeToAnkamaServerChan <- msg2
+				writeToOfficialServerServerChan <- msg2
 			case messages.RawDataID:
 				msg := messages.GetRawDataNOA(instance)
 				msg.Deserialize(bytes.NewReader(weft.Message))
