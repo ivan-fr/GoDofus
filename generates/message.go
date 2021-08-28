@@ -24,10 +24,17 @@ type {{ .Name }} struct {
 	PacketId uint32
 }
 
-var {{ .Name }}_ = &{{ .Name }}{PacketId: {{ .NameCapFirst }}ID}
+var {{ .Name }}Map = make(map[uint]*{{ .Name }})
 
-func Get{{ .NameCapFirst }}NOA() *{{ .Name }} {
-	return {{ .Name }}_
+func Get{{ .NameCapFirst }}NOA(instance uint) *{{ .Name }} {
+	{{ .Name }}_, ok := {{ .Name }}Map[instance]
+
+	if ok {
+		return {{ .Name }}_
+	}
+
+	{{ .Name }}Map[instance] = &{{ .Name }}{PacketId: {{ .NameCapFirst }}ID}
+	return {{ .Name }}Map[instance]
 }
 
 func ({{.FistLetter}} *{{.Name}}) Serialize(buff *bytes.Buffer) {
