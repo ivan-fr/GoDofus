@@ -5,7 +5,6 @@
 package messages
 
 import (
-	"GoDofus/utils"
 	"bytes"
 	"encoding/binary"
 	"fmt"
@@ -13,11 +12,15 @@ import (
 
 type item struct {
 	PacketId uint32
-	id       int32
+	content  []byte
 	typeId   uint16
 }
 
 var itemMap = make(map[uint]*item)
+
+func getProtocolType() {
+	var _ = make(map[uint16]*Message)
+}
 
 func GetItemNOA(instance uint) *item {
 	item_, ok := itemMap[instance]
@@ -32,12 +35,10 @@ func GetItemNOA(instance uint) *item {
 
 func (i *item) Serialize(buff *bytes.Buffer) {
 	_ = binary.Write(buff, binary.BigEndian, i.typeId)
-	utils.WriteVarShort(buff, i.id)
 }
 
 func (i *item) Deserialize(reader *bytes.Reader) {
 	_ = binary.Read(reader, binary.BigEndian, &i.typeId)
-	i.id = utils.ReadVarInt16(reader)
 }
 
 func (i *item) GetPacketId() uint32 {
