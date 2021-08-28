@@ -31,17 +31,26 @@ type Authentification struct {
 	lang      []byte
 	publicKey *rsa.PublicKey
 	salt      []byte
+	instance  uint
 }
 
-var authenticate_ = &Authentification{AESKey: generateAESKey(), lang: []byte("fr")}
 var AESLength = uint(32)
 
 var publicVerifyPem = utils.ReadRSA("./binaryData/verify_key.bin")
 var blockVerify = utils.DecodePem(publicVerifyPem)
 var publicKeyVerify = utils.PublicKeyOf(blockVerify)
 
-func GetAuthentification() *Authentification {
-	return authenticate_
+var authentificationMap = make(map[uint]*Authentification)
+
+func GetAuthentificationManager(instance uint) *Authentification {
+	authentificationMap_, ok := authentificationMap[instance]
+
+	if ok {
+		return authentificationMap_
+	}
+
+	authentificationMap[instance] = &Authentification{AESKey: generateAESKey(), lang: []byte("fr"), instance: instance}
+	return authentificationMap_
 }
 
 func (a *Authentification) initLoginAction() {
@@ -71,7 +80,7 @@ func (a *Authentification) getCipher() []byte {
 
 func (a *Authentification) InitIdentificationMessage() {
 	a.initLoginAction()
-	identification := messages.GetIdentificationNOA()
+	identification := messages.GetIdentificationNOA(a.instance)
 
 	identification.AesKEY_ = make([]byte, len(a.AESKey))
 	copy(identification.AesKEY_, a.AESKey)
@@ -90,7 +99,7 @@ func (a *Authentification) InitIdentificationMessage() {
 }
 
 func (a *Authentification) getPublicKey() *rsa.PublicKey {
-	hc := messages.GetHelloConnectNOA()
+	hc := messages.GetHelloConnectNOA(a.instance)
 
 	if a.publicKey != nil && bytes.Compare(hc.Salt, a.salt) == 0 {
 		return a.publicKey
@@ -117,7 +126,7 @@ func (a *Authentification) getPublicKey() *rsa.PublicKey {
 }
 
 func (a *Authentification) getSalt() []byte {
-	hc := messages.GetHelloConnectNOA()
+	hc := messages.GetHelloConnectNOA(a.instance)
 	if hc.Salt == nil {
 		panic("helloMessage wasn't call")
 	}

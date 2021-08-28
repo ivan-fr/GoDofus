@@ -7,17 +7,17 @@ import (
 	"fmt"
 )
 
-func handlingMyClient(writeInMyClientChan, writeToAnkamaServerChan chan messages.Message, myClientContinueChan, ankamaServerContinueChan chan bool) func(*pack.Pipe) {
+func handlingMyClient(writeInMyClientChan, writeToAnkamaServerChan chan messages.Message, myClientContinueChan, ankamaServerContinueChan chan bool, instance uint) func(*pack.Pipe) {
 	return func(pipe *pack.Pipe) {
 		for weft := pipe.Get(); weft != nil; weft = pipe.Get() {
 			switch weft.PackId {
 			case messages.CheckIntegrityID:
-				msg := messages.GetCheckIntegrityNOA()
+				msg := messages.GetCheckIntegrityNOA(instance)
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)
 				writeToAnkamaServerChan <- msg
 			case messages.ClientKeyID:
-				msg := messages.GetClientKeyNOA()
+				msg := messages.GetClientKeyNOA(instance)
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)
 				writeToAnkamaServerChan <- msg
