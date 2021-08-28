@@ -184,11 +184,14 @@ func gameListener(wg *sync.WaitGroup,
 func factoryServerClientToOfficial(myConnServer net.Conn,
 	myReadServer func([]byte) bool, myPipeline *pack.Pipe,
 	officialServerContinueChan chan bool,
-	callBack func(pipe *pack.Pipe), instance uint) {
+	callBack func(chan *pack.Weft), instance uint) {
 
 	defer func(conn_ net.Conn) {
 		_ = conn_.Close()
 	}(myConnServer)
+
+	myWeftChan := make(chan *pack.Weft)
+	go callBack(myWeftChan)
 
 	myLecture := make([]byte, 1024)
 
@@ -199,29 +202,32 @@ func factoryServerClientToOfficial(myConnServer net.Conn,
 		default:
 		}
 
+		_ = myConnServer.SetReadDeadline(time.Now().Add(time.Millisecond * 500))
 		n, err := myConnServer.Read(myLecture)
-		if _, ok := err.(net.Error); ok {
-			break
+		if netErr, ok := err.(net.Error); ok {
+			if !netErr.Timeout() {
+				break
+			}
 		}
 
 		if n == 0 {
 			continue
 		}
-		fmt.Printf("Server n°%d: %d octets reçu\n", instance, n)
 
 		_ = myReadServer(myLecture[:n])
 
-		if len(myPipeline.Wefts) > 0 {
-			callBack(myPipeline)
+		for weft := myPipeline.Get(); weft != nil; weft = myPipeline.Get() {
+			myWeftChan <- weft
 		}
 	}
 
+	myWeftChan <- nil
 	log.Printf("Dial: server official lost from instance n°%d !\n", instance)
 }
 
 func launchGameClientToOfficialSocket(wg *sync.WaitGroup,
 	officialServerContinueChan chan bool,
-	callBack func(pipe *pack.Pipe),
+	callBack func(chan *pack.Weft),
 	instance uint, myConnToOfficialChan chan net.Conn) {
 
 	defer func() {
@@ -255,7 +261,7 @@ func launchGameClientToOfficialSocket(wg *sync.WaitGroup,
 func launchLoginClientToOfficialSocket(wg *sync.WaitGroup,
 	writeToOfficialServerChan chan messages.Message,
 	officialServerContinueChan chan bool,
-	callBack func(pipe *pack.Pipe),
+	callBack func(chan *pack.Weft),
 	instance uint, myConnToOfficialChan chan net.Conn) {
 
 	defer func() {
@@ -281,12 +287,15 @@ func launchLoginClientToOfficialSocket(wg *sync.WaitGroup,
 	factoryServerClientToOfficial(myConnServer, myReadServer, myPipeline, officialServerContinueChan, callBack, instance)
 }
 
-func launchServerForMyClientSocket(wg *sync.WaitGroup, myConnToMyClient net.Conn, myClientContinueChan chan bool, callBack func(pipe *pack.Pipe), instance uint) {
+func launchServerForMyClientSocket(wg *sync.WaitGroup, myConnToMyClient net.Conn, myClientContinueChan chan bool, callBack func(chan *pack.Weft), instance uint) {
 	if wg != nil {
 		defer wg.Done()
 	}
 
 	myReadClient, myPipeline := pack.NewClientReader()
+
+	myWeftChan := make(chan *pack.Weft)
+	go callBack(myWeftChan)
 
 	lecture := make([]byte, 1024)
 	next := true
@@ -306,10 +315,12 @@ func launchServerForMyClientSocket(wg *sync.WaitGroup, myConnToMyClient net.Conn
 
 		if n > 0 {
 			_ = myReadClient(lecture[:n])
-			if len(myPipeline.Wefts) > 0 {
-				callBack(myPipeline)
+			for weft := myPipeline.Get(); weft != nil; weft = myPipeline.Get() {
+				myWeftChan <- weft
 			}
 		}
 	}
+
+	myWeftChan <- nil
 	log.Printf("Listener: Go client lost from instance n°%d !\n", instance)
 }

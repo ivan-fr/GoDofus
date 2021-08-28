@@ -6,7 +6,7 @@ import (
 	"io"
 )
 
-type weft struct {
+type Weft struct {
 	PackId     uint16
 	LengthType uint16
 	instanceID uint32
@@ -23,7 +23,7 @@ type lastSignal struct {
 }
 
 type Pipe struct {
-	Wefts []*weft
+	Wefts []*Weft
 	index int
 }
 
@@ -35,11 +35,11 @@ const (
 	noType
 )
 
-func (p *Pipe) append(w *weft) {
+func (p *Pipe) append(w *Weft) {
 	p.Wefts = append(p.Wefts, w)
 }
 
-func (p *Pipe) Get() *weft {
+func (p *Pipe) Get() *Weft {
 	if len(p.Wefts) == 0 {
 		return nil
 	}
@@ -92,7 +92,7 @@ func (lS *lastSignal) update(request int, typeRequest int, containForType []byte
 	}
 }
 
-func commit(aPipeline *Pipe, aLWeft **weft, aLSignal *lastSignal) {
+func commit(aPipeline *Pipe, aLWeft **Weft, aLSignal *lastSignal) {
 	if aLSignal.request >= 0 {
 		if *aLWeft == nil {
 			return
@@ -146,7 +146,7 @@ func tryRead(aLSignal *lastSignal, reader *bytes.Reader, step int, bytesWanted u
 	return ok
 }
 
-func readHeaderTwoFirstBytes(aLWeft **weft, aLSignal *lastSignal, reader *bytes.Reader) bool {
+func readHeaderTwoFirstBytes(aLWeft **Weft, aLSignal *lastSignal, reader *bytes.Reader) bool {
 	ok := tryRead(aLSignal, reader, headerTwoFirstBytes, 2)
 
 	if !ok {
@@ -157,11 +157,11 @@ func readHeaderTwoFirstBytes(aLWeft **weft, aLSignal *lastSignal, reader *bytes.
 	packetId := twoBytes >> 2
 	lengthType := twoBytes & 0b11
 
-	*aLWeft = &weft{PackId: packetId, LengthType: lengthType, waitLength: true}
+	*aLWeft = &Weft{PackId: packetId, LengthType: lengthType, waitLength: true}
 	return true
 }
 
-func readHeaderInstance(aLWeft *weft, aLSignal *lastSignal, reader *bytes.Reader) bool {
+func readHeaderInstance(aLWeft *Weft, aLSignal *lastSignal, reader *bytes.Reader) bool {
 	ok := tryRead(aLSignal, reader, headerInstance, 4)
 
 	if !ok {
@@ -174,7 +174,7 @@ func readHeaderInstance(aLWeft *weft, aLSignal *lastSignal, reader *bytes.Reader
 	return true
 }
 
-func readHeaderLength(aLWeft *weft, aLSignal *lastSignal, reader *bytes.Reader) bool {
+func readHeaderLength(aLWeft *Weft, aLSignal *lastSignal, reader *bytes.Reader) bool {
 	if aLWeft == nil {
 		panic("incoherence last weft can't be nil")
 	}
@@ -209,7 +209,7 @@ func readHeaderLength(aLWeft *weft, aLSignal *lastSignal, reader *bytes.Reader) 
 	return true
 }
 
-func read(aPipeline *Pipe, aLWeft **weft, aLSignal *lastSignal, isClient bool, bytesPack []byte) bool {
+func read(aPipeline *Pipe, aLWeft **Weft, aLSignal *lastSignal, isClient bool, bytesPack []byte) bool {
 	switch aLSignal.TypeRequest {
 	case messageLength:
 		switch {
@@ -330,13 +330,13 @@ func read(aPipeline *Pipe, aLWeft **weft, aLSignal *lastSignal, isClient bool, b
 func NewServerReader() (func([]byte) bool, *Pipe) {
 	var aLSignal = &lastSignal{TypeRequest: noType}
 	var aPipeline = new(Pipe)
-	var aLWeft *weft = nil
+	var aLWeft *Weft = nil
 	return func(bytesPack []byte) bool { return read(aPipeline, &aLWeft, aLSignal, false, bytesPack) }, aPipeline
 }
 
 func NewClientReader() (func([]byte) bool, *Pipe) {
 	var aLSignal = &lastSignal{TypeRequest: noType}
 	var aPipeline = new(Pipe)
-	var aLWeft *weft = nil
+	var aLWeft *Weft = nil
 	return func(bytesPack []byte) bool { return read(aPipeline, &aLWeft, aLSignal, true, bytesPack) }, aPipeline
 }
