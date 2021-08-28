@@ -18,7 +18,7 @@ func GoSocket() {
 
 	var wg sync.WaitGroup
 	wg.Add(2)
-	go loginListener(&wg, instanceChan)
+	go loginListener(&wg, instanceChan, connToMyClientChanChan)
 	go gameListener(&wg, instanceChan, connToMyClientChanChan)
 	wg.Wait()
 }
@@ -59,7 +59,7 @@ func channelWriter(aChan chan messages.Message, aChanConnexion chan net.Conn, to
 	}
 }
 
-func loginListener(wg *sync.WaitGroup, instanceChan chan uint) {
+func loginListener(wg *sync.WaitGroup, instanceChan chan uint, connToMyClientChanChan chan chan net.Conn) {
 	defer wg.Done()
 
 	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", settings.Settings.LocalAddress, settings.Settings.LocalLoginPort))
@@ -94,8 +94,8 @@ func loginListener(wg *sync.WaitGroup, instanceChan chan uint) {
 			writeInMyClientChan := make(chan messages.Message)
 			writeToAnkamaServerChan := make(chan messages.Message)
 
-			callbackAnkamaServer := handlingAuth(writeInMyClientChan, writeToAnkamaServerChan, myClientContinueChan, ankamaServerContinueChan, instance)
-			callbackInMyClient := handlingMyClient(writeInMyClientChan, writeToAnkamaServerChan, myClientContinueChan, ankamaServerContinueChan, instance)
+			callbackAnkamaServer := handlingAuth(writeInMyClientChan, writeToAnkamaServerChan, ankamaServerContinueChan, instance)
+			callbackInMyClient := handlingMyClient(writeInMyClientChan, writeToAnkamaServerChan, ankamaServerContinueChan, instance)
 
 			go channelWriter(writeInMyClientChan, myConnToMyClientChan, true)
 			myConnToMyClientChan <- myConnToMyClient
@@ -107,8 +107,10 @@ func loginListener(wg *sync.WaitGroup, instanceChan chan uint) {
 			go launchServerForMyClientSocket(&myWg, myConnToMyClient, myClientContinueChan, callbackInMyClient)
 			myWg.Wait()
 
-			instanceChan <- instance
 			_ = myConnToMyClient.Close()
+
+			instanceChan <- instance
+			connToMyClientChanChan <- myConnToMyClientChan
 		}()
 	}
 }
@@ -147,8 +149,8 @@ func gameListener(wg *sync.WaitGroup, instanceChan chan uint, connToMyClientChan
 			writeInMyClientChan := make(chan messages.Message)
 			writeToAnkamaServerChan := make(chan messages.Message)
 
-			callbackAnkamaServer := handlingGame(writeInMyClientChan, writeToAnkamaServerChan, myClientContinueChan, ankamaServerContinueChan, instance)
-			callbackInMyClient := handlingMyClient(writeInMyClientChan, writeToAnkamaServerChan, myClientContinueChan, ankamaServerContinueChan, instance)
+			callbackAnkamaServer := handlingGame(writeInMyClientChan, writeToAnkamaServerChan, ankamaServerContinueChan, instance)
+			callbackInMyClient := handlingMyClient(writeInMyClientChan, writeToAnkamaServerChan, ankamaServerContinueChan, instance)
 
 			go launchGameClientToAnkamaSocket(writeToAnkamaServerChan, ankamaServerContinueChan, callbackAnkamaServer, instance)
 
