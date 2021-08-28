@@ -21,10 +21,11 @@ var protocolType = getProtocolType()
 
 func getProtocolType() map[uint16]Message {
 	var _typesTypes = make(map[uint16]Message)
-	_typesTypes[2772] = &serverSessionConstant{}
-	_typesTypes[9726] = &serverSessionConstantString{}
-	_typesTypes[1273] = &serverSessionConstantInteger{}
-	_typesTypes[1271] = &serverSessionConstantLong{}
+	_typesTypes[ServerSessionConstantID] = &serverSessionConstant{}
+	_typesTypes[ServerSessionConstantStringID] = &serverSessionConstantString{}
+	_typesTypes[ServerSessionConstantIntegerID] = &serverSessionConstantInteger{}
+	_typesTypes[ServerSessionConstantLongID] = &serverSessionConstantLong{}
+	_typesTypes[CharacterBaseInformationsID] = &characterBaseInformations{}
 
 	return _typesTypes
 }

@@ -5,7 +5,6 @@ import (
 	"GoDofus/pack"
 	"bytes"
 	"fmt"
-	"time"
 )
 
 func handlingGame(writeInMyClientChan, writeToOfficialServerServerChan chan messages.Message, myClientContinueChan, officialServerContinueChan chan bool, instance uint) func(chan *pack.Weft) {
@@ -21,12 +20,17 @@ func handlingGame(writeInMyClientChan, writeToOfficialServerServerChan chan mess
 				msg := messages.GetProtocolNOA(instance)
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)
+				writeInMyClientChan <- msg
+			case messages.AuthenticationTicketAcceptedID:
+				msg := messages.GetAuthenticationTicketAcceptedNOA(instance)
+				msg.Deserialize(bytes.NewReader(weft.Message))
+				fmt.Println(msg)
+				writeInMyClientChan <- msg
 			case messages.HelloGameID:
 				msg := messages.GetHelloGameNOA(instance)
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)
 				writeInMyClientChan <- msg
-				time.Sleep(time.Millisecond * 150)
 				msg2 := messages.GetAuthenticationTicketNOA(instance)
 				writeToOfficialServerServerChan <- msg2
 			case messages.RawDataID:
@@ -69,8 +73,22 @@ func handlingGame(writeInMyClientChan, writeToOfficialServerServerChan chan mess
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)
 				writeInMyClientChan <- msg
+				msg2 := messages.GetHaapiApiKeyRequestNOA(instance)
+				writeToOfficialServerServerChan <- msg2
 			case messages.CharactersListRequestID:
 				msg := messages.GetCharactersListRequestNOA(instance)
+				msg.Deserialize(bytes.NewReader(weft.Message))
+				fmt.Println(msg)
+				writeInMyClientChan <- msg
+			case messages.HaapiApiKeyID:
+				msg := messages.GethaapiApiKeyNOA(instance)
+				msg.Deserialize(bytes.NewReader(weft.Message))
+				fmt.Println(msg)
+				writeInMyClientChan <- msg
+				msg2 := messages.GetCharactersListRequestNOA(instance)
+				writeToOfficialServerServerChan <- msg2
+			case messages.CharactersListID:
+				msg := messages.GetCharactersListNOA(instance)
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)
 				writeInMyClientChan <- msg
