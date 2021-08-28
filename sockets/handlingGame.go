@@ -33,8 +33,43 @@ func handlingGame(writeInMyClientChan, writeToAnkamaServerChan chan messages.Mes
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)
 				writeInMyClientChan <- msg
-			case messages.AuthenticationTicketAcceptedID:
-				msg := messages.GetAuthenticationTicketAcceptedNOA(instance)
+			case messages.BasicTimeID:
+				msg := messages.GetBasicTimeNOA(instance)
+				msg.Deserialize(bytes.NewReader(weft.Message))
+				fmt.Println(msg)
+				writeInMyClientChan <- msg
+			case messages.ServerSettingsID:
+				msg := messages.GetServerSettingsNOA(instance)
+				msg.Deserialize(bytes.NewReader(weft.Message))
+				fmt.Println(msg)
+				writeInMyClientChan <- msg
+			case messages.ServerOptionalFeaturesID:
+				msg := messages.GetServerOptionalFeaturesNOA(instance)
+				msg.Deserialize(bytes.NewReader(weft.Message))
+				fmt.Println(msg)
+				writeInMyClientChan <- msg
+			case messages.ServerSessionConstantsID:
+				msg := messages.GetServerSessionConstantsNOA(instance)
+				msg.Deserialize(bytes.NewReader(weft.Message))
+				fmt.Println(msg)
+				writeInMyClientChan <- msg
+			case messages.AccountCapabilitiesID:
+				msg := messages.GetAccountCapabilitiesNOA(instance)
+				msg.Deserialize(bytes.NewReader(weft.Message))
+				fmt.Println(msg)
+				writeInMyClientChan <- msg
+			case messages.TrustStatusID:
+				msg := messages.GetTrustStatusNOA(instance)
+				msg.Deserialize(bytes.NewReader(weft.Message))
+				fmt.Println(msg)
+				writeInMyClientChan <- msg
+			case messages.HaapiSessionID:
+				msg := messages.GetHaapiSessionNOA(instance)
+				msg.Deserialize(bytes.NewReader(weft.Message))
+				fmt.Println(msg)
+				writeInMyClientChan <- msg
+			case messages.CharactersListRequestID:
+				msg := messages.GetCharactersListRequestNOA(instance)
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)
 				writeInMyClientChan <- msg
