@@ -12,6 +12,7 @@ import (
 
 type characterMinimalInformations struct {
 	PacketId uint32
+	cBMI     *characterBasicMinimalInformations
 	level    int32
 }
 
@@ -29,10 +30,12 @@ func GetCharacterMinimalInformationsNOA(instance uint) *characterMinimalInformat
 }
 
 func (c *characterMinimalInformations) Serialize(buff *bytes.Buffer) {
+	c.cBMI.Serialize(buff)
 	utils.WriteVarShort(buff, c.level)
 }
 
 func (c *characterMinimalInformations) Deserialize(reader *bytes.Reader) {
+	c.cBMI.Deserialize(reader)
 	c.level = utils.ReadVarInt16(reader)
 }
 
