@@ -160,7 +160,7 @@ func factoryServerClientToAnkama(myConnServer net.Conn, err error, myReadServer 
 	go channelWriter(&wg, writeToAnkamaServerChan, myConnServer, false)
 
 	defer func(conn_ net.Conn) {
-		_ = myConnServer.Close()
+		_ = conn_.Close()
 	}(myConnServer)
 
 	myLecture := make([]byte, 1024)
