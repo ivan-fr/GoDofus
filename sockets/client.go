@@ -19,6 +19,7 @@ func GoSocket() {
 	wg.Add(2)
 	go loginListener(&wg, instanceChan)
 	go gameListener(&wg, instanceChan)
+	wg.Wait()
 }
 
 var rAddr = getRAddr()
