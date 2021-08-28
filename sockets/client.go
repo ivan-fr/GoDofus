@@ -36,13 +36,14 @@ func getRAddr() *net.TCPAddr {
 }
 
 func channelWriter(aChanMessage chan messages.Message, aChanConnexion chan net.Conn, toClient bool) {
+	aConn := <-aChanConnexion
+
 	defer func() {
 		if err := recover(); err != nil {
-			log.Println("ChannelWriter: closed", err)
+			log.Fatalf("ChannelWriter: closed: %v, to client: %t, for conn: %v", err, toClient, aConn)
 		}
 	}()
 
-	aConn := <-aChanConnexion
 	for {
 		select {
 		case msg := <-aChanMessage:
@@ -50,9 +51,9 @@ func channelWriter(aChanMessage chan messages.Message, aChanConnexion chan net.C
 				aConn = <-aChanConnexion
 			}
 			_, err := aConn.Write(pack.Write(msg, toClient))
-			closed := handleErrReadWrite(aConn, err)
+			bug := handleErrReadWrite(err)
 
-			if closed {
+			if bug {
 				break
 			}
 		case aConn = <-aChanConnexion:
@@ -119,9 +120,12 @@ func loginListener(wg *sync.WaitGroup,
 				myWg.Add(1)
 				go launchServerForMyClientSocket(nil, myConnToMyClient, myClientContinueChan, callbackInMyClient, instance)
 				myWg.Wait()
-				myConnToMyClientChan <- nil
 
+				log.Println("myConnToMyClientChan is CLOSE")
+				myConnToMyClientChan <- nil
 				_ = myConnToMyClient.Close()
+				log.Println("myConnToMyClientChan is CLOSE")
+
 				instanceChan <- instance
 				connToMyClientChanChan <- myConnToMyClientChan
 				writeTChanChan <- [2]chan messages.Message{writeInMyClientChan, writeToOfficialServerChan}
@@ -154,6 +158,9 @@ func gameListener(wg *sync.WaitGroup,
 			log.Println(err)
 			break
 		}
+
+		log.Printf("Game listener: a connexion was accepted !\n")
+
 		instance := <-instanceChan
 		myConnToMyClientChan := <-connToMyClientChanChan
 		myConnToMyClientChan <- myConnToMyClient
@@ -171,6 +178,7 @@ func gameListener(wg *sync.WaitGroup,
 			myWg.Add(1)
 			go launchServerForMyClientSocket(&myWg, myConnToMyClient, myClientContinueChan, callbackInMyClient, instance)
 			myWg.Wait()
+
 			myConnToMyClientChan <- nil
 
 			_ = myConnToMyClient.Close()
@@ -201,9 +209,9 @@ func factoryServerClientToOfficial(myConnServer net.Conn,
 			break
 		}
 		n, err := myConnServer.Read(myLecture)
-		closed := handleErrReadWrite(myConnServer, err)
+		bug := handleErrReadWrite(err)
 
-		if closed {
+		if bug {
 			break
 		}
 
@@ -292,20 +300,35 @@ func launchServerForMyClientSocket(wg *sync.WaitGroup, myConnToMyClient net.Conn
 	myReadClient, myPipeline := pack.NewClientReader()
 
 	lecture := make([]byte, 1024)
+	one := make([]byte, 1)
 	next := true
 	for next {
 		select {
 		case next = <-myClientContinueChan:
-			myClientContinueChan <- false
 		default:
 		}
-		_ = myConnToMyClient.SetReadDeadline(time.Now().Add(time.Millisecond * 500))
-		n, err := myConnToMyClient.Read(lecture)
-		closed := handleErrReadWrite(myConnToMyClient, err)
+		err := myConnToMyClient.SetReadDeadline(time.Now())
+		if err != nil {
+			return
+		}
+		if _, err = myConnToMyClient.Read(one); err == io.EOF {
+			log.Println("detected closed LAN connection")
+			break
+		} else {
+			err := myConnToMyClient.SetReadDeadline(time.Now().Add(10 * time.Millisecond))
+			if err != nil {
+				return
+			}
+		}
 
-		if closed {
+		n, err := myConnToMyClient.Read(lecture)
+		bug := handleErrReadWrite(err)
+
+		if bug {
 			break
 		}
+
+		lecture = append(one, lecture...)
 
 		if n > 0 {
 			_ = myReadClient(lecture[:n])
@@ -317,14 +340,12 @@ func launchServerForMyClientSocket(wg *sync.WaitGroup, myConnToMyClient net.Conn
 	log.Printf("Listener: Go client lost from instance n°%d !\n", instance)
 }
 
-func handleErrReadWrite(conn net.Conn, err error) bool {
+func handleErrReadWrite(err error) bool {
 	if errNet, ok := err.(net.Error); ok {
 		if !errNet.Timeout() {
-			_ = conn.Close()
 			return true
 		}
 	} else if err == io.EOF {
-		_ = conn.Close()
 		return true
 	}
 
