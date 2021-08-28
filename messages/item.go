@@ -17,9 +17,16 @@ type item struct {
 }
 
 var itemMap = make(map[uint]*item)
+var protocolType = getProtocolType()
 
-func getProtocolType() {
-	var _ = make(map[uint16]*Message)
+func getProtocolType() map[uint16]Message {
+	var _typesTypes = make(map[uint16]Message)
+	_typesTypes[2772] = &serverSessionConstant{}
+	_typesTypes[9726] = &serverSessionConstantString{}
+	_typesTypes[1273] = &serverSessionConstantInteger{}
+	_typesTypes[1271] = &serverSessionConstantLong{}
+
+	return _typesTypes
 }
 
 func GetItemNOA(instance uint) *item {
@@ -35,10 +42,12 @@ func GetItemNOA(instance uint) *item {
 
 func (i *item) Serialize(buff *bytes.Buffer) {
 	_ = binary.Write(buff, binary.BigEndian, i.typeId)
+	protocolType[i.typeId].Serialize(buff)
 }
 
 func (i *item) Deserialize(reader *bytes.Reader) {
 	_ = binary.Read(reader, binary.BigEndian, &i.typeId)
+	protocolType[i.typeId].Deserialize(reader)
 }
 
 func (i *item) GetPacketId() uint32 {
