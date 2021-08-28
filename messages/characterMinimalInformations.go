@@ -35,6 +35,7 @@ func (c *characterMinimalInformations) Serialize(buff *bytes.Buffer) {
 }
 
 func (c *characterMinimalInformations) Deserialize(reader *bytes.Reader) {
+	c.cBMI = new(characterBasicMinimalInformations)
 	c.cBMI.Deserialize(reader)
 	c.level = utils.ReadVarInt16(reader)
 }

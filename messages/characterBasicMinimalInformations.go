@@ -35,6 +35,7 @@ func (c *characterBasicMinimalInformations) Serialize(buff *bytes.Buffer) {
 }
 
 func (c *characterBasicMinimalInformations) Deserialize(reader *bytes.Reader) {
+	c.aCI = new(abstractCharacterInformation)
 	c.aCI.Deserialize(reader)
 	c.name = utils.ReadUTF(reader)
 }

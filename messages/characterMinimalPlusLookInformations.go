@@ -12,10 +12,9 @@ import (
 
 type characterMinimalPlusLookInformations struct {
 	PacketId uint32
-	level    int32
 	cMI      *characterMinimalInformations
 	eL       *entityLook
-	breed    bool
+	breed    byte
 }
 
 var characterMinimalPlusLookInformationsMap = make(map[uint]*characterMinimalPlusLookInformations)
