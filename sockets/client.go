@@ -176,15 +176,14 @@ func factoryServerClientToAnkama(myConnServer net.Conn, err error,
 	} else {
 		log.Printf("Connexion to server instance n°%d OK.\n", instance)
 	}
-
-	myConnServerChan := make(chan net.Conn)
-	go channelWriter(writeToAnkamaServerChan, myConnServerChan, false)
-	myConnServerChan <- myConnServer
-
 	defer func(conn_ net.Conn) {
 		_ = conn_.Close()
 		writeToAnkamaServerChan <- messages.GetAuthenticationTicketAcceptedNOA(instance)
 	}(myConnServer)
+
+	myConnServerChan := make(chan net.Conn)
+	go channelWriter(writeToAnkamaServerChan, myConnServerChan, false)
+	myConnServerChan <- myConnServer
 
 	myLecture := make([]byte, 1024)
 
