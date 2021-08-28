@@ -117,7 +117,7 @@ func loginListener(wg *sync.WaitGroup,
 
 				var myWg sync.WaitGroup
 				myWg.Add(1)
-				go launchServerForMyClientSocket(nil, myConnToMyClient, myClientContinueChan, callbackInMyClient)
+				go launchServerForMyClientSocket(nil, myConnToMyClient, myClientContinueChan, callbackInMyClient, instance)
 				myWg.Wait()
 				myConnToMyClientChan <- nil
 
@@ -169,7 +169,7 @@ func gameListener(wg *sync.WaitGroup,
 
 			var myWg sync.WaitGroup
 			myWg.Add(1)
-			go launchServerForMyClientSocket(&myWg, myConnToMyClient, myClientContinueChan, callbackInMyClient)
+			go launchServerForMyClientSocket(&myWg, myConnToMyClient, myClientContinueChan, callbackInMyClient, instance)
 			myWg.Wait()
 			myConnToMyClientChan <- nil
 
@@ -218,6 +218,8 @@ func factoryServerClientToOfficial(myConnServer net.Conn,
 			callBack(myPipeline)
 		}
 	}
+
+	log.Printf("Dial: server official lost from instance n°%d !\n", instance)
 }
 
 func launchGameClientToOfficialSocket(wg *sync.WaitGroup,
@@ -282,7 +284,7 @@ func launchLoginClientToOfficialSocket(wg *sync.WaitGroup,
 	factoryServerClientToOfficial(myConnServer, myReadServer, myPipeline, officialServerContinueChan, callBack, instance)
 }
 
-func launchServerForMyClientSocket(wg *sync.WaitGroup, myConnToMyClient net.Conn, myClientContinueChan chan bool, callBack func(pipe *pack.Pipe)) {
+func launchServerForMyClientSocket(wg *sync.WaitGroup, myConnToMyClient net.Conn, myClientContinueChan chan bool, callBack func(pipe *pack.Pipe), instance uint) {
 	if wg != nil {
 		defer wg.Done()
 	}
@@ -312,7 +314,7 @@ func launchServerForMyClientSocket(wg *sync.WaitGroup, myConnToMyClient net.Conn
 			}
 		}
 	}
-	log.Println("Listener: Go client lost !")
+	log.Printf("Listener: Go client lost from instance n°%d !\n", instance)
 }
 
 func handleErrReadWrite(conn net.Conn, err error) bool {
