@@ -5,7 +5,6 @@ import (
 	"GoDofus/pack"
 	"GoDofus/settings"
 	"fmt"
-	"io"
 	"log"
 	"net"
 	"sync"
@@ -204,10 +203,6 @@ func factoryServerClientToOfficial(myConnServer net.Conn,
 		default:
 		}
 
-		err := myConnServer.SetReadDeadline(time.Now().Add(time.Second * 2))
-		if err != nil {
-			break
-		}
 		n, err := myConnServer.Read(myLecture)
 		bug := handleErrReadWrite(err)
 
@@ -300,35 +295,37 @@ func launchServerForMyClientSocket(wg *sync.WaitGroup, myConnToMyClient net.Conn
 	myReadClient, myPipeline := pack.NewClientReader()
 
 	lecture := make([]byte, 1024)
-	one := make([]byte, 1)
 	next := true
 	for next {
 		select {
 		case next = <-myClientContinueChan:
 		default:
 		}
-		err := myConnToMyClient.SetReadDeadline(time.Now())
+
+		err := myConnToMyClient.SetWriteDeadline(time.Now().Add(100 * time.Millisecond))
 		if err != nil {
-			return
-		}
-		if _, err = myConnToMyClient.Read(one); err == io.EOF {
-			log.Println("detected closed LAN connection")
 			break
-		} else {
-			err := myConnToMyClient.SetReadDeadline(time.Now().Add(10 * time.Millisecond))
-			if err != nil {
-				return
-			}
+		}
+		_, err = myConnToMyClient.Write(pack.Write(messages.GetBasicPongNOA(instance), true))
+		if err != nil {
+			break
 		}
 
-		n, err := myConnToMyClient.Read(lecture)
 		bug := handleErrReadWrite(err)
-
 		if bug {
 			break
 		}
 
-		lecture = append(one, lecture...)
+		err = myConnToMyClient.SetReadDeadline(time.Now().Add(500 * time.Millisecond))
+		if err != nil {
+			return
+		}
+		n, err := myConnToMyClient.Read(lecture)
+		bug = handleErrReadWrite(err)
+
+		if bug {
+			break
+		}
 
 		if n > 0 {
 			_ = myReadClient(lecture[:n])
@@ -341,11 +338,7 @@ func launchServerForMyClientSocket(wg *sync.WaitGroup, myConnToMyClient net.Conn
 }
 
 func handleErrReadWrite(err error) bool {
-	if errNet, ok := err.(net.Error); ok {
-		if !errNet.Timeout() {
-			return true
-		}
-	} else if err == io.EOF {
+	if _, ok := err.(net.Error); ok {
 		return true
 	}
 
