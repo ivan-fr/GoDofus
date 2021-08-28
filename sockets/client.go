@@ -11,6 +11,12 @@ import (
 	"time"
 )
 
+func GoSocket() {
+	instanceChan := make(chan uint)
+	go loginListener(instanceChan)
+	go gameListener(instanceChan)
+}
+
 var rAddr = getRAddr()
 
 func getRAddr() *net.TCPAddr {
@@ -149,12 +155,6 @@ func gameListener(instanceChan chan uint) {
 	}
 }
 
-func GoSocket() {
-	instanceChan := make(chan uint)
-	go loginListener(instanceChan)
-	go gameListener(instanceChan)
-}
-
 func factoryServerClientToAnkama(myConnServer net.Conn, err error, myReadServer func([]byte) bool, myPipeline *pack.Pipe,
 	writeToAnkamaServerChan chan messages.Message,
 	ankamaServerContinueChan chan bool,
@@ -209,7 +209,9 @@ func factoryServerClientToAnkama(myConnServer net.Conn, err error, myReadServer 
 
 func launchGameClientToAnkamaSocket(writeToAnkamaServerChan chan messages.Message, ankamaServerContinueChan chan bool, callBack func(pipe *pack.Pipe), instance uint) {
 	myReadServer, myPipeline := pack.NewServerReader()
-	gameRAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", settings.Settings.ServerAnkamaAddress, settings.Settings.ServerAnkamaPort))
+
+	selectedServerDataExtended := messages.GetSelectedServerDataExtendedNOA(instance)
+	gameRAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", selectedServerDataExtended.SSD.Address, selectedServerDataExtended.SSD.Ports[0]))
 	if err != nil {
 		log.Println(err)
 		return
