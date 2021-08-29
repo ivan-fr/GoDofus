@@ -6,13 +6,12 @@ package messages
 
 import (
 	"bytes"
-	"encoding/binary"
 	"fmt"
 )
 
 type serverSessionConstants struct {
-	PacketId  uint32
-	variables []*item
+	PacketId uint32
+	iW       *itemWrapper
 }
 
 var serverSessionConstantsMap = make(map[uint]*serverSessionConstants)
@@ -29,22 +28,12 @@ func GetServerSessionConstantsNOA(instance uint) *serverSessionConstants {
 }
 
 func (s *serverSessionConstants) Serialize(buff *bytes.Buffer) {
-	_ = binary.Write(buff, binary.BigEndian, uint16(len(s.variables)))
-
-	for i := 0; i < len(s.variables); i++ {
-		s.variables[i].Serialize(buff)
-	}
+	s.iW.Serialize(buff)
 }
 
 func (s *serverSessionConstants) Deserialize(reader *bytes.Reader) {
-	var len_ uint16
-	_ = binary.Read(reader, binary.BigEndian, &len_)
-
-	for i := 0; i < int(len_); i++ {
-		var item_ = new(item)
-		item_.Deserialize(reader)
-		s.variables = append(s.variables, item_)
-	}
+	s.iW = new(itemWrapper)
+	s.iW.Deserialize(reader)
 }
 
 func (s *serverSessionConstants) GetPacketId() uint32 {

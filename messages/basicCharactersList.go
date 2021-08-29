@@ -6,13 +6,12 @@ package messages
 
 import (
 	"bytes"
-	"encoding/binary"
 	"fmt"
 )
 
 type basicCharactersList struct {
-	PacketId  uint32
-	variables []*item
+	PacketId uint32
+	iW       *itemWrapper
 }
 
 var basicCharactersListMap = make(map[uint]*basicCharactersList)
@@ -29,22 +28,12 @@ func GetBasicCharactersListNOA(instance uint) *basicCharactersList {
 }
 
 func (b *basicCharactersList) Serialize(buff *bytes.Buffer) {
-	_ = binary.Write(buff, binary.BigEndian, uint16(len(b.variables)))
-
-	for i := 0; i < len(b.variables); i++ {
-		b.variables[i].Serialize(buff)
-	}
+	b.iW.Serialize(buff)
 }
 
 func (b *basicCharactersList) Deserialize(reader *bytes.Reader) {
-	var len_ uint16
-	_ = binary.Read(reader, binary.BigEndian, &len_)
-
-	for i := 0; i < int(len_); i++ {
-		var item_ = new(item)
-		item_.Deserialize(reader)
-		b.variables = append(b.variables, item_)
-	}
+	b.iW = new(itemWrapper)
+	b.iW.Deserialize(reader)
 }
 
 func (b *basicCharactersList) GetPacketId() uint32 {
