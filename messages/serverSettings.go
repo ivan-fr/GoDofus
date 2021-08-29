@@ -44,7 +44,7 @@ func (s *serverSettings) Serialize(buff *bytes.Buffer) {
 	utils.WriteUTF(buff, s.lang)
 	_ = binary.Write(buff, binary.BigEndian, s.community)
 	_ = binary.Write(buff, binary.BigEndian, s.gameType)
-	utils.WriteVarShort(buff, s.arenaLeaveBanTime)
+	utils.WriteVarInt16(buff, s.arenaLeaveBanTime)
 	_ = binary.Write(buff, binary.BigEndian, s.itemMaxLevel)
 }
 

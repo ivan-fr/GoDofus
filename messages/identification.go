@@ -57,7 +57,7 @@ func (id *identification) Serialize(buff *bytes.Buffer) {
 	_ = binary.Write(buff, binary.BigEndian, uint16(len(id.FailedAttempts)))
 
 	for i := 0; i < len(id.FailedAttempts); i++ {
-		utils.WriteVarShort(buff, int32(id.FailedAttempts[i]))
+		utils.WriteVarInt16(buff, int32(id.FailedAttempts[i]))
 	}
 }
 

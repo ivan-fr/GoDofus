@@ -36,7 +36,7 @@ func GetObjectEffectDateNOA(instance uint) *objectEffectDate {
 
 func (o *objectEffectDate) Serialize(buff *bytes.Buffer) {
 	o.oE.Serialize(buff)
-	utils.WriteVarShort(buff, o.year)
+	utils.WriteVarInt16(buff, o.year)
 	_ = binary.Write(buff, binary.BigEndian, o.month)
 	_ = binary.Write(buff, binary.BigEndian, o.day)
 	_ = binary.Write(buff, binary.BigEndian, o.hour)

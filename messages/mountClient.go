@@ -99,7 +99,7 @@ func (m *mountClient) Serialize(buff *bytes.Buffer) {
 	_ = binary.Write(buff, binary.BigEndian, m.boostMax)
 	_ = binary.Write(buff, binary.BigEndian, m.reproductionCount)
 	_ = binary.Write(buff, binary.BigEndian, m.reproductionCountMax)
-	utils.WriteVarShort(buff, m.harnessGID)
+	utils.WriteVarInt16(buff, m.harnessGID)
 	_ = binary.Write(buff, binary.BigEndian, uint16(len(m.oEIs)))
 	for i := 0; i < len(m.oEIs); i++ {
 		m.oEIs[i].Serialize(buff)

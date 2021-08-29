@@ -34,11 +34,11 @@ func GetEntityLookNOA(instance uint) *entityLook {
 }
 
 func (e *entityLook) Serialize(buff *bytes.Buffer) {
-	utils.WriteVarShort(buff, e.bonesId)
+	utils.WriteVarInt16(buff, e.bonesId)
 
 	_ = binary.Write(buff, binary.BigEndian, uint16(len(e.skins)))
 	for i := 0; i < len(e.skins); i++ {
-		utils.WriteVarShort(buff, e.skins[i])
+		utils.WriteVarInt16(buff, e.skins[i])
 	}
 
 	_ = binary.Write(buff, binary.BigEndian, uint16(len(e.indexedColors)))
@@ -46,7 +46,7 @@ func (e *entityLook) Serialize(buff *bytes.Buffer) {
 
 	_ = binary.Write(buff, binary.BigEndian, uint16(len(e.scales)))
 	for i := 0; i < len(e.scales); i++ {
-		utils.WriteVarShort(buff, e.scales[i])
+		utils.WriteVarInt16(buff, e.scales[i])
 	}
 
 	_ = binary.Write(buff, binary.BigEndian, uint16(len(e.subentities)))

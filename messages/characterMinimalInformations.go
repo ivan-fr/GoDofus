@@ -31,7 +31,7 @@ func GetCharacterMinimalInformationsNOA(instance uint) *characterMinimalInformat
 
 func (c *characterMinimalInformations) Serialize(buff *bytes.Buffer) {
 	c.cBMI.Serialize(buff)
-	utils.WriteVarShort(buff, c.level)
+	utils.WriteVarInt16(buff, c.level)
 }
 
 func (c *characterMinimalInformations) Deserialize(reader *bytes.Reader) {

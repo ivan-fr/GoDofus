@@ -29,7 +29,7 @@ func GetServerSessionConstantNOA(instance uint) *serverSessionConstant {
 }
 
 func (s *serverSessionConstant) Serialize(buff *bytes.Buffer) {
-	utils.WriteVarShort(buff, s.id)
+	utils.WriteVarInt16(buff, s.id)
 }
 
 func (s *serverSessionConstant) Deserialize(reader *bytes.Reader) {

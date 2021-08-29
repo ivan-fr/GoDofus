@@ -35,7 +35,7 @@ func GetObjectItemNOA(instance uint) *objectItem {
 
 func (o *objectItem) Serialize(buff *bytes.Buffer) {
 	_ = binary.Write(buff, binary.BigEndian, o.position)
-	utils.WriteVarShort(buff, o.objectGID)
+	utils.WriteVarInt16(buff, o.objectGID)
 	o.iW.Serialize(buff)
 	utils.WriteVarInt32(buff, o.objectUID)
 	utils.WriteVarInt32(buff, o.quantity)

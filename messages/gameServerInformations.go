@@ -44,7 +44,7 @@ func (g *gameServerInformations) Serialize(buff *bytes.Buffer) {
 
 	_ = binary.Write(buff, binary.BigEndian, byte(box))
 
-	utils.WriteVarShort(buff, g.id)
+	utils.WriteVarInt16(buff, g.id)
 	_ = binary.Write(buff, binary.BigEndian, g.type_)
 	_ = binary.Write(buff, binary.BigEndian, g.status)
 	_ = binary.Write(buff, binary.BigEndian, g.completion)

@@ -89,7 +89,7 @@ func WriteVarInt32(buff *bytes.Buffer, value int32) {
 	}
 }
 
-func WriteVarShort(buff *bytes.Buffer, value int32) {
+func WriteVarInt16(buff *bytes.Buffer, value int32) {
 	var aByte uint8
 
 	if value > math.MaxInt16 || value < math.MinInt16 {

@@ -31,7 +31,7 @@ func GetObjectEffectCreatureNOA(instance uint) *objectEffectCreature {
 
 func (o *objectEffectCreature) Serialize(buff *bytes.Buffer) {
 	o.oE.Serialize(buff)
-	utils.WriteVarShort(buff, o.monsterFamilyId)
+	utils.WriteVarInt16(buff, o.monsterFamilyId)
 }
 
 func (o *objectEffectCreature) Deserialize(reader *bytes.Reader) {

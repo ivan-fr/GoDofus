@@ -31,7 +31,7 @@ func GetShortcutSmileyNOA(instance uint) *shortcutSmiley {
 
 func (s *shortcutSmiley) Serialize(buff *bytes.Buffer) {
 	s.sO.Serialize(buff)
-	utils.WriteVarShort(buff, s.smileyId)
+	utils.WriteVarInt16(buff, s.smileyId)
 }
 
 func (s *shortcutSmiley) Deserialize(reader *bytes.Reader) {

@@ -29,7 +29,7 @@ func GetObjectEffectNOA(instance uint) *objectEffect {
 }
 
 func (o *objectEffect) Serialize(buff *bytes.Buffer) {
-	utils.WriteVarShort(buff, o.actionId)
+	utils.WriteVarInt16(buff, o.actionId)
 }
 
 func (o *objectEffect) Deserialize(reader *bytes.Reader) {

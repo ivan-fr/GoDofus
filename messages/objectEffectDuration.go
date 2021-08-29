@@ -34,7 +34,7 @@ func GetObjectEffectDurationNOA(instance uint) *objectEffectDuration {
 
 func (o *objectEffectDuration) Serialize(buff *bytes.Buffer) {
 	o.oE.Serialize(buff)
-	utils.WriteVarShort(buff, o.days)
+	utils.WriteVarInt16(buff, o.days)
 	_ = binary.Write(buff, binary.BigEndian, o.hours)
 	_ = binary.Write(buff, binary.BigEndian, o.minutes)
 }

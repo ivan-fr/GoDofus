@@ -31,7 +31,7 @@ func GetShortcutSpellNOA(instance uint) *shortcutSpell {
 
 func (s *shortcutSpell) Serialize(buff *bytes.Buffer) {
 	s.sO.Serialize(buff)
-	utils.WriteVarShort(buff, s.spellId)
+	utils.WriteVarInt16(buff, s.spellId)
 }
 
 func (s *shortcutSpell) Deserialize(reader *bytes.Reader) {
