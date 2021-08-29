@@ -13,10 +13,15 @@ func main() {
 	hosts := flag.String("hosts", "", "Génére la signature des hosts pour config.xml. Entrez localhost,127.0.0.1 par exemple.")
 	XMLSPath := flag.String("xmls", "", "Génére une signature en-tête pour xmls (donner le chemin absolu).")
 	launchClient := flag.Bool("client", false, "Lance le socket côte client (-client=true/false).")
+	buildRegistry := flag.Bool("buildR", false, "build Registry")
 	msgName := flag.String("msgName", "", "msgName")
 	msgId := flag.Uint("msgId", 0, "packet id")
 
 	flag.Parse()
+
+	if *buildRegistry {
+		generates.BuildRegistry()
+	}
 
 	if *rsa_ {
 		err := generates.Signature()

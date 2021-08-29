@@ -46,7 +46,7 @@ func handlingAuth(writeInMyClientChan, writeToOfficialServerChan chan messages.M
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)
 				writeInMyClientChan <- msg
-			case messages.LoginQueueStatueID:
+			case messages.LoginQueueStatusID:
 				msg := messages.GetLoginQueueStatusNOA(instance)
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)

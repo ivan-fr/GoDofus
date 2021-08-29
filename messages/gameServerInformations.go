@@ -33,7 +33,7 @@ func GetGameServerInformationsNOA(instance uint) *gameServerInformations {
 		return gameServerInformations_
 	}
 
-	gameServerInformationsMap[instance] = &gameServerInformations{PacketId: GameServerInformationID}
+	gameServerInformationsMap[instance] = &gameServerInformations{PacketId: GameServerInformationsID}
 	return gameServerInformationsMap[instance]
 }
 

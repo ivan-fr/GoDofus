@@ -13,11 +13,11 @@ const (
 	IdentificationFailedForBadVersionID    = 8989
 	IdentificationFailedID                 = 5778
 	ClientKeyID                            = 982
-	LoginQueueStatueID                     = 2553
+	LoginQueueStatusID                     = 2553
 	CredentialsAcknowledgementID           = 5417
 	SelectedServerDataExtendedID           = 900
 	SelectedServerDataID                   = 1568
-	GameServerInformationID                = 920
+	GameServerInformationsID               = 920
 	IdentificationSuccessID                = 7272
 	HelloGameID                            = 5556
 	RawDataID                              = 124

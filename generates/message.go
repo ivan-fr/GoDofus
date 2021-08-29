@@ -1,8 +1,10 @@
 package generates
 
 import (
+	"GoDofus/messages"
 	"fmt"
 	"os"
+	"reflect"
 	"regexp"
 	"strings"
 	"text/template"
@@ -65,6 +67,137 @@ const (
 )
 `))
 
+var structFields []string
+var serializerString []string
+var deserializerString []string
+
+var instance uint
+
+type varInt16 int32
+type varInt32 int32
+type varInt64 float64
+type varUInt64 float64
+
+func putStringSimpleType(firstLetter, variableName, variableType string) {
+	structFields = append(structFields, fmt.Sprintf("%s %s", variableName, variableType))
+	serializerString = append(serializerString, fmt.Sprintf(
+		`_ = binary.Write(buff, binary.BigEndian, %s.%s)`, firstLetter, variableName))
+	deserializerString = append(deserializerString, fmt.Sprintf(
+		`_ = binary.Read(reader, binary.BigEndian, &%s.%s)`, firstLetter, variableName))
+}
+
+func putStringSimpleVarSlice(firstLetter, variableName, variableType, variableVarType string) {
+	var caster string
+	if variableType == "float64" {
+		caster = fmt.Sprintf("float64(utils.Read%s(reader))", variableVarType)
+	} else {
+		caster = fmt.Sprintf("utils.Read%s(reader)", variableVarType)
+	}
+
+	structFields = append(structFields, fmt.Sprintf("%s []%s", variableName, variableType))
+	serializerString = append(serializerString, fmt.Sprintf(
+		`_ = binary.Write(buff, binary.BigEndian, uint16(len(%s.%s)))
+for i := 0; i < len(%s.%s); i++ {
+	utils.Write%s(buff, %s.%s[i])
+}`, firstLetter, variableName, firstLetter, variableName, variableVarType, firstLetter, variableName))
+
+	deserializerString = append(deserializerString, fmt.Sprintf(
+		`var len%d_ uint16
+_ = binary.Read(reader, binary.BigEndian, &len%d_)
+%s.%s = nil
+for i := 0; i < int(len%d_); i++ {
+	%s.%s = append(%s.%s, %s)
+}`, instance, instance, firstLetter, variableName, instance, firstLetter, variableName, firstLetter, variableName, caster))
+}
+
+func putStringSimpleVarType(firstLetter, variableName, variableType, variableVarType string) {
+	structFields = append(structFields, fmt.Sprintf("%s %s", variableName, variableType))
+	serializerString = append(serializerString, fmt.Sprintf(
+		`utils.Write%s(buff, %s.%s)`, variableVarType, firstLetter, variableName))
+
+	var caster string
+	if variableType == "float64" {
+		caster = fmt.Sprintf("float64(utils.Read%s(reader))", variableVarType)
+	} else {
+		caster = fmt.Sprintf("utils.Read%s(reader)", variableVarType)
+	}
+
+	deserializerString = append(deserializerString, fmt.Sprintf(
+		`%s.%s = %s`, variableVarType, firstLetter, caster))
+}
+
+func putStringSimpleSlice(firstLetter, variableName, variableType string) {
+	structFields = append(structFields, fmt.Sprintf("%v []%s", variableName, variableType))
+	serializerString = append(serializerString, fmt.Sprintf(
+		`_ = binary.Write(buff, binary.BigEndian, uint16(len(%s.%s)))
+	_ = binary.Write(buff, binary.BigEndian, %s.%s)`, firstLetter, variableName, firstLetter, variableName))
+	deserializerString = append(deserializerString, fmt.Sprintf(
+		`var len%d_ uint16
+_ = binary.Read(reader, binary.BigEndian, &len%d_)
+%s.%s = make([]%s, len%d_)
+_ = binary.Read(reader, binary.BigEndian, %s.%s)`, instance, instance, firstLetter, variableName, variableType, instance, firstLetter, variableName))
+}
+
+func serializer(i interface{}, firstLetter string, variableName string) {
+	switch i.(type) {
+	case []varUInt64:
+		putStringSimpleVarSlice(firstLetter, variableName, "VarUInt16", "float64")
+	case []varInt64:
+		putStringSimpleVarSlice(firstLetter, variableName, "VarInt64", "float64")
+	case []varInt32:
+		putStringSimpleVarSlice(firstLetter, variableName, "VarInt32", "int32")
+	case []varInt16:
+		putStringSimpleVarSlice(firstLetter, variableName, "VarInt16", "int32")
+	case varUInt64:
+		putStringSimpleVarType(firstLetter, variableName, "VarUInt64", "float64")
+	case varInt64:
+		putStringSimpleVarType(firstLetter, variableName, "VarInt64", "float64")
+	case varInt32:
+		putStringSimpleVarType(firstLetter, variableName, "VarInt32", "int32")
+	case varInt16:
+		putStringSimpleVarType(firstLetter, variableName, "VarInt16", "int32")
+	case byte:
+		putStringSimpleType(firstLetter, variableName, "byte")
+	case int16:
+		putStringSimpleType(firstLetter, variableName, "int16")
+	case uint16:
+		putStringSimpleType(firstLetter, variableName, "uint16")
+	case int32:
+		putStringSimpleType(firstLetter, variableName, "int32")
+	case uint32:
+		putStringSimpleType(firstLetter, variableName, "uint32")
+	case int64:
+		putStringSimpleType(firstLetter, variableName, "int64")
+	case uint64:
+		putStringSimpleType(firstLetter, variableName, "uint64")
+	case []byte:
+		putStringSimpleSlice(firstLetter, variableName, "byte")
+	case []int16:
+		putStringSimpleSlice(firstLetter, variableName, "int16")
+	case []uint16:
+		putStringSimpleSlice(firstLetter, variableName, "uint16")
+	case []int32:
+		putStringSimpleSlice(firstLetter, variableName, "int32")
+	case []uint32:
+		putStringSimpleSlice(firstLetter, variableName, "uint32")
+	case []int64:
+		putStringSimpleSlice(firstLetter, variableName, "int64")
+	case []uint64:
+		putStringSimpleSlice(firstLetter, variableName, "uint64")
+	case messages.Message:
+		t := reflect.TypeOf(i.(messages.Message))
+		messageName := t.Elem().Name()
+		structFields = append(structFields, fmt.Sprintf("%s *%s", messageName, messageName))
+		serializerString = append(serializerString, fmt.Sprintf(`
+			%s.%s.Serialize(buff)`, firstLetter, messageName))
+		deserializerString = append(deserializerString, fmt.Sprintf(`
+			%s.%s := new(%s)
+			%s.%s.Deserialize(reader)`, firstLetter, messageName, messageName, firstLetter, messageName))
+	}
+
+	instance++
+}
+
 func GenerateMessage(Name string, packetId uint32) {
 	constIDS, _ := os.ReadFile("./messages/IDS.go")
 
@@ -82,12 +215,16 @@ func GenerateMessage(Name string, packetId uint32) {
 		panic(err)
 	}
 
-	defer func(f *os.File) {
+	defer func() {
 		err := f.Close()
 		if err != nil {
 			panic(err)
 		}
-	}(f)
+		err = f2.Close()
+		if err != nil {
+			panic(err)
+		}
+	}()
 
 	err = packageIDSTemplate.Execute(f2, struct {
 		Timestamp    time.Time

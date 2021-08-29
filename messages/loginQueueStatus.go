@@ -25,7 +25,7 @@ func GetLoginQueueStatusNOA(instance uint) *loginQueueStatus {
 		return loginQueueStatus_
 	}
 
-	loginQueueStatusMap[instance] = &loginQueueStatus{PacketId: LoginQueueStatueID}
+	loginQueueStatusMap[instance] = &loginQueueStatus{PacketId: LoginQueueStatusID}
 	return loginQueueStatusMap[instance]
 }
 
