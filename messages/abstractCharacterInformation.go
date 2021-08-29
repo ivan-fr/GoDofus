@@ -29,7 +29,7 @@ func GetAbstractCharacterInformationNOA(instance uint) *abstractCharacterInforma
 }
 
 func (a *abstractCharacterInformation) Serialize(buff *bytes.Buffer) {
-	utils.WriteVarLong(buff, a.id)
+	utils.WriteVarInt64(buff, a.id)
 }
 
 func (a *abstractCharacterInformation) Deserialize(reader *bytes.Reader) {

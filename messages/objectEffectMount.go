@@ -53,7 +53,7 @@ func (o *objectEffectMount) Serialize(buff *bytes.Buffer) {
 
 	_ = binary.Write(buff, binary.BigEndian, byte(box))
 
-	utils.WriteVarLong(buff, o.expirationDate)
+	utils.WriteVarInt64(buff, o.expirationDate)
 	utils.WriteVarInt32(buff, o.model)
 	utils.WriteUTF(buff, o.name)
 	utils.WriteUTF(buff, o.owner)

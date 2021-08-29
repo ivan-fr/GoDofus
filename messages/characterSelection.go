@@ -29,7 +29,7 @@ func GetCharacterSelectionNOA(instance uint) *characterSelection {
 }
 
 func (c *characterSelection) Serialize(buff *bytes.Buffer) {
-	utils.WriteVarLong(buff, c.id)
+	utils.WriteVarInt64(buff, c.id)
 }
 
 func (c *characterSelection) Deserialize(reader *bytes.Reader) {

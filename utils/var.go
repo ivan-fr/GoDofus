@@ -113,7 +113,7 @@ func WriteVarInt16(buff *bytes.Buffer, value int32) {
 	}
 }
 
-func WriteVarLong(buff *bytes.Buffer, value float64) {
+func WriteVarInt64(buff *bytes.Buffer, value float64) {
 	var val = int64(value)
 
 	var low = int32(val & 0xffffffff)
@@ -134,6 +134,10 @@ func WriteVarLong(buff *bytes.Buffer, value float64) {
 		_ = binary.Write(buff, binary.BigEndian, uint8((high<<4|low)&mask01111111|mask10000000))
 		writeSpecialInt32(buff, high>>3)
 	}
+}
+
+func WriteVarUInt64(buff *bytes.Buffer, value float64) {
+	WriteVarInt64(buff, value)
 }
 
 func ReadVarInt64(reader *bytes.Reader) int64 {

@@ -52,7 +52,7 @@ func (id *identification) Serialize(buff *bytes.Buffer) {
 		panic("Forbidden value on element SessionOptionalSalt.")
 	}
 
-	utils.WriteVarLong(buff, id.SessionOptionalSalt)
+	utils.WriteVarInt64(buff, id.SessionOptionalSalt)
 
 	_ = binary.Write(buff, binary.BigEndian, uint16(len(id.FailedAttempts)))
 

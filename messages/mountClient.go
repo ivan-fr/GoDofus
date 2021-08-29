@@ -79,7 +79,7 @@ func (m *mountClient) Serialize(buff *bytes.Buffer) {
 	_ = binary.Write(buff, binary.BigEndian, m.behaviors)
 	utils.WriteUTF(buff, m.name)
 	_ = binary.Write(buff, binary.BigEndian, m.ownerId)
-	utils.WriteVarLong(buff, m.experience)
+	utils.WriteVarInt64(buff, m.experience)
 	_ = binary.Write(buff, binary.BigEndian, m.experienceForNextLevel)
 	_ = binary.Write(buff, binary.BigEndian, m.level)
 	utils.WriteVarInt32(buff, m.maxPods)

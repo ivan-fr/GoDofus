@@ -36,7 +36,7 @@ func (iC *inventoryContent) Serialize(buff *bytes.Buffer) {
 	for i := 0; i < len(iC.oIs); i++ {
 		iC.oIs[i].Serialize(buff)
 	}
-	utils.WriteVarLong(buff, iC.kamas)
+	utils.WriteVarInt64(buff, iC.kamas)
 }
 
 func (iC *inventoryContent) Deserialize(reader *bytes.Reader) {
