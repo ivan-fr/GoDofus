@@ -46,7 +46,7 @@ type mountClient struct {
 	reproductionCount      int32
 	reproductionCountMax   int32
 	harnessGID             int32
-	oEI                    []*objectEffectInteger
+	oEIs                   []*objectEffectInteger
 }
 
 var mountClientMap = make(map[uint]*mountClient)
@@ -100,9 +100,9 @@ func (m *mountClient) Serialize(buff *bytes.Buffer) {
 	_ = binary.Write(buff, binary.BigEndian, m.reproductionCount)
 	_ = binary.Write(buff, binary.BigEndian, m.reproductionCountMax)
 	utils.WriteVarShort(buff, m.harnessGID)
-	_ = binary.Write(buff, binary.BigEndian, uint16(len(m.oEI)))
-	for i := 0; i < len(m.oEI); i++ {
-		m.oEI[i].Serialize(buff)
+	_ = binary.Write(buff, binary.BigEndian, uint16(len(m.oEIs)))
+	for i := 0; i < len(m.oEIs); i++ {
+		m.oEIs[i].Serialize(buff)
 	}
 }
 
@@ -151,9 +151,11 @@ func (m *mountClient) Deserialize(reader *bytes.Reader) {
 	m.harnessGID = utils.ReadVarInt16(reader)
 	var len_ uint16
 	_ = binary.Read(reader, binary.BigEndian, &len_)
+	m.oEIs = nil
 	for i := 0; i < int(len_); i++ {
-		m.oEI[i] = new(objectEffectInteger)
-		m.oEI[i].Deserialize(reader)
+		aOEIs := new(objectEffectInteger)
+		aOEIs.Deserialize(reader)
+		m.oEIs = append(m.oEIs, aOEIs)
 	}
 }
 

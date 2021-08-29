@@ -37,6 +37,16 @@ func getProtocolType() map[uint16]reflect.Type {
 	_typesTypes[ShortcutSmileyID] = reflect.TypeOf(shortcutSmiley{})
 	_typesTypes[ShortcutEmoteID] = reflect.TypeOf(shortcutEmote{})
 	_typesTypes[ShortcutEntitiesPresetID] = reflect.TypeOf(shortcutEntitiesPreset{})
+	_typesTypes[ObjectEffectID] = reflect.TypeOf(objectEffect{})
+	_typesTypes[ObjectEffectIntegerID] = reflect.TypeOf(objectEffectInteger{})
+	_typesTypes[ObjectEffectCreatureID] = reflect.TypeOf(objectEffectCreature{})
+	_typesTypes[ObjectEffectLadderID] = reflect.TypeOf(objectEffectLadder{})
+	_typesTypes[ObjectEffectMinMaxID] = reflect.TypeOf(objectEffectMinMax{})
+	_typesTypes[ObjectEffectDurationID] = reflect.TypeOf(objectEffectDuration{})
+	_typesTypes[ObjectEffectStringID] = reflect.TypeOf(objectEffectString{})
+	_typesTypes[ObjectEffectDiceID] = reflect.TypeOf(objectEffectDice{})
+	_typesTypes[ObjectEffectDateID] = reflect.TypeOf(objectEffectDate{})
+	_typesTypes[ObjectEffectMountID] = reflect.TypeOf(objectEffectMount{})
 
 	return _typesTypes
 }

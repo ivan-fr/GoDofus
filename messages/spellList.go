@@ -41,9 +41,11 @@ func (s *spellList) Deserialize(reader *bytes.Reader) {
 	_ = binary.Read(reader, binary.BigEndian, &s.spellPrevisualization)
 	var len_ uint16
 	_ = binary.Read(reader, binary.BigEndian, &len_)
+	s.sI = nil
 	for i := 0; i < int(len_); i++ {
-		s.sI[i] = new(spellItem)
-		s.sI[i].Deserialize(reader)
+		aSI := new(spellItem)
+		aSI.Deserialize(reader)
+		s.sI = append(s.sI, aSI)
 	}
 }
 
