@@ -26,8 +26,7 @@ import (
 type {{ .Name }} struct {
 	PacketId uint32
 {{range $index, $element := .StructFields}}	{{$element}}
-{{end}}
-}
+{{end}}}
 
 var {{ .Name }}Map = make(map[uint]*{{ .Name }})
 
@@ -43,14 +42,12 @@ func Get{{ .NameCapFirst }}NOA(instance uint) *{{ .Name }} {
 }
 
 func ({{.FistLetter}} *{{.Name}}) Serialize(buff *bytes.Buffer) {
-	{{range $index, $element := .SerializerString}}	{{$element}}
-{{end}}
-}
+{{range $index, $element := .SerializerString}}	{{$element}}
+{{end}}}
 
 func ({{.FistLetter}} *{{.Name}}) Deserialize(reader *bytes.Reader) {
-	{{range $index, $element := .DeserializerString}}	{{$element}}
-{{end}}
-}
+{{range $index, $element := .DeserializerString}}{{$element}}
+{{end}}}
 
 func ({{.FistLetter}} *{{.Name}}) GetPacketId() uint32 {
 	return {{ .FistLetter }}.PacketId
