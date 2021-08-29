@@ -38,11 +38,11 @@ func Get{{ .NameCapFirst }}NOA(instance uint) *{{ .Name }} {
 }
 
 func ({{.FistLetter}} *{{.Name}}) Serialize(buff *bytes.Buffer) {
-
+	// 	_ = binary.Write(buff, binary.BigEndian, {{.FistLetter}}.param)
 }
 
 func ({{.FistLetter}} *{{.Name}}) Deserialize(reader *bytes.Reader) {
-
+	// 	_ = binary.Read(reader, binary.BigEndian, &{{.FistLetter}}.param)
 }
 
 func ({{.FistLetter}} *{{.Name}}) GetPacketId() uint32 {

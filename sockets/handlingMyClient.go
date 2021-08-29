@@ -36,6 +36,11 @@ func handlingMyClient(writeInMyClientChan, writeToOfficialServerChan chan messag
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)
 				writeToOfficialServerChan <- msg
+			case messages.CharacterSelectionID:
+				msg := messages.GetCharacterSelectionNOA(instance)
+				msg.Deserialize(bytes.NewReader(weft.Message))
+				fmt.Println(msg)
+				writeToOfficialServerChan <- msg
 			default:
 				fmt.Printf("Listener: there is no traitment for %d ID\n", weft.PackId)
 			}
