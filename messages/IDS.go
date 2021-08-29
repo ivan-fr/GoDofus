@@ -65,7 +65,7 @@ const (
 	SpellListID                            = 8397
 	SpellItemID                            = 5350
 	ShortcutBarContentID                   = 9017
-	ItemWrapperID                          = 1
+	ItemWrapperID                          = 2
 	ShortcutID                             = 3614
 	ShortcutObjectID                       = 2748
 	ShortcutObjectPresetID                 = 3086
