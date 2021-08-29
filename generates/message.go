@@ -6,6 +6,7 @@ import (
 	"os"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 	"text/template"
 	"time"
@@ -24,6 +25,8 @@ import (
 
 type {{ .Name }} struct {
 	PacketId uint32
+{{range $index, $element := .StructFields}}	{{$element}}
+{{end}}}
 }
 
 var {{ .Name }}Map = make(map[uint]*{{ .Name }})
@@ -40,11 +43,13 @@ func Get{{ .NameCapFirst }}NOA(instance uint) *{{ .Name }} {
 }
 
 func ({{.FistLetter}} *{{.Name}}) Serialize(buff *bytes.Buffer) {
-	// 	_ = binary.Write(buff, binary.BigEndian, {{.FistLetter}}.param)
+	{{range $index, $element := .SerializerString}}	{{$element}}
+{{end}}}
 }
 
 func ({{.FistLetter}} *{{.Name}}) Deserialize(reader *bytes.Reader) {
-	// 	_ = binary.Read(reader, binary.BigEndian, &{{.FistLetter}}.param)
+	{{range $index, $element := .DeserializerString}}	{{$element}}
+{{end}}}
 }
 
 func ({{.FistLetter}} *{{.Name}}) GetPacketId() uint32 {
@@ -110,6 +115,25 @@ for i := 0; i < int(len%d_); i++ {
 }`, instance, instance, firstLetter, variableName, instance, firstLetter, variableName, firstLetter, variableName, caster))
 }
 
+func putStringMessageSlice(firstLetter, variableName, messageName string) {
+	structFields = append(structFields, fmt.Sprintf("%s []%s", variableName, messageName))
+	serializerString = append(serializerString, fmt.Sprintf(
+		`_ = binary.Write(buff, binary.BigEndian, uint16(len(%s.%s)))
+for i := 0; i < len(%s.%s); i++ {
+	%s.%s[i].Serialize(buff)
+}`, firstLetter, variableName, firstLetter, variableName, firstLetter, variableName))
+
+	deserializerString = append(deserializerString, fmt.Sprintf(
+		`var len%d_ uint16
+_ = binary.Read(reader, binary.BigEndian, &len%d_)
+%s.%s = nil
+for i := 0; i < int(len%d_); i++ {
+aMessage%d := new(%s)
+aMessage%d.Deserialize(reader)
+	%s.%s = append(%s.%s, aMessage%d)
+}`, instance, instance, firstLetter, variableName, instance, instance, messageName, instance, firstLetter, variableName, firstLetter, variableName, instance))
+}
+
 func putStringSimpleVarType(firstLetter, variableName, variableType, variableVarType string) {
 	structFields = append(structFields, fmt.Sprintf("%s %s", variableName, variableType))
 	serializerString = append(serializerString, fmt.Sprintf(
@@ -138,6 +162,96 @@ _ = binary.Read(reader, binary.BigEndian, &len%d_)
 _ = binary.Read(reader, binary.BigEndian, %s.%s)`, instance, instance, firstLetter, variableName, variableType, instance, firstLetter, variableName))
 }
 
+func scan(sentence string) string {
+	var type_ string
+	fmt.Println(sentence)
+	_, err := fmt.Scanln(&type_)
+	if err != nil {
+		panic(err)
+	}
+	return type_
+}
+
+func dispatchSerializer() interface{} {
+	type_ := scan("Enter variable type: ")
+	switch type_ {
+	case "[]varUInt64":
+		return []varUInt64{}
+	case "[]varInt64":
+		return []varInt64{}
+	case "[]varInt32":
+		return []varInt32{}
+	case "[]varInt16":
+		return []varInt16{}
+	case "varUInt64":
+		var t varUInt64
+		return t
+	case "varInt64":
+		var t varInt64
+		return t
+	case "varInt32":
+		var t varInt32
+		return t
+	case "varInt16":
+		var t varInt16
+		return t
+	case "bool":
+		var t bool
+		return t
+	case "byte":
+		var t byte
+		return t
+	case "int16":
+		var t int16
+		return t
+	case "uint16":
+		var t uint16
+		return t
+	case "int32":
+		var t int32
+		return t
+	case "uint32":
+		var t uint32
+		return t
+	case "int64":
+		var t int64
+		return t
+	case "uint64":
+		var t uint64
+		return t
+	case "[]byte":
+		return []byte{}
+	case "[]int16":
+		return []int16{}
+	case "[]uint16":
+		return []uint16{}
+	case "[]int32":
+		return []int32{}
+	case "[]uint32":
+		return []uint32{}
+	case "[]int64":
+		return []int64{}
+	case "[]uint64":
+		return []uint64{}
+	case "":
+		return nil
+	default:
+		parseInt, err := strconv.ParseInt(type_, 10, 32)
+		if err != nil {
+			fmt.Println("not found")
+			return dispatchSerializer()
+		}
+
+		message, ok := messages.Types_[int(parseInt)].(messages.Message)
+		if !ok {
+			fmt.Println("not found")
+			return dispatchSerializer()
+		}
+
+		return message
+	}
+}
+
 func serializer(i interface{}, firstLetter string, variableName string) {
 	switch i.(type) {
 	case []varUInt64:
@@ -156,6 +270,8 @@ func serializer(i interface{}, firstLetter string, variableName string) {
 		putStringSimpleVarType(firstLetter, variableName, "VarInt32", "int32")
 	case varInt16:
 		putStringSimpleVarType(firstLetter, variableName, "VarInt16", "int32")
+	case bool:
+		putStringSimpleType(firstLetter, variableName, "bool")
 	case byte:
 		putStringSimpleType(firstLetter, variableName, "byte")
 	case int16:
@@ -184,6 +300,10 @@ func serializer(i interface{}, firstLetter string, variableName string) {
 		putStringSimpleSlice(firstLetter, variableName, "int64")
 	case []uint64:
 		putStringSimpleSlice(firstLetter, variableName, "uint64")
+	case []messages.Message:
+		t := reflect.TypeOf(i.(messages.Message))
+		messageName := t.Elem().Name()
+		putStringMessageSlice(firstLetter, variableName, messageName)
 	case messages.Message:
 		t := reflect.TypeOf(i.(messages.Message))
 		messageName := t.Elem().Name()
@@ -199,6 +319,11 @@ func serializer(i interface{}, firstLetter string, variableName string) {
 }
 
 func GenerateMessage(Name string, packetId uint32) {
+	for interfaceType := dispatchSerializer(); interfaceType != nil; {
+		name_ := scan("Enter variable name:")
+		serializer(interfaceType, (name_)[:2], name_)
+	}
+
 	constIDS, _ := os.ReadFile("./messages/IDS.go")
 
 	constIDString := string(constIDS)
@@ -242,15 +367,21 @@ func GenerateMessage(Name string, packetId uint32) {
 	}
 
 	err = packageTemplate.Execute(f, struct {
-		Timestamp    time.Time
-		NameCapFirst string
-		Name         string
-		FistLetter   string
+		Timestamp          time.Time
+		NameCapFirst       string
+		Name               string
+		FistLetter         string
+		StructFields       []string
+		SerializerString   []string
+		DeserializerString []string
 	}{
-		Timestamp:    time.Now(),
-		Name:         Name,
-		NameCapFirst: strings.Title(Name),
-		FistLetter:   string((Name)[0]),
+		Timestamp:          time.Now(),
+		Name:               Name,
+		NameCapFirst:       strings.Title(Name),
+		FistLetter:         string((Name)[0]),
+		StructFields:       structFields,
+		SerializerString:   serializerString,
+		DeserializerString: deserializerString,
 	})
 	if err != nil {
 		panic(err)
