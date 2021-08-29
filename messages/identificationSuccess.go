@@ -5,7 +5,6 @@
 package messages
 
 import (
-	"GoDofus/structs"
 	"GoDofus/utils"
 	"bytes"
 	"encoding/binary"
@@ -18,7 +17,7 @@ type identificationSuccess struct {
 	hasConsoleRight             bool
 	wasAlreadyConnected         bool
 	login                       []byte
-	aTI                         *structs.AccountTagInformation
+	aTI                         *accountTagInformation
 	accoutId                    uint32
 	communityId                 byte
 	secretQuestion              []byte
@@ -73,7 +72,7 @@ func (i *identificationSuccess) Deserialize(reader *bytes.Reader) {
 
 	i.login = utils.ReadUTF(reader)
 
-	i.aTI = new(structs.AccountTagInformation)
+	i.aTI = new(accountTagInformation)
 	i.aTI.Deserialize(reader)
 
 	_ = binary.Read(reader, binary.BigEndian, &i.accoutId)
