@@ -79,6 +79,7 @@ type varInt16 int32
 type varInt32 int32
 type varInt64 float64
 type varUInt64 float64
+type flag bool
 
 func putStringSimpleType(firstLetter, variableName, variableType string) {
 	structFields = append(structFields, fmt.Sprintf("%s %s", variableName, variableType))
@@ -86,6 +87,29 @@ func putStringSimpleType(firstLetter, variableName, variableType string) {
 		`_ = binary.Write(buff, binary.BigEndian, %s.%s)`, firstLetter, variableName))
 	deserializerString = append(deserializerString, fmt.Sprintf(
 		`_ = binary.Read(reader, binary.BigEndian, &%s.%s)`, firstLetter, variableName))
+}
+
+func putStringFlag(firstLetter, variableName string) {
+	for _, name := range strings.Split(variableName, ",") {
+		structFields = append(structFields, fmt.Sprintf("%s bool", name))
+	}
+
+	var stringerS = fmt.Sprintf("var box%d uint32", instance)
+	for i, name := range strings.Split(variableName, ",") {
+		stringerS = fmt.Sprintf("%s\n	box%d = utils.SetFlag(box, %d, %s.%s)", stringerS, instance, i, firstLetter, name)
+	}
+	stringerS = fmt.Sprintf("%s\n	_ = binary.Write(buff, binary.BigEndian, byte(box%d))", stringerS, instance)
+
+	serializerString = append(serializerString, stringerS)
+
+	var stringerD = fmt.Sprintf(`var box%d byte
+	_ = binary.Read(reader, binary.BigEndian, &box%d)`, instance, instance)
+
+	for i, name := range strings.Split(variableName, ",") {
+		stringerD = fmt.Sprintf("%s\n	%s.%s = utils.GetFlag(uint32(box), %d)", stringerD, firstLetter, name, i)
+	}
+
+	deserializerString = append(deserializerString, stringerD)
 }
 
 func putStringSimpleVarSlice(firstLetter, variableName, variableVarType, variableType string) {
@@ -121,8 +145,8 @@ func putStringMessageSlice(firstLetter, variableName, messageName string) {
 	_ = binary.Read(reader, binary.BigEndian, &len%d_)
 	%s.%s = nil
 	for i := 0; i < int(len%d_); i++ {
-	aMessage%d := new(%s)
-	aMessage%d.Deserialize(reader)
+		aMessage%d := new(%s)
+		aMessage%d.Deserialize(reader)
 		%s.%s = append(%s.%s, aMessage%d)
 	}`, instance, instance, firstLetter, variableName, instance, instance, messageName, instance, firstLetter, variableName, firstLetter, variableName, instance))
 }
@@ -188,6 +212,9 @@ func dispatchSerializer() interface{} {
 		return t
 	case "varInt16":
 		var t varInt16
+		return t
+	case "flag":
+		var t flag
 		return t
 	case "bool":
 		var t bool
@@ -256,7 +283,6 @@ func dispatchSerializer() interface{} {
 }
 
 func serializer(i interface{}, firstLetter string, variableName string) {
-
 	switch i.(type) {
 	case []varUInt64:
 		putStringSimpleVarSlice(firstLetter, variableName, "VarUInt16", "float64")
@@ -274,6 +300,8 @@ func serializer(i interface{}, firstLetter string, variableName string) {
 		putStringSimpleVarType(firstLetter, variableName, "VarInt32", "int32")
 	case varInt16:
 		putStringSimpleVarType(firstLetter, variableName, "VarInt16", "int32")
+	case flag:
+		putStringFlag(firstLetter, variableName)
 	case bool:
 		putStringSimpleType(firstLetter, variableName, "bool")
 	case byte:
