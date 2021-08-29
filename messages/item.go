@@ -47,6 +47,22 @@ func getProtocolType() map[uint16]reflect.Type {
 	_typesTypes[ObjectEffectDiceID] = reflect.TypeOf(objectEffectDice{})
 	_typesTypes[ObjectEffectDateID] = reflect.TypeOf(objectEffectDate{})
 	_typesTypes[ObjectEffectMountID] = reflect.TypeOf(objectEffectMount{})
+	_typesTypes[PresetID] = reflect.TypeOf(preset{})
+	_typesTypes[PresetsContainerPresetID] = reflect.TypeOf(presetsContainerPreset{})
+	_typesTypes[IconNamedPresetID] = reflect.TypeOf(iconNamedPreset{})
+	_typesTypes[SpellsPresetID] = reflect.TypeOf(spellsPreset{})
+	_typesTypes[ForgettableSpellsPresetID] = reflect.TypeOf(forgettableSpellsPreset{})
+	_typesTypes[StatsPresetID] = reflect.TypeOf(statsPreset{})
+	_typesTypes[IdolsPresetID] = reflect.TypeOf(idolsPreset{})
+	_typesTypes[EntitiesPresetID] = reflect.TypeOf(entitiesPreset{})
+	_typesTypes[FullStatsPresetID] = reflect.TypeOf(fullStatsPreset{})
+	_typesTypes[ItemsPresetID] = reflect.TypeOf(itemsPreset{})
+	_typesTypes[InteractiveElementSkillID] = reflect.TypeOf(interactiveElementSkill{})
+	_typesTypes[InteractiveElementNamedSkillID] = reflect.TypeOf(interactiveElementNamedSkill{})
+	_typesTypes[SkillActionDescriptionID] = reflect.TypeOf(skillActionDescription{})
+	_typesTypes[SkillActionDescriptionTimedID] = reflect.TypeOf(skillActionDescriptionTimed{})
+	_typesTypes[SkillActionDescriptionCollectID] = reflect.TypeOf(skillActionDescriptionCollect{})
+	_typesTypes[SkillActionDescriptionCraftID] = reflect.TypeOf(skillActionDescriptionCraft{})
 
 	return _typesTypes
 }
