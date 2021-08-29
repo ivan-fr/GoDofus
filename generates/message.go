@@ -96,7 +96,7 @@ func putStringFlag(firstLetter, variableName string) {
 
 	var stringerS = fmt.Sprintf("var box%d uint32", instance)
 	for i, name := range strings.Split(variableName, ",") {
-		stringerS = fmt.Sprintf("%s\n	box%d = utils.SetFlag(box, %d, %s.%s)", stringerS, instance, i, firstLetter, name)
+		stringerS = fmt.Sprintf("%s\n	box%d = utils.SetFlag(box%d, %d, %s.%s)", stringerS, instance, instance, i, firstLetter, name)
 	}
 	stringerS = fmt.Sprintf("%s\n	_ = binary.Write(buff, binary.BigEndian, byte(box%d))", stringerS, instance)
 
@@ -106,7 +106,7 @@ func putStringFlag(firstLetter, variableName string) {
 	_ = binary.Read(reader, binary.BigEndian, &box%d)`, instance, instance)
 
 	for i, name := range strings.Split(variableName, ",") {
-		stringerD = fmt.Sprintf("%s\n	%s.%s = utils.GetFlag(uint32(box), %d)", stringerD, firstLetter, name, i)
+		stringerD = fmt.Sprintf("%s\n	%s.%s = utils.GetFlag(uint32(box%d), %d)", stringerD, firstLetter, name, instance, i)
 	}
 
 	deserializerString = append(deserializerString, stringerD)
