@@ -111,17 +111,17 @@ func putStringSimpleVarSlice(firstLetter, variableName, variableVarType, variabl
 }
 
 func putStringMessageSlice(firstLetter, variableName, messageName string) {
-	structFields = append(structFields, fmt.Sprintf("%s []%s", variableName, messageName))
-	serializerString = append(serializerString, fmt.Sprintf(`	_ = binary.Write(buff, binary.BigEndian, uint16(len(%s.%s)))
+	structFields = append(structFields, fmt.Sprintf("%s []*%s", variableName, messageName))
+	serializerString = append(serializerString, fmt.Sprintf(`_ = binary.Write(buff, binary.BigEndian, uint16(len(%s.%s)))
 	for i := 0; i < len(%s.%s); i++ {
 		%s.%s[i].Serialize(buff)
 	}`, firstLetter, variableName, firstLetter, variableName, firstLetter, variableName))
 
-	deserializerString = append(deserializerString, fmt.Sprintf(`	var len%d_ uint16
+	deserializerString = append(deserializerString, fmt.Sprintf(`var len%d_ uint16
 	_ = binary.Read(reader, binary.BigEndian, &len%d_)
 	%s.%s = nil
 	for i := 0; i < int(len%d_); i++ {
-	aMessage%d := new(%s)
+	aMessage%d = new(%s)
 	aMessage%d.Deserialize(reader)
 		%s.%s = append(%s.%s, aMessage%d)
 	}`, instance, instance, firstLetter, variableName, instance, instance, messageName, instance, firstLetter, variableName, firstLetter, variableName, instance))
@@ -145,10 +145,9 @@ func putStringSimpleVarType(firstLetter, variableName, variableVarType, variable
 
 func putStringSimpleSlice(firstLetter, variableName, variableType string) {
 	structFields = append(structFields, fmt.Sprintf("%v []%s", variableName, variableType))
-	serializerString = append(serializerString, fmt.Sprintf(
-		`_ = binary.Write(buff, binary.BigEndian, uint16(len(%s.%s)))
+	serializerString = append(serializerString, fmt.Sprintf(`_ = binary.Write(buff, binary.BigEndian, uint16(len(%s.%s)))
 	_ = binary.Write(buff, binary.BigEndian, %s.%s)`, firstLetter, variableName, firstLetter, variableName))
-	deserializerString = append(deserializerString, fmt.Sprintf(`	var len%d_ uint16
+	deserializerString = append(deserializerString, fmt.Sprintf(`var len%d_ uint16
 	_ = binary.Read(reader, binary.BigEndian, &len%d_)
 	%s.%s = make([]%s, len%d_)
 	_ = binary.Read(reader, binary.BigEndian, %s.%s)`, instance, instance, firstLetter, variableName, variableType, instance, firstLetter, variableName))
@@ -254,6 +253,7 @@ func dispatchSerializer() interface{} {
 }
 
 func serializer(i interface{}, firstLetter string, variableName string) {
+
 	switch i.(type) {
 	case []varUInt64:
 		putStringSimpleVarSlice(firstLetter, variableName, "VarUInt16", "float64")
@@ -302,17 +302,17 @@ func serializer(i interface{}, firstLetter string, variableName string) {
 	case []uint64:
 		putStringSimpleSlice(firstLetter, variableName, "uint64")
 	case []messages.Message:
-		t := reflect.TypeOf(i.(messages.Message))
+		t := reflect.TypeOf(i.([]messages.Message)[0])
 		messageName := t.Elem().Name()
+		fmt.Printf("%s\n", messageName)
 		putStringMessageSlice(firstLetter, variableName, messageName)
 	case messages.Message:
 		t := reflect.TypeOf(i.(messages.Message))
 		messageName := t.Elem().Name()
+		fmt.Printf("%s\n", messageName)
 		structFields = append(structFields, fmt.Sprintf("%s *%s", messageName, messageName))
-		serializerString = append(serializerString, fmt.Sprintf(`
-			%s.%s.Serialize(buff)`, firstLetter, messageName))
-		deserializerString = append(deserializerString, fmt.Sprintf(`
-			%s.%s := new(%s)
+		serializerString = append(serializerString, fmt.Sprintf(`%s.%s.Serialize(buff)`, firstLetter, messageName))
+		deserializerString = append(deserializerString, fmt.Sprintf(`%s.%s := new(%s)
 			%s.%s.Deserialize(reader)`, firstLetter, messageName, messageName, firstLetter, messageName))
 	}
 
