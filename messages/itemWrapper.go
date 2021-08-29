@@ -15,19 +15,6 @@ type itemWrapper struct {
 	variables []*item
 }
 
-var itemWrapperMap = make(map[uint]*itemWrapper)
-
-func GetItemWrapperNOA(instance uint) *itemWrapper {
-	itemWrapper_, ok := itemWrapperMap[instance]
-
-	if ok {
-		return itemWrapper_
-	}
-
-	itemWrapperMap[instance] = &itemWrapper{PacketId: ItemWrapperID}
-	return itemWrapperMap[instance]
-}
-
 func (iW *itemWrapper) Serialize(buff *bytes.Buffer) {
 	_ = binary.Write(buff, binary.BigEndian, uint16(len(iW.variables)))
 

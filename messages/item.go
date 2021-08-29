@@ -8,47 +8,49 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"reflect"
 )
 
 type item struct {
 	PacketId uint32
 	content  []byte
 	typeId   uint16
+	myProcol Message
 }
 
-var itemMap = make(map[uint]*item)
 var protocolType = getProtocolType()
 
-func getProtocolType() map[uint16]Message {
-	var _typesTypes = make(map[uint16]Message)
-	_typesTypes[ServerSessionConstantID] = &serverSessionConstant{}
-	_typesTypes[ServerSessionConstantStringID] = &serverSessionConstantString{}
-	_typesTypes[ServerSessionConstantIntegerID] = &serverSessionConstantInteger{}
-	_typesTypes[ServerSessionConstantLongID] = &serverSessionConstantLong{}
-	_typesTypes[CharacterBaseInformationsID] = &characterBaseInformations{}
+func getProtocolType() map[uint16]reflect.Type {
+
+	var _typesTypes = make(map[uint16]reflect.Type)
+	_typesTypes[ServerSessionConstantID] = reflect.TypeOf(serverSessionConstant{})
+	_typesTypes[ServerSessionConstantStringID] = reflect.TypeOf(serverSessionConstantString{})
+	_typesTypes[ServerSessionConstantIntegerID] = reflect.TypeOf(serverSessionConstantInteger{})
+	_typesTypes[ServerSessionConstantLongID] = reflect.TypeOf(serverSessionConstantLong{})
+	_typesTypes[CharacterBaseInformationsID] = reflect.TypeOf(characterBaseInformations{})
+	_typesTypes[ShortcutID] = reflect.TypeOf(shortcut{})
+	_typesTypes[ShortcutObjectID] = reflect.TypeOf(shortcutObject{})
+	_typesTypes[ShortcutObjectPresetID] = reflect.TypeOf(shortcutObjectPreset{})
+	_typesTypes[ShortcutObjectIdolsPresetID] = reflect.TypeOf(shortcutObjectIdolsPreset{})
+	_typesTypes[ShortcutObjectItemID] = reflect.TypeOf(shortcutObjectItem{})
+	_typesTypes[ShortcutSpellID] = reflect.TypeOf(shortcutSpell{})
+	_typesTypes[ShortcutSmileyID] = reflect.TypeOf(shortcutSmiley{})
+	_typesTypes[ShortcutEmoteID] = reflect.TypeOf(shortcutEmote{})
+	_typesTypes[ShortcutEntitiesPresetID] = reflect.TypeOf(shortcutEntitiesPreset{})
 
 	return _typesTypes
 }
 
-func GetItemNOA(instance uint) *item {
-	item_, ok := itemMap[instance]
-
-	if ok {
-		return item_
-	}
-
-	itemMap[instance] = &item{PacketId: ItemID}
-	return itemMap[instance]
-}
-
 func (i *item) Serialize(buff *bytes.Buffer) {
 	_ = binary.Write(buff, binary.BigEndian, i.typeId)
-	protocolType[i.typeId].Serialize(buff)
+	newProtocol := reflect.New(protocolType[i.typeId]).Interface().(Message)
+	newProtocol.Serialize(buff)
+	i.myProcol = newProtocol
 }
 
 func (i *item) Deserialize(reader *bytes.Reader) {
 	_ = binary.Read(reader, binary.BigEndian, &i.typeId)
-	protocolType[i.typeId].Deserialize(reader)
+	i.myProcol.Deserialize(reader)
 }
 
 func (i *item) GetPacketId() uint32 {
