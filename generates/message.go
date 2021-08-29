@@ -153,18 +153,21 @@ func putStringSimpleSlice(firstLetter, variableName, variableType string) {
 	_ = binary.Read(reader, binary.BigEndian, %s.%s)`, instance, instance, firstLetter, variableName, variableType, instance, firstLetter, variableName))
 }
 
-func scan(sentence string) string {
+func scan(sentence string, random bool) string {
 	var type_ string
 	fmt.Println(sentence)
 	_, err := fmt.Scanln(&type_)
 	if err != nil {
+		if random {
+			return fmt.Sprintf("var%d", instance)
+		}
 		return ""
 	}
 	return type_
 }
 
 func dispatchSerializer() interface{} {
-	type_ := scan("Enter variable type: ")
+	type_ := scan("Enter variable type: ", false)
 	switch type_ {
 	case "-varUInt64":
 		return []varUInt64{}
@@ -321,7 +324,7 @@ func serializer(i interface{}, firstLetter string, variableName string) {
 
 func GenerateMessage(name string, packetId uint32) {
 	for interfaceType := dispatchSerializer(); interfaceType != nil; interfaceType = dispatchSerializer() {
-		name_ := scan("Enter variable name:")
+		name_ := scan("Enter variable name:", true)
 		serializer(interfaceType, (name)[:2], name_)
 	}
 
