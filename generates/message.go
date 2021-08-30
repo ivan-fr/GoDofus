@@ -136,7 +136,7 @@ func putStringSimpleVarSlice(firstLetter, variableName, variableVarType, variabl
 }
 
 func putStringMessageSlice(firstLetter, messageName string) {
-	messageNameVar := fmt.Sprintf("%s%d", instance, messageName)
+	messageNameVar := fmt.Sprintf("%s%d", messageName, instance)
 	structFields = append(structFields, fmt.Sprintf("%s []*%s", messageNameVar, messageName))
 	serializerString = append(serializerString, fmt.Sprintf(`_ = binary.Write(buff, binary.BigEndian, uint16(len(%s.%s)))
 	for i := 0; i < len(%s.%s); i++ {
