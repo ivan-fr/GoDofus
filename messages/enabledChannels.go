@@ -18,7 +18,7 @@ type enabledChannels struct {
 
 var enabledChannelsMap = make(map[uint]*enabledChannels)
 
-func GetEnabledChannelsNOA(instance uint) *enabledChannels {
+func (en *enabledChannels) GetNOA(instance uint) Message {
 	enabledChannels_, ok := enabledChannelsMap[instance]
 
 	if ok {

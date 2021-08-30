@@ -18,7 +18,7 @@ type accountTagInformation struct {
 
 var accountTagInformationMap = make(map[uint]*accountTagInformation)
 
-func GetAccountTagInformationNOA(instance uint) *accountTagInformation {
+func (a *accountTagInformation) GetNOA(instance uint) Message {
 	accountTagInformation_, ok := accountTagInformationMap[instance]
 
 	if ok {

@@ -19,7 +19,7 @@ type rawData struct {
 
 var rawDataMap = make(map[uint]*rawData)
 
-func GetRawDataNOA(instance uint) *rawData {
+func (r *rawData) GetNOA(instance uint) Message {
 	rawData_, ok := rawDataMap[instance]
 
 	if ok {

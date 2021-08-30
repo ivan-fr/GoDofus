@@ -7,7 +7,7 @@ import (
 	"fmt"
 )
 
-type identification struct {
+type Identification struct {
 	PacketId            uint32
 	Version             *version
 	Lang                []byte
@@ -21,21 +21,21 @@ type identification struct {
 	AesKEY_             []byte
 }
 
-var identificationMap = make(map[uint]*identification)
+var identificationMap = make(map[uint]*Identification)
 
-func GetIdentificationNOA(instance uint) *identification {
+func (id *Identification) GetNOA(instance uint) Message {
 	identification_, ok := identificationMap[instance]
 
 	if ok {
 		return identification_
 	}
 
-	identificationMap[instance] = &identification{PacketId: IdentificationID, Version: new(version),
+	identificationMap[instance] = &Identification{PacketId: IdentificationID, Version: new(version),
 		UseCertificate: false, UseLoginToken: false, ServerId: 0}
 	return identificationMap[instance]
 }
 
-func (id *identification) Serialize(buff *bytes.Buffer) {
+func (id *Identification) Serialize(buff *bytes.Buffer) {
 	var box uint32
 	box = utils.SetFlag(box, 0, id.AutoSelectServer)
 	box = utils.SetFlag(box, 1, id.UseCertificate)
@@ -61,7 +61,7 @@ func (id *identification) Serialize(buff *bytes.Buffer) {
 	}
 }
 
-func (id *identification) Deserialize(reader *bytes.Reader) {
+func (id *Identification) Deserialize(reader *bytes.Reader) {
 	var box byte
 	_ = binary.Read(reader, binary.BigEndian, &box)
 	id.AutoSelectServer = utils.GetFlag(uint32(box), 0)
@@ -87,11 +87,11 @@ func (id *identification) Deserialize(reader *bytes.Reader) {
 	}
 }
 
-func (id *identification) GetPacketId() uint32 {
+func (id *Identification) GetPacketId() uint32 {
 	return id.PacketId
 }
 
-func (id *identification) String() string {
+func (id *Identification) String() string {
 	return fmt.Sprintf("PacketId: %d\nVersion: %v\nidentification: ...\n\t%s\n\t%v\n\t%v\n\t%v\n\t%v\n\t%v\n",
 		id.PacketId, id.Version, id.Lang, id.Credentials, id.SessionOptionalSalt, id.FailedAttempts, id.ServerId, len(id.Credentials))
 }

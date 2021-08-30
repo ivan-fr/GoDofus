@@ -18,7 +18,7 @@ type jobDescription struct {
 
 var jobDescriptionMap = make(map[uint]*jobDescription)
 
-func GetJobDescriptionNOA(instance uint) *jobDescription {
+func (jo *jobDescription) GetNOA(instance uint) Message {
 	jobDescription_, ok := jobDescriptionMap[instance]
 
 	if ok {

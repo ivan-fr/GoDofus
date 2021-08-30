@@ -16,73 +16,17 @@ func handlingGame(writeInMyClientChan, writeToOfficialServerChan chan messages.M
 				break
 			}
 			switch weft.PackId {
-			case messages.ProtocolID:
-				msg := messages.GetProtocolNOA(instance)
-				msg.Deserialize(bytes.NewReader(weft.Message))
-				fmt.Println(msg)
-				writeInMyClientChan <- msg
-			case messages.AuthenticationTicketAcceptedID:
-				msg := messages.GetAuthenticationTicketAcceptedNOA(instance)
-				msg.Deserialize(bytes.NewReader(weft.Message))
-				fmt.Println(msg)
-				writeInMyClientChan <- msg
-			case messages.HelloGameID:
-				msg := messages.GetHelloGameNOA(instance)
-				msg.Deserialize(bytes.NewReader(weft.Message))
-				fmt.Println(msg)
-				writeInMyClientChan <- msg
-			case messages.RawDataID:
-				msg := messages.GetRawDataNOA(instance)
-				msg.Deserialize(bytes.NewReader(weft.Message))
-				fmt.Println(msg)
-				writeInMyClientChan <- msg
-			case messages.BasicTimeID:
-				msg := messages.GetBasicTimeNOA(instance)
-				msg.Deserialize(bytes.NewReader(weft.Message))
-				fmt.Println(msg)
-				writeInMyClientChan <- msg
-			case messages.ServerSettingsID:
-				msg := messages.GetServerSettingsNOA(instance)
-				msg.Deserialize(bytes.NewReader(weft.Message))
-				fmt.Println(msg)
-				writeInMyClientChan <- msg
-			case messages.ServerOptionalFeaturesID:
-				msg := messages.GetServerOptionalFeaturesNOA(instance)
-				msg.Deserialize(bytes.NewReader(weft.Message))
-				fmt.Println(msg)
-				writeInMyClientChan <- msg
-			case messages.ServerSessionConstantsID:
-				msg := messages.GetServerSessionConstantsNOA(instance)
-				msg.Deserialize(bytes.NewReader(weft.Message))
-				fmt.Println(msg)
-				writeInMyClientChan <- msg
-			case messages.AccountCapabilitiesID:
-				msg := messages.GetAccountCapabilitiesNOA(instance)
-				msg.Deserialize(bytes.NewReader(weft.Message))
-				fmt.Println(msg)
-				writeInMyClientChan <- msg
-			case messages.TrustStatusID:
-				msg := messages.GetTrustStatusNOA(instance)
-				msg.Deserialize(bytes.NewReader(weft.Message))
-				fmt.Println(msg)
-				writeInMyClientChan <- msg
-			case messages.HaapiSessionID:
-				msg := messages.GetHaapiSessionNOA(instance)
-				msg.Deserialize(bytes.NewReader(weft.Message))
-				fmt.Println(msg)
-				writeInMyClientChan <- msg
-			case messages.HaapiApiKeyID:
-				msg := messages.GethaapiApiKeyNOA(instance)
-				msg.Deserialize(bytes.NewReader(weft.Message))
-				fmt.Println(msg)
-				writeInMyClientChan <- msg
-			case messages.CharactersListID:
-				msg := messages.GetCharactersListNOA(instance)
-				msg.Deserialize(bytes.NewReader(weft.Message))
-				fmt.Println(msg)
-				writeInMyClientChan <- msg
 			default:
-				fmt.Printf("Client: there is no traitment for %d ID\n", weft.PackId)
+				msg, ok := messages.Types_[int(weft.PackId)]
+
+				if ok {
+					msg = msg.GetNOA(instance)
+					msg.Deserialize(bytes.NewReader(weft.Message))
+					fmt.Println(msg)
+					writeInMyClientChan <- msg
+					return
+				}
+				fmt.Printf("Client: Instance n°%d there is no traitment for %d ID\n", instance, weft.PackId)
 			}
 		}
 	}

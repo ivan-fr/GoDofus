@@ -18,7 +18,7 @@ type notificationList struct {
 
 var notificationListMap = make(map[uint]*notificationList)
 
-func GetNotificationListNOA(instance uint) *notificationList {
+func (n *notificationList) GetNOA(instance uint) Message {
 	notificationList_, ok := notificationListMap[instance]
 
 	if ok {

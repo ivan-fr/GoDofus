@@ -20,7 +20,7 @@ type idolsPreset struct {
 
 var idolsPresetMap = make(map[uint]*idolsPreset)
 
-func GetIdolsPresetNOA(instance uint) *idolsPreset {
+func (id *idolsPreset) GetNOA(instance uint) Message {
 	idolsPreset_, ok := idolsPresetMap[instance]
 
 	if ok {

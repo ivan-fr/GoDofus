@@ -17,7 +17,7 @@ type emoteList struct {
 
 var emoteListMap = make(map[uint]*emoteList)
 
-func GetEmoteListNOA(instance uint) *emoteList {
+func (em *emoteList) GetNOA(instance uint) Message {
 	emoteList_, ok := emoteListMap[instance]
 
 	if ok {

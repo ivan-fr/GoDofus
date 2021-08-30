@@ -23,7 +23,7 @@ type allianceInsiderPrismInformation struct {
 
 var allianceInsiderPrismInformationMap = make(map[uint]*allianceInsiderPrismInformation)
 
-func GetAllianceInsiderPrismInformationNOA(instance uint) *allianceInsiderPrismInformation {
+func (al *allianceInsiderPrismInformation) GetNOA(instance uint) Message {
 	allianceInsiderPrismInformation_, ok := allianceInsiderPrismInformationMap[instance]
 
 	if ok {

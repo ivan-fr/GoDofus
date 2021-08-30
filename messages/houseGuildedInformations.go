@@ -17,7 +17,7 @@ type houseGuildedInformations struct {
 
 var houseGuildedInformationsMap = make(map[uint]*houseGuildedInformations)
 
-func GetHouseGuildedInformationsNOA(instance uint) *houseGuildedInformations {
+func (ho *houseGuildedInformations) GetNOA(instance uint) Message {
 	houseGuildedInformations_, ok := houseGuildedInformationsMap[instance]
 
 	if ok {

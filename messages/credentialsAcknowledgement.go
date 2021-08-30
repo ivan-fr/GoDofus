@@ -15,7 +15,7 @@ type credentialsAcknowledgement struct {
 
 var credentialsAcknowledgementMap = make(map[uint]*credentialsAcknowledgement)
 
-func GetCredentialsAcknowledgementNOA(instance uint) *credentialsAcknowledgement {
+func (c *credentialsAcknowledgement) GetNOA(instance uint) Message {
 	credentialsAcknowledgement_, ok := credentialsAcknowledgementMap[instance]
 
 	if ok {

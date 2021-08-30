@@ -18,7 +18,7 @@ type characterCharacteristicForPreset struct {
 
 var characterCharacteristicForPresetMap = make(map[uint]*characterCharacteristicForPreset)
 
-func GetCharacterCharacteristicForPresetNOA(instance uint) *characterCharacteristicForPreset {
+func (ch *characterCharacteristicForPreset) GetNOA(instance uint) Message {
 	characterCharacteristicForPreset_, ok := characterCharacteristicForPresetMap[instance]
 
 	if ok {

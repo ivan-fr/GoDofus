@@ -19,7 +19,7 @@ type skillActionDescriptionCollect struct {
 
 var skillActionDescriptionCollectMap = make(map[uint]*skillActionDescriptionCollect)
 
-func GetSkillActionDescriptionCollectNOA(instance uint) *skillActionDescriptionCollect {
+func (sk *skillActionDescriptionCollect) GetNOA(instance uint) Message {
 	skillActionDescriptionCollect_, ok := skillActionDescriptionCollectMap[instance]
 
 	if ok {

@@ -17,7 +17,7 @@ type chatCommunityChannelCommunity struct {
 
 var chatCommunityChannelCommunityMap = make(map[uint]*chatCommunityChannelCommunity)
 
-func GetChatCommunityChannelCommunityNOA(instance uint) *chatCommunityChannelCommunity {
+func (ch *chatCommunityChannelCommunity) GetNOA(instance uint) Message {
 	chatCommunityChannelCommunity_, ok := chatCommunityChannelCommunityMap[instance]
 
 	if ok {

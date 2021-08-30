@@ -17,7 +17,7 @@ type shortcut struct {
 
 var shortcutMap = make(map[uint]*shortcut)
 
-func GetShortcutNOA(instance uint) *shortcut {
+func (s *shortcut) GetNOA(instance uint) Message {
 	shortcut_, ok := shortcutMap[instance]
 
 	if ok {

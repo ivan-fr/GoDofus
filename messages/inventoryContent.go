@@ -19,7 +19,7 @@ type inventoryContent struct {
 
 var inventoryContentMap = make(map[uint]*inventoryContent)
 
-func GetInventoryContentNOA(instance uint) *inventoryContent {
+func (iC *inventoryContent) GetNOA(instance uint) Message {
 	inventoryContent_, ok := inventoryContentMap[instance]
 
 	if ok {

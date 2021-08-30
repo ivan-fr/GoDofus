@@ -20,7 +20,7 @@ type entitiesPreset struct {
 
 var entitiesPresetMap = make(map[uint]*entitiesPreset)
 
-func GetEntitiesPresetNOA(instance uint) *entitiesPreset {
+func (en *entitiesPreset) GetNOA(instance uint) Message {
 	entitiesPreset_, ok := entitiesPresetMap[instance]
 
 	if ok {

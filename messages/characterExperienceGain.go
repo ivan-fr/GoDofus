@@ -20,7 +20,7 @@ type characterExperienceGain struct {
 
 var characterExperienceGainMap = make(map[uint]*characterExperienceGain)
 
-func GetCharacterExperienceGainNOA(instance uint) *characterExperienceGain {
+func (ch *characterExperienceGain) GetNOA(instance uint) Message {
 	characterExperienceGain_, ok := characterExperienceGainMap[instance]
 
 	if ok {

@@ -18,7 +18,7 @@ type shortcutBarContent struct {
 
 var shortcutBarContentMap = make(map[uint]*shortcutBarContent)
 
-func GetShortcutBarContentNOA(instance uint) *shortcutBarContent {
+func (sh *shortcutBarContent) GetNOA(instance uint) Message {
 	shortcutBarContent_, ok := shortcutBarContentMap[instance]
 
 	if ok {

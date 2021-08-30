@@ -18,7 +18,7 @@ type fullStatsPreset struct {
 
 var fullStatsPresetMap = make(map[uint]*fullStatsPreset)
 
-func GetFullStatsPresetNOA(instance uint) *fullStatsPreset {
+func (fu *fullStatsPreset) GetNOA(instance uint) Message {
 	fullStatsPreset_, ok := fullStatsPresetMap[instance]
 
 	if ok {

@@ -18,7 +18,7 @@ type loginQueueStatus struct {
 
 var loginQueueStatusMap = make(map[uint]*loginQueueStatus)
 
-func GetLoginQueueStatusNOA(instance uint) *loginQueueStatus {
+func (l *loginQueueStatus) GetNOA(instance uint) Message {
 	loginQueueStatus_, ok := loginQueueStatusMap[instance]
 
 	if ok {

@@ -18,7 +18,7 @@ type statsPreset struct {
 
 var statsPresetMap = make(map[uint]*statsPreset)
 
-func GetStatsPresetNOA(instance uint) *statsPreset {
+func (st *statsPreset) GetNOA(instance uint) Message {
 	statsPreset_, ok := statsPresetMap[instance]
 
 	if ok {

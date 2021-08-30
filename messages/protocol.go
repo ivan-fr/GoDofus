@@ -13,7 +13,7 @@ type protocol struct {
 
 var protocolMap = make(map[uint]*protocol)
 
-func GetProtocolNOA(instance uint) *protocol {
+func (p *protocol) GetNOA(instance uint) Message {
 	protocol_, ok := protocolMap[instance]
 
 	if ok {

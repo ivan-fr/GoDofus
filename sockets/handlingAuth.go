@@ -19,7 +19,7 @@ func handlingAuth(writeInMyClientChan, writeToOfficialServerChan chan messages.M
 
 			switch weft.PackId {
 			case messages.HelloConnectID:
-				msg := messages.GetHelloConnectNOA(instance)
+				msg := messages.Types_[int(weft.PackId)].GetNOA(instance)
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)
 
@@ -29,52 +29,27 @@ func handlingAuth(writeInMyClientChan, writeToOfficialServerChan chan messages.M
 				mAuth := managers.GetAuthentificationManager(instance)
 				mAuth.InitIdentificationMessage()
 
-				authMessage := messages.GetIdentificationNOA(instance)
+				authMessage := messages.Types_[messages.IdentificationID].GetNOA(instance)
 				writeToOfficialServerChan <- authMessage
-			case messages.ProtocolID:
-				msg := messages.GetProtocolNOA(instance)
-				msg.Deserialize(bytes.NewReader(weft.Message))
-				fmt.Println(msg)
-				writeInMyClientChan <- msg
-			case messages.IdentificationFailedForBadVersionID:
-				msg := messages.GetIdentificationFailedForBadVersionNOA(instance)
-				msg.Deserialize(bytes.NewReader(weft.Message))
-				fmt.Println(msg)
-				writeInMyClientChan <- msg
-			case messages.IdentificationFailedID:
-				msg := messages.GetIdentificationFailedNOA(instance)
-				msg.Deserialize(bytes.NewReader(weft.Message))
-				fmt.Println(msg)
-				writeInMyClientChan <- msg
-			case messages.LoginQueueStatusID:
-				msg := messages.GetLoginQueueStatusNOA(instance)
-				msg.Deserialize(bytes.NewReader(weft.Message))
-				fmt.Println(msg)
-				writeInMyClientChan <- msg
-			case messages.IdentificationSuccessID:
-				msg := messages.GetIdentificationSuccessNOA(instance)
-				msg.Deserialize(bytes.NewReader(weft.Message))
-				fmt.Println(msg)
-				writeInMyClientChan <- msg
 			case messages.SelectedServerDataExtendedID:
-				msg := messages.GetSelectedServerDataExtendedNOA(instance)
+				msg := messages.Types_[int(weft.PackId)].GetNOA(instance)
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)
 				writeInMyClientChan <- msg
 				myClientContinueChan <- false
 				officialServerContinueChan <- false
-			case messages.CredentialsAcknowledgementID:
-				msg := messages.GetCredentialsAcknowledgementNOA(instance)
-				msg.Deserialize(bytes.NewReader(weft.Message))
-				fmt.Println(msg)
-				writeInMyClientChan <- msg
-			case messages.AuthenticationTicketAcceptedID:
-				msg := messages.GetAuthenticationTicketAcceptedNOA(instance)
-				msg.Deserialize(bytes.NewReader(weft.Message))
-				fmt.Println(msg)
-				writeInMyClientChan <- msg
 			default:
-				fmt.Printf("Client: there is no traitment for %d ID\n", weft.PackId)
+				msg, ok := messages.Types_[int(weft.PackId)]
+
+				if ok {
+					msg = msg.GetNOA(instance)
+					msg.Deserialize(bytes.NewReader(weft.Message))
+					fmt.Println(msg)
+					writeInMyClientChan <- msg
+					return
+				}
+
+				fmt.Printf("Client: Instance n°%d there is no traitment for %d ID\n", instance, weft.PackId)
 			}
 		}
 	}

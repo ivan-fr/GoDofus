@@ -17,7 +17,7 @@ type almanachCalendarDate struct {
 
 var almanachCalendarDateMap = make(map[uint]*almanachCalendarDate)
 
-func GetAlmanachCalendarDateNOA(instance uint) *almanachCalendarDate {
+func (al *almanachCalendarDate) GetNOA(instance uint) Message {
 	almanachCalendarDate_, ok := almanachCalendarDateMap[instance]
 
 	if ok {

@@ -18,7 +18,7 @@ type checkIntegrity struct {
 
 var checkIntegrityMap = make(map[uint]*checkIntegrity)
 
-func GetCheckIntegrityNOA(instance uint) *checkIntegrity {
+func (c *checkIntegrity) GetNOA(instance uint) Message {
 	checkIntegrity_, ok := checkIntegrityMap[instance]
 
 	if ok {

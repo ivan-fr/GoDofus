@@ -18,7 +18,7 @@ type objectEffectInteger struct {
 
 var objectEffectIntegerMap = make(map[uint]*objectEffectInteger)
 
-func GetObjectEffectIntegerNOA(instance uint) *objectEffectInteger {
+func (o *objectEffectInteger) GetNOA(instance uint) Message {
 	objectEffectInteger_, ok := objectEffectIntegerMap[instance]
 
 	if ok {

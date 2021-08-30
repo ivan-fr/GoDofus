@@ -19,7 +19,7 @@ type inventoryWeight struct {
 
 var inventoryWeightMap = make(map[uint]*inventoryWeight)
 
-func GetInventoryWeightNOA(instance uint) *inventoryWeight {
+func (in *inventoryWeight) GetNOA(instance uint) Message {
 	inventoryWeight_, ok := inventoryWeightMap[instance]
 
 	if ok {

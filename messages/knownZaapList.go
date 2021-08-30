@@ -17,7 +17,7 @@ type knownZaapList struct {
 
 var knownZaapListMap = make(map[uint]*knownZaapList)
 
-func GetKnownZaapListNOA(instance uint) *knownZaapList {
+func (kn *knownZaapList) GetNOA(instance uint) Message {
 	knownZaapList_, ok := knownZaapListMap[instance]
 
 	if ok {

@@ -18,7 +18,7 @@ type objectEffectString struct {
 
 var objectEffectStringMap = make(map[uint]*objectEffectString)
 
-func GetObjectEffectStringNOA(instance uint) *objectEffectString {
+func (o *objectEffectString) GetNOA(instance uint) Message {
 	objectEffectString_, ok := objectEffectStringMap[instance]
 
 	if ok {

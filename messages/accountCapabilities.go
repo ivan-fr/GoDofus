@@ -23,7 +23,7 @@ type accountCapabilities struct {
 
 var accountCapabilitiesMap = make(map[uint]*accountCapabilities)
 
-func GetAccountCapabilitiesNOA(instance uint) *accountCapabilities {
+func (a *accountCapabilities) GetNOA(instance uint) Message {
 	accountCapabilities_, ok := accountCapabilitiesMap[instance]
 
 	if ok {

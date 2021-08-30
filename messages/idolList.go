@@ -20,7 +20,7 @@ type idolList struct {
 
 var IdolListMap = make(map[uint]*idolList)
 
-func GetIdolListNOA(instance uint) *idolList {
+func (id *idolList) GetNOA(instance uint) Message {
 	IdolList_, ok := IdolListMap[instance]
 
 	if ok {

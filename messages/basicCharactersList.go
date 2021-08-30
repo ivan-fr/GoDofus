@@ -16,7 +16,7 @@ type basicCharactersList struct {
 
 var basicCharactersListMap = make(map[uint]*basicCharactersList)
 
-func GetBasicCharactersListNOA(instance uint) *basicCharactersList {
+func (b *basicCharactersList) GetNOA(instance uint) Message {
 	basicCharactersList_, ok := basicCharactersListMap[instance]
 
 	if ok {

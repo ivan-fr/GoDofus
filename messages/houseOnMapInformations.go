@@ -19,7 +19,7 @@ type houseOnMapInformations struct {
 
 var houseOnMapInformationsMap = make(map[uint]*houseOnMapInformations)
 
-func GetHouseOnMapInformationsNOA(instance uint) *houseOnMapInformations {
+func (ho *houseOnMapInformations) GetNOA(instance uint) Message {
 	houseOnMapInformations_, ok := houseOnMapInformationsMap[instance]
 
 	if ok {

@@ -16,7 +16,7 @@ type achievementList struct {
 
 var achievementListMap = make(map[uint]*achievementList)
 
-func GetAchievementListNOA(instance uint) *achievementList {
+func (ac *achievementList) GetNOA(instance uint) Message {
 	achievementList_, ok := achievementListMap[instance]
 
 	if ok {

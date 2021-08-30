@@ -19,7 +19,7 @@ type partyIdol struct {
 
 var partyIdolMap = make(map[uint]*partyIdol)
 
-func GetPartyIdolNOA(instance uint) *partyIdol {
+func (pa *partyIdol) GetNOA(instance uint) Message {
 	partyIdol_, ok := partyIdolMap[instance]
 
 	if ok {

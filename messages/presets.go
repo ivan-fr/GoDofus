@@ -16,7 +16,7 @@ type presets struct {
 
 var presetsMap = make(map[uint]*presets)
 
-func GetPresetsNOA(instance uint) *presets {
+func (pr *presets) GetNOA(instance uint) Message {
 	presets_, ok := presetsMap[instance]
 
 	if ok {

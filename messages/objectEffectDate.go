@@ -23,7 +23,7 @@ type objectEffectDate struct {
 
 var objectEffectDateMap = make(map[uint]*objectEffectDate)
 
-func GetObjectEffectDateNOA(instance uint) *objectEffectDate {
+func (o *objectEffectDate) GetNOA(instance uint) Message {
 	objectEffectDate_, ok := objectEffectDateMap[instance]
 
 	if ok {

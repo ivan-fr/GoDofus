@@ -22,7 +22,7 @@ type entityLook struct {
 
 var entityLookMap = make(map[uint]*entityLook)
 
-func GetEntityLookNOA(instance uint) *entityLook {
+func (e *entityLook) GetNOA(instance uint) Message {
 	entityLook_, ok := entityLookMap[instance]
 
 	if ok {

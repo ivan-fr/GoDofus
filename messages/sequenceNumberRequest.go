@@ -15,7 +15,7 @@ type sequenceNumberRequest struct {
 
 var sequenceNumberRequestMap = make(map[uint]*sequenceNumberRequest)
 
-func GetSequenceNumberRequestNOA(instance uint) *sequenceNumberRequest {
+func (se *sequenceNumberRequest) GetNOA(instance uint) Message {
 	sequenceNumberRequest_, ok := sequenceNumberRequestMap[instance]
 
 	if ok {

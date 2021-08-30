@@ -18,7 +18,7 @@ type charactersList struct {
 
 var charactersListMap = make(map[uint]*charactersList)
 
-func GetCharactersListNOA(instance uint) *charactersList {
+func (c *charactersList) GetNOA(instance uint) Message {
 	charactersList_, ok := charactersListMap[instance]
 
 	if ok {

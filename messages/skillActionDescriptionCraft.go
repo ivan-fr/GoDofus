@@ -18,7 +18,7 @@ type skillActionDescriptionCraft struct {
 
 var skillActionDescriptionCraftMap = make(map[uint]*skillActionDescriptionCraft)
 
-func GetSkillActionDescriptionCraftNOA(instance uint) *skillActionDescriptionCraft {
+func (sk *skillActionDescriptionCraft) GetNOA(instance uint) Message {
 	skillActionDescriptionCraft_, ok := skillActionDescriptionCraftMap[instance]
 
 	if ok {

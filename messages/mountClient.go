@@ -51,7 +51,7 @@ type mountClient struct {
 
 var mountClientMap = make(map[uint]*mountClient)
 
-func GetMountClientNOA(instance uint) *mountClient {
+func (m *mountClient) GetNOA(instance uint) Message {
 	mountClient_, ok := mountClientMap[instance]
 
 	if ok {

@@ -17,7 +17,7 @@ type friendGuildWarnOnAchievementCompleteState struct {
 
 var friendGuildWarnOnAchievementCompleteStateMap = make(map[uint]*friendGuildWarnOnAchievementCompleteState)
 
-func GetFriendGuildWarnOnAchievementCompleteStateNOA(instance uint) *friendGuildWarnOnAchievementCompleteState {
+func (fr *friendGuildWarnOnAchievementCompleteState) GetNOA(instance uint) Message {
 	friendGuildWarnOnAchievementCompleteState_, ok := friendGuildWarnOnAchievementCompleteStateMap[instance]
 
 	if ok {

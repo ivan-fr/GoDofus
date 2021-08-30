@@ -20,7 +20,7 @@ type prismGeolocalizedInformation struct {
 
 var prismGeolocalizedInformationMap = make(map[uint]*prismGeolocalizedInformation)
 
-func GetPrismGeolocalizedInformationNOA(instance uint) *prismGeolocalizedInformation {
+func (pr *prismGeolocalizedInformation) GetNOA(instance uint) Message {
 	prismGeolocalizedInformation_, ok := prismGeolocalizedInformationMap[instance]
 
 	if ok {

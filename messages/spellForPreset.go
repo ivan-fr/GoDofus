@@ -19,7 +19,7 @@ type spellForPreset struct {
 
 var spellForPresetMap = make(map[uint]*spellForPreset)
 
-func GetSpellForPresetNOA(instance uint) *spellForPreset {
+func (sp *spellForPreset) GetNOA(instance uint) Message {
 	spellForPreset_, ok := spellForPresetMap[instance]
 
 	if ok {

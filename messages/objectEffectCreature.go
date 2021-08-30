@@ -18,7 +18,7 @@ type objectEffectCreature struct {
 
 var objectEffectCreatureMap = make(map[uint]*objectEffectCreature)
 
-func GetObjectEffectCreatureNOA(instance uint) *objectEffectCreature {
+func (o *objectEffectCreature) GetNOA(instance uint) Message {
 	objectEffectCreature_, ok := objectEffectCreatureMap[instance]
 
 	if ok {

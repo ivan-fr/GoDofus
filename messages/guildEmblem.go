@@ -21,7 +21,7 @@ type guildEmblem struct {
 
 var guildEmblemMap = make(map[uint]*guildEmblem)
 
-func GetGuildEmblemNOA(instance uint) *guildEmblem {
+func (gu *guildEmblem) GetNOA(instance uint) Message {
 	guildEmblem_, ok := guildEmblemMap[instance]
 
 	if ok {

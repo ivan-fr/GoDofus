@@ -14,7 +14,7 @@ type trustCertificate struct {
 
 var trustCertificateMap = make(map[uint]*trustCertificate)
 
-func GetTrustCertificateNOA(instance uint) *trustCertificate {
+func (t *trustCertificate) GetNOA(instance uint) Message {
 	trustCertificate_, ok := trustCertificateMap[instance]
 
 	if ok {

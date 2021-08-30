@@ -18,7 +18,7 @@ type characterBaseInformations struct {
 
 var characterBaseInformationsMap = make(map[uint]*characterBaseInformations)
 
-func GetCharacterBaseInformationsNOA(instance uint) *characterBaseInformations {
+func (c *characterBaseInformations) GetNOA(instance uint) Message {
 	characterBaseInformations_, ok := characterBaseInformationsMap[instance]
 
 	if ok {

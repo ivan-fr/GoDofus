@@ -17,7 +17,7 @@ type guildMemberWarnOnConnectionState struct {
 
 var guildMemberWarnOnConnectionStateMap = make(map[uint]*guildMemberWarnOnConnectionState)
 
-func GetGuildMemberWarnOnConnectionStateNOA(instance uint) *guildMemberWarnOnConnectionState {
+func (gu *guildMemberWarnOnConnectionState) GetNOA(instance uint) Message {
 	guildMemberWarnOnConnectionState_, ok := guildMemberWarnOnConnectionStateMap[instance]
 
 	if ok {

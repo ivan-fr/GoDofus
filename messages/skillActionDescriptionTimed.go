@@ -18,7 +18,7 @@ type skillActionDescriptionTimed struct {
 
 var skillActionDescriptionTimedMap = make(map[uint]*skillActionDescriptionTimed)
 
-func GetSkillActionDescriptionTimedNOA(instance uint) *skillActionDescriptionTimed {
+func (sk *skillActionDescriptionTimed) GetNOA(instance uint) Message {
 	skillActionDescriptionTimed_, ok := skillActionDescriptionTimedMap[instance]
 
 	if ok {

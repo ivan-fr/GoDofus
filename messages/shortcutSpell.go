@@ -18,7 +18,7 @@ type shortcutSpell struct {
 
 var shortcutSpellMap = make(map[uint]*shortcutSpell)
 
-func GetShortcutSpellNOA(instance uint) *shortcutSpell {
+func (s *shortcutSpell) GetNOA(instance uint) Message {
 	shortcutSpell_, ok := shortcutSpellMap[instance]
 
 	if ok {

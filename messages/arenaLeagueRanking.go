@@ -22,7 +22,7 @@ type arenaLeagueRanking struct {
 
 var arenaLeagueRankingMap = make(map[uint]*arenaLeagueRanking)
 
-func GetArenaLeagueRankingNOA(instance uint) *arenaLeagueRanking {
+func (ar *arenaLeagueRanking) GetNOA(instance uint) Message {
 	arenaLeagueRanking_, ok := arenaLeagueRankingMap[instance]
 
 	if ok {

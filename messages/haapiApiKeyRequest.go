@@ -15,7 +15,7 @@ type haapiApiKeyRequest struct {
 
 var haapiApiKeyRequestMap = make(map[uint]*haapiApiKeyRequest)
 
-func GetHaapiApiKeyRequestNOA(instance uint) *haapiApiKeyRequest {
+func (h *haapiApiKeyRequest) GetNOA(instance uint) Message {
 	haapiApiKeyRequest_, ok := haapiApiKeyRequestMap[instance]
 
 	if ok {

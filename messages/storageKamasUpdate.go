@@ -17,7 +17,7 @@ type storageKamasUpdate struct {
 
 var storageKamasUpdateMap = make(map[uint]*storageKamasUpdate)
 
-func GetStorageKamasUpdateNOA(instance uint) *storageKamasUpdate {
+func (st *storageKamasUpdate) GetNOA(instance uint) Message {
 	storageKamasUpdate_, ok := storageKamasUpdateMap[instance]
 
 	if ok {

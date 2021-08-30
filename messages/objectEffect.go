@@ -17,7 +17,7 @@ type objectEffect struct {
 
 var objectEffectMap = make(map[uint]*objectEffect)
 
-func GetObjectEffectNOA(instance uint) *objectEffect {
+func (o *objectEffect) GetNOA(instance uint) Message {
 	objectEffect_, ok := objectEffectMap[instance]
 
 	if ok {

@@ -22,7 +22,7 @@ type startupActionAddObject struct {
 
 var startupActionAddObjectMap = make(map[uint]*startupActionAddObject)
 
-func GetStartupActionAddObjectNOA(instance uint) *startupActionAddObject {
+func (st *startupActionAddObject) GetNOA(instance uint) Message {
 	startupActionAddObject_, ok := startupActionAddObjectMap[instance]
 
 	if ok {

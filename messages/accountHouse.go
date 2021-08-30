@@ -17,7 +17,7 @@ type accountHouse struct {
 
 var accountHouseMap = make(map[uint]*accountHouse)
 
-func GetAccountHouseNOA(instance uint) *accountHouse {
+func (ac *accountHouse) GetNOA(instance uint) Message {
 	accountHouse_, ok := accountHouseMap[instance]
 
 	if ok {

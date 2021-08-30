@@ -18,7 +18,7 @@ type serverSessionConstantInteger struct {
 
 var serverSessionConstantIntegerMap = make(map[uint]*serverSessionConstantInteger)
 
-func GetServerSessionConstantIntegerNOA(instance uint) *serverSessionConstantInteger {
+func (s *serverSessionConstantInteger) GetNOA(instance uint) Message {
 	serverSessionConstantInteger_, ok := serverSessionConstantIntegerMap[instance]
 
 	if ok {

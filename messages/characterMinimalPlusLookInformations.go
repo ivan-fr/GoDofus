@@ -19,7 +19,7 @@ type characterMinimalPlusLookInformations struct {
 
 var characterMinimalPlusLookInformationsMap = make(map[uint]*characterMinimalPlusLookInformations)
 
-func GetCharacterMinimalPlusLookInformationsNOA(instance uint) *characterMinimalPlusLookInformations {
+func (c *characterMinimalPlusLookInformations) GetNOA(instance uint) Message {
 	characterMinimalPlusLookInformations_, ok := characterMinimalPlusLookInformationsMap[instance]
 
 	if ok {

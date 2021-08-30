@@ -13,7 +13,7 @@ import (
 	"os"
 )
 
-type helloConnect struct {
+type HelloConnect struct {
 	PacketId uint32
 	Salt     []byte
 	Key      []byte
@@ -22,20 +22,20 @@ type helloConnect struct {
 var privateKey *rsa.PrivateKey
 var publicHelloKey []byte
 
-var hConnectMap = make(map[uint]*helloConnect)
+var hConnectMap = make(map[uint]*HelloConnect)
 
-func GetHelloConnectNOA(instance uint) *helloConnect {
+func (h *HelloConnect) GetNOA(instance uint) Message {
 	hConnect_, ok := hConnectMap[instance]
 
 	if ok {
 		return hConnect_
 	}
 
-	hConnectMap[instance] = &helloConnect{PacketId: HelloConnectID}
+	hConnectMap[instance] = &HelloConnect{PacketId: HelloConnectID}
 	return hConnectMap[instance]
 }
 
-func (h *helloConnect) Serialize(buff *bytes.Buffer) {
+func (h *HelloConnect) Serialize(buff *bytes.Buffer) {
 	utils.WriteUTF(buff, h.Salt)
 
 	if privateKey == nil {
@@ -62,17 +62,17 @@ func (h *helloConnect) Serialize(buff *bytes.Buffer) {
 	_ = binary.Write(buff, binary.BigEndian, key)
 }
 
-func (h *helloConnect) Deserialize(reader *bytes.Reader) {
+func (h *HelloConnect) Deserialize(reader *bytes.Reader) {
 	h.Salt = utils.ReadUTF(reader)
 	keyLen := uint(utils.ReadVarInt32(reader))
 	h.Key = make([]byte, keyLen)
 	_ = binary.Read(reader, binary.BigEndian, &h.Key)
 }
 
-func (h *helloConnect) GetPacketId() uint32 {
+func (h *HelloConnect) GetPacketId() uint32 {
 	return h.PacketId
 }
 
-func (h *helloConnect) String() string {
+func (h *HelloConnect) String() string {
 	return fmt.Sprintf("PacketId: %d\nSalt: %s\nKey: %v\nlength Key: %d\n", h.PacketId, h.Salt, h.Key, len(h.Key))
 }

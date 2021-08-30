@@ -17,7 +17,7 @@ type allianceInformation struct {
 
 var allianceInformationMap = make(map[uint]*allianceInformation)
 
-func GetAllianceInformationNOA(instance uint) *allianceInformation {
+func (al *allianceInformation) GetNOA(instance uint) Message {
 	allianceInformation_, ok := allianceInformationMap[instance]
 
 	if ok {

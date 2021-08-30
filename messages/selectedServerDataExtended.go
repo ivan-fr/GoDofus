@@ -18,7 +18,7 @@ type selectedServerDataExtended struct {
 
 var selectedServerDataExtendedMap = make(map[uint]*selectedServerDataExtended)
 
-func GetSelectedServerDataExtendedNOA(instance uint) *selectedServerDataExtended {
+func (s *selectedServerDataExtended) GetNOA(instance uint) Message {
 	selectedServerDataExtended_, ok := selectedServerDataExtendedMap[instance]
 
 	if ok {

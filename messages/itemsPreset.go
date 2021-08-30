@@ -20,7 +20,7 @@ type itemsPreset struct {
 
 var itemsPresetMap = make(map[uint]*itemsPreset)
 
-func GetItemsPresetNOA(instance uint) *itemsPreset {
+func (it *itemsPreset) GetNOA(instance uint) Message {
 	itemsPreset_, ok := itemsPresetMap[instance]
 
 	if ok {

@@ -18,7 +18,7 @@ type objectEffectLadder struct {
 
 var objectEffectLadderMap = make(map[uint]*objectEffectLadder)
 
-func GetObjectEffectLadderNOA(instance uint) *objectEffectLadder {
+func (o *objectEffectLadder) GetNOA(instance uint) Message {
 	objectEffectLadder_, ok := objectEffectLadderMap[instance]
 
 	if ok {

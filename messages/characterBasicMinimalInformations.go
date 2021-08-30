@@ -18,7 +18,7 @@ type characterBasicMinimalInformations struct {
 
 var characterBasicMinimalInformationsMap = make(map[uint]*characterBasicMinimalInformations)
 
-func GetCharacterBasicMinimalInformationsNOA(instance uint) *characterBasicMinimalInformations {
+func (c *characterBasicMinimalInformations) GetNOA(instance uint) Message {
 	characterBasicMinimalInformations_, ok := characterBasicMinimalInformationsMap[instance]
 
 	if ok {

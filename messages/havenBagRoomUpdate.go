@@ -18,7 +18,7 @@ type havenBagRoomUpdate struct {
 
 var havenBagRoomUpdateMap = make(map[uint]*havenBagRoomUpdate)
 
-func GetHavenBagRoomUpdateNOA(instance uint) *havenBagRoomUpdate {
+func (h *havenBagRoomUpdate) GetNOA(instance uint) Message {
 	havenBagRoomUpdate_, ok := havenBagRoomUpdateMap[instance]
 
 	if ok {

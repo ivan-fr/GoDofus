@@ -17,7 +17,7 @@ type jobExperienceMultiUpdate struct {
 
 var jobExperienceMultiUpdateMap = make(map[uint]*jobExperienceMultiUpdate)
 
-func GetJobExperienceMultiUpdateNOA(instance uint) *jobExperienceMultiUpdate {
+func (jo *jobExperienceMultiUpdate) GetNOA(instance uint) Message {
 	jobExperienceMultiUpdate_, ok := jobExperienceMultiUpdateMap[instance]
 
 	if ok {

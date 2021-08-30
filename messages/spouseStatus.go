@@ -17,7 +17,7 @@ type spouseStatus struct {
 
 var spouseStatusMap = make(map[uint]*spouseStatus)
 
-func GetSpouseStatusNOA(instance uint) *spouseStatus {
+func (sp *spouseStatus) GetNOA(instance uint) Message {
 	spouseStatus_, ok := spouseStatusMap[instance]
 
 	if ok {

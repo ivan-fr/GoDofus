@@ -19,7 +19,7 @@ type trustStatus struct {
 
 var trustStatusMap = make(map[uint]*trustStatus)
 
-func GetTrustStatusNOA(instance uint) *trustStatus {
+func (t *trustStatus) GetNOA(instance uint) Message {
 	trustStatus_, ok := trustStatusMap[instance]
 
 	if ok {

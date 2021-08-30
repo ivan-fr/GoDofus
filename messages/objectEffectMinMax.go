@@ -19,7 +19,7 @@ type objectEffectMinMax struct {
 
 var objectEffectMinMaxMap = make(map[uint]*objectEffectMinMax)
 
-func GetObjectEffectMinMaxNOA(instance uint) *objectEffectMinMax {
+func (o *objectEffectMinMax) GetNOA(instance uint) Message {
 	objectEffectMinMax_, ok := objectEffectMinMaxMap[instance]
 
 	if ok {

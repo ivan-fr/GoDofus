@@ -17,7 +17,7 @@ type basicPong struct {
 
 var basicPongMap = make(map[uint]*basicPong)
 
-func GetBasicPongNOA(instance uint) *basicPong {
+func (b *basicPong) GetNOA(instance uint) Message {
 	basicPongè_, ok := basicPongMap[instance]
 
 	if ok {

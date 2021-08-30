@@ -20,7 +20,7 @@ type textInformation struct {
 
 var textInformationMap = make(map[uint]*textInformation)
 
-func GetTextInformationNOA(instance uint) *textInformation {
+func (te *textInformation) GetNOA(instance uint) Message {
 	textInformation_, ok := textInformationMap[instance]
 
 	if ok {

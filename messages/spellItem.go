@@ -18,7 +18,7 @@ type spellItem struct {
 
 var spellItemMap = make(map[uint]*spellItem)
 
-func GetSpellItemNOA(instance uint) *spellItem {
+func (s *spellItem) GetNOA(instance uint) Message {
 	spellItem_, ok := spellItemMap[instance]
 
 	if ok {

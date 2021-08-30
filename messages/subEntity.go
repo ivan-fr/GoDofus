@@ -19,7 +19,7 @@ type subEntity struct {
 
 var subEntityMap = make(map[uint]*subEntity)
 
-func GetSubEntityNOA(instance uint) *subEntity {
+func (s *subEntity) GetNOA(instance uint) Message {
 	subEntity_, ok := subEntityMap[instance]
 
 	if ok {

@@ -15,7 +15,7 @@ type charactersListRequest struct {
 
 var charactersListRequestMap = make(map[uint]*charactersListRequest)
 
-func GetCharactersListRequestNOA(instance uint) *charactersListRequest {
+func (c *charactersListRequest) GetNOA(instance uint) Message {
 	charactersListRequest_, ok := charactersListRequestMap[instance]
 
 	if ok {

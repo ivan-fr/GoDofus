@@ -80,7 +80,7 @@ func (a *Authentification) getCipher() []byte {
 
 func (a *Authentification) InitIdentificationMessage() {
 	a.initLoginAction()
-	identification := messages.GetIdentificationNOA(a.instance)
+	identification := messages.Types_[int(messages.IdentificationID)].GetNOA(a.instance).(*messages.Identification)
 
 	identification.AesKEY_ = make([]byte, len(a.AESKey))
 	copy(identification.AesKEY_, a.AESKey)
@@ -99,7 +99,7 @@ func (a *Authentification) InitIdentificationMessage() {
 }
 
 func (a *Authentification) getPublicKey() *rsa.PublicKey {
-	hc := messages.GetHelloConnectNOA(a.instance)
+	hc := messages.Types_[messages.HelloConnectID].GetNOA(a.instance).(*messages.HelloConnect)
 
 	if a.publicKey != nil && bytes.Compare(hc.Salt, a.salt) == 0 {
 		return a.publicKey
@@ -126,7 +126,7 @@ func (a *Authentification) getPublicKey() *rsa.PublicKey {
 }
 
 func (a *Authentification) getSalt() []byte {
-	hc := messages.GetHelloConnectNOA(a.instance)
+	hc := messages.Types_[messages.HelloConnectID].GetNOA(a.instance).(*messages.HelloConnect)
 	if hc.Salt == nil {
 		panic("helloMessage wasn't call")
 	}

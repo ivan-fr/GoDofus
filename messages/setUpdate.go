@@ -20,7 +20,7 @@ type setUpdate struct {
 
 var setUpdateMap = make(map[uint]*setUpdate)
 
-func GetSetUpdateNOA(instance uint) *setUpdate {
+func (s *setUpdate) GetNOA(instance uint) Message {
 	setUpdate_, ok := setUpdateMap[instance]
 
 	if ok {

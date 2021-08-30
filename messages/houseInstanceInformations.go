@@ -24,7 +24,7 @@ type houseInstanceInformations struct {
 
 var huseInstanceInformationsMap = make(map[uint]*houseInstanceInformations)
 
-func GetHuseInstanceInformationsNOA(instance uint) *houseInstanceInformations {
+func (hu *houseInstanceInformations) GetNOA(instance uint) Message {
 	huseInstanceInformations_, ok := huseInstanceInformationsMap[instance]
 
 	if ok {

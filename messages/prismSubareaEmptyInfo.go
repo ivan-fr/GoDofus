@@ -18,7 +18,7 @@ type prismSubareaEmptyInfo struct {
 
 var prismSubareaEmptyInfoMap = make(map[uint]*prismSubareaEmptyInfo)
 
-func GetPrismSubareaEmptyInfoNOA(instance uint) *prismSubareaEmptyInfo {
+func (pr *prismSubareaEmptyInfo) GetNOA(instance uint) Message {
 	prismSubareaEmptyInfo_, ok := prismSubareaEmptyInfoMap[instance]
 
 	if ok {

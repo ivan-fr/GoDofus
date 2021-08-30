@@ -18,7 +18,7 @@ type shortcutSmiley struct {
 
 var shortcutSmileyMap = make(map[uint]*shortcutSmiley)
 
-func GetShortcutSmileyNOA(instance uint) *shortcutSmiley {
+func (s *shortcutSmiley) GetNOA(instance uint) Message {
 	shortcutSmiley_, ok := shortcutSmileyMap[instance]
 
 	if ok {

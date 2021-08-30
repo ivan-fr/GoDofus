@@ -17,7 +17,7 @@ type emoteAdd struct {
 
 var emoteAddMap = make(map[uint]*emoteAdd)
 
-func GetEmoteAddNOA(instance uint) *emoteAdd {
+func (e *emoteAdd) GetNOA(instance uint) Message {
 	emoteAdd_, ok := emoteAddMap[instance]
 
 	if ok {

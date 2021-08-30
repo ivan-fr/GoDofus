@@ -18,7 +18,7 @@ type shortcutObjectPreset struct {
 
 var shortcutObjectPresetMap = make(map[uint]*shortcutObjectPreset)
 
-func GetShortcutObjectPresetNOA(instance uint) *shortcutObjectPreset {
+func (s *shortcutObjectPreset) GetNOA(instance uint) Message {
 	shortcutObjectPreset_, ok := shortcutObjectPresetMap[instance]
 
 	if ok {

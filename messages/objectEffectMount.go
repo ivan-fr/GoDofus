@@ -32,7 +32,7 @@ type objectEffectMount struct {
 
 var objectEffectMountMap = make(map[uint]*objectEffectMount)
 
-func GetObjectEffectMountNOA(instance uint) *objectEffectMount {
+func (o *objectEffectMount) GetNOA(instance uint) Message {
 	objectEffectMount_, ok := objectEffectMountMap[instance]
 
 	if ok {

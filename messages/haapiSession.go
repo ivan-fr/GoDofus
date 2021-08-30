@@ -19,7 +19,7 @@ type haapiSession struct {
 
 var haapiSessionMap = make(map[uint]*haapiSession)
 
-func GetHaapiSessionNOA(instance uint) *haapiSession {
+func (h *haapiSession) GetNOA(instance uint) Message {
 	haapiSession_, ok := haapiSessionMap[instance]
 
 	if ok {

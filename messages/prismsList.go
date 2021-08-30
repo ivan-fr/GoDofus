@@ -16,7 +16,7 @@ type prismsList struct {
 
 var prismsListMap = make(map[uint]*prismsList)
 
-func GetPrismsListNOA(instance uint) *prismsList {
+func (pr *prismsList) GetNOA(instance uint) Message {
 	prismsList_, ok := prismsListMap[instance]
 
 	if ok {

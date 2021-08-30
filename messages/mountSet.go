@@ -16,7 +16,7 @@ type mountSet struct {
 
 var mountSetMap = make(map[uint]*mountSet)
 
-func GetMountSetNOA(instance uint) *mountSet {
+func (m *mountSet) GetNOA(instance uint) Message {
 	mountSet_, ok := mountSetMap[instance]
 
 	if ok {

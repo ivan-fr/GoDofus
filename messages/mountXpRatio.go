@@ -17,7 +17,7 @@ type mountXpRatio struct {
 
 var mountXpRatioMap = make(map[uint]*mountXpRatio)
 
-func GetMountXpRatioNOA(instance uint) *mountXpRatio {
+func (m *mountXpRatio) GetNOA(instance uint) Message {
 	mountXpRatio_, ok := mountXpRatioMap[instance]
 
 	if ok {

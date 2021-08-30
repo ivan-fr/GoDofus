@@ -24,7 +24,7 @@ type serverSettings struct {
 
 var serverSettingsMap = make(map[uint]*serverSettings)
 
-func GetServerSettingsNOA(instance uint) *serverSettings {
+func (s *serverSettings) GetNOA(instance uint) Message {
 	serverSettings_, ok := serverSettingsMap[instance]
 
 	if ok {

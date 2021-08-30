@@ -17,7 +17,7 @@ type friendWarnOnConnectionState struct {
 
 var friendWarnOnConnectionStateMap = make(map[uint]*friendWarnOnConnectionState)
 
-func GetFriendWarnOnConnectionStateNOA(instance uint) *friendWarnOnConnectionState {
+func (fr *friendWarnOnConnectionState) GetNOA(instance uint) Message {
 	friendWarnOnConnectionState_, ok := friendWarnOnConnectionStateMap[instance]
 
 	if ok {

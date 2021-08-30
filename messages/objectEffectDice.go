@@ -20,7 +20,7 @@ type objectEffectDice struct {
 
 var objectEffectDiceMap = make(map[uint]*objectEffectDice)
 
-func GetObjectEffectDiceNOA(instance uint) *objectEffectDice {
+func (o *objectEffectDice) GetNOA(instance uint) Message {
 	objectEffectDice_, ok := objectEffectDiceMap[instance]
 
 	if ok {

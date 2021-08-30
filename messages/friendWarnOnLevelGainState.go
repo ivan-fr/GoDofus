@@ -17,7 +17,7 @@ type friendWarnOnLevelGainState struct {
 
 var friendWarnOnLevelGainStateMap = make(map[uint]*friendWarnOnLevelGainState)
 
-func GetFriendWarnOnLevelGainStateNOA(instance uint) *friendWarnOnLevelGainState {
+func (fr *friendWarnOnLevelGainState) GetNOA(instance uint) Message {
 	friendWarnOnLevelGainState_, ok := friendWarnOnLevelGainStateMap[instance]
 
 	if ok {

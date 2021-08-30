@@ -17,7 +17,7 @@ type abstractCharacterInformation struct {
 
 var abstractCharacterInformationMap = make(map[uint]*abstractCharacterInformation)
 
-func GetAbstractCharacterInformationNOA(instance uint) *abstractCharacterInformation {
+func (a *abstractCharacterInformation) GetNOA(instance uint) Message {
 	abstractCharacterInformation_, ok := abstractCharacterInformationMap[instance]
 
 	if ok {

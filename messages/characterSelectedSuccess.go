@@ -18,7 +18,7 @@ type characterSelectedSuccess struct {
 
 var characterSelectedSuccessMap = make(map[uint]*characterSelectedSuccess)
 
-func GetCharacterSelectedSuccessNOA(instance uint) *characterSelectedSuccess {
+func (c *characterSelectedSuccess) GetNOA(instance uint) Message {
 	characterSelectedSuccess_, ok := characterSelectedSuccessMap[instance]
 
 	if ok {

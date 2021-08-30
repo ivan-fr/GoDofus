@@ -16,7 +16,7 @@ type version struct {
 
 var versionMap = make(map[uint]*version)
 
-func GetVersionNOA(instance uint) *version {
+func (v *version) GetNOA(instance uint) Message {
 	version_, ok := versionMap[instance]
 
 	if ok {

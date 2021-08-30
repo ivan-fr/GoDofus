@@ -18,31 +18,40 @@ func handlingMyClient(writeInMyClientChan, writeToOfficialServerChan chan messag
 
 			switch weft.PackId {
 			case messages.AuthenticationTicketID:
-				msg2 := messages.GetAuthenticationTicketNOA(instance)
+				msg2 := messages.Types_[int(weft.PackId)].GetNOA(instance)
 				writeToOfficialServerChan <- msg2
 			case messages.HaapiApiKeyRequestID:
-				msg2 := messages.GetHaapiApiKeyRequestNOA(instance)
+				msg2 := messages.Types_[int(weft.PackId)].GetNOA(instance)
 				writeToOfficialServerChan <- msg2
 			case messages.CharactersListRequestID:
-				msg := messages.GetCharactersListRequestNOA(instance)
+				msg := messages.Types_[int(weft.PackId)].GetNOA(instance)
 				writeToOfficialServerChan <- msg
 			case messages.CheckIntegrityID:
-				msg := messages.GetCheckIntegrityNOA(instance)
+				msg := messages.Types_[int(weft.PackId)].GetNOA(instance)
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)
 				writeToOfficialServerChan <- msg
 			case messages.ClientKeyID:
-				msg := messages.GetClientKeyNOA(instance)
+				msg := messages.Types_[int(weft.PackId)].GetNOA(instance)
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)
 				writeToOfficialServerChan <- msg
 			case messages.CharacterSelectionID:
-				msg := messages.GetCharacterSelectionNOA(instance)
+				msg := messages.Types_[int(weft.PackId)].GetNOA(instance)
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)
 				writeToOfficialServerChan <- msg
 			default:
-				fmt.Printf("Listener: there is no traitment for %d ID\n", weft.PackId)
+				msg, ok := messages.Types_[int(weft.PackId)]
+
+				if ok {
+					msg = msg.GetNOA(instance)
+					msg.Deserialize(bytes.NewReader(weft.Message))
+					fmt.Println(msg)
+					writeToOfficialServerChan <- msg
+					return
+				}
+				fmt.Printf("Listener: Instance n°%d there is no traitment for %d ID\n", instance, weft.PackId)
 			}
 		}
 	}

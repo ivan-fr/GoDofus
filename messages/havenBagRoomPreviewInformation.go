@@ -18,7 +18,7 @@ type havenBagRoomPreviewInformation struct {
 
 var havenBagRoomPreviewInformationMap = make(map[uint]*havenBagRoomPreviewInformation)
 
-func GetHavenBagRoomPreviewInformationNOA(instance uint) *havenBagRoomPreviewInformation {
+func (h *havenBagRoomPreviewInformation) GetNOA(instance uint) Message {
 	havenBagRoomPreviewInformation_, ok := havenBagRoomPreviewInformationMap[instance]
 
 	if ok {

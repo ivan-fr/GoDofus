@@ -16,7 +16,7 @@ type gameRolePlayArenaUpdatePlayerInfos struct {
 
 var gameRolePlayArenaUpdatePlayerInfosMap = make(map[uint]*gameRolePlayArenaUpdatePlayerInfos)
 
-func GetGameRolePlayArenaUpdatePlayerInfosNOA(instance uint) *gameRolePlayArenaUpdatePlayerInfos {
+func (ga *gameRolePlayArenaUpdatePlayerInfos) GetNOA(instance uint) Message {
 	gameRolePlayArenaUpdatePlayerInfos_, ok := gameRolePlayArenaUpdatePlayerInfosMap[instance]
 
 	if ok {

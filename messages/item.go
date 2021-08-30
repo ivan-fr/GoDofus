@@ -20,6 +20,10 @@ type item struct {
 
 var protocolType = getProtocolType()
 
+func (i *item) GetNOA(instance uint) Message {
+	return nil
+}
+
 func getProtocolType() map[uint16]reflect.Type {
 
 	var _typesTypes = make(map[uint16]reflect.Type)

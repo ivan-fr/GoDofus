@@ -22,7 +22,7 @@ type prismInformation struct {
 
 var prismInformationMap = make(map[uint]*prismInformation)
 
-func GetPrismInformationNOA(instance uint) *prismInformation {
+func (pr *prismInformation) GetNOA(instance uint) Message {
 	prismInformation_, ok := prismInformationMap[instance]
 
 	if ok {

@@ -18,7 +18,7 @@ type basicTime struct {
 
 var basicTimeMap = make(map[uint]*basicTime)
 
-func GetBasicTimeNOA(instance uint) *basicTime {
+func (b *basicTime) GetNOA(instance uint) Message {
 	basicTime_, ok := basicTimeMap[instance]
 
 	if ok {

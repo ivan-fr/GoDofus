@@ -21,7 +21,7 @@ type objectEffectDuration struct {
 
 var objectEffectDurationMap = make(map[uint]*objectEffectDuration)
 
-func GetObjectEffectDurationNOA(instance uint) *objectEffectDuration {
+func (o *objectEffectDuration) GetNOA(instance uint) Message {
 	objectEffectDuration_, ok := objectEffectDurationMap[instance]
 
 	if ok {

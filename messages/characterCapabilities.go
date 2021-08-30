@@ -17,7 +17,7 @@ type characterCapabilities struct {
 
 var characterCapabilitiesMap = make(map[uint]*characterCapabilities)
 
-func GetCharacterCapabilitiesNOA(instance uint) *characterCapabilities {
+func (ch *characterCapabilities) GetNOA(instance uint) Message {
 	characterCapabilities_, ok := characterCapabilitiesMap[instance]
 
 	if ok {

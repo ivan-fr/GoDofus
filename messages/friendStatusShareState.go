@@ -17,7 +17,7 @@ type friendStatusShareState struct {
 
 var friendStatusShareStateMap = make(map[uint]*friendStatusShareState)
 
-func GetFriendStatusShareStateNOA(instance uint) *friendStatusShareState {
+func (fr *friendStatusShareState) GetNOA(instance uint) Message {
 	friendStatusShareState_, ok := friendStatusShareStateMap[instance]
 
 	if ok {

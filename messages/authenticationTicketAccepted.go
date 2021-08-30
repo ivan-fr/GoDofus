@@ -15,7 +15,7 @@ type authenticationTicketAccepted struct {
 
 var authenticationTicketAcceptedMap = make(map[uint]*authenticationTicketAccepted)
 
-func GetAuthenticationTicketAcceptedNOA(instance uint) *authenticationTicketAccepted {
+func (a *authenticationTicketAccepted) GetNOA(instance uint) Message {
 	authenticationTicketAccepted_, ok := authenticationTicketAcceptedMap[instance]
 
 	if ok {

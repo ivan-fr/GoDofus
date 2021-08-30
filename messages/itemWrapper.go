@@ -15,6 +15,10 @@ type itemWrapper struct {
 	variables []*item
 }
 
+func (iW *itemWrapper) GetNOA(instance uint) Message {
+	return nil
+}
+
 func (iW *itemWrapper) Serialize(buff *bytes.Buffer) {
 	_ = binary.Write(buff, binary.BigEndian, uint16(len(iW.variables)))
 

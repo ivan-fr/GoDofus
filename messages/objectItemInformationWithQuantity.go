@@ -17,7 +17,7 @@ type objectItemInformationWithQuantity struct {
 
 var objectItemInformationWithQuantityMap = make(map[uint]*objectItemInformationWithQuantity)
 
-func GetObjectItemInformationWithQuantityNOA(instance uint) *objectItemInformationWithQuantity {
+func (ob *objectItemInformationWithQuantity) GetNOA(instance uint) Message {
 	objectItemInformationWithQuantity_, ok := objectItemInformationWithQuantityMap[instance]
 
 	if ok {

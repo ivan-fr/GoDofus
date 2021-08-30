@@ -17,7 +17,7 @@ type guildInformations struct {
 
 var guildInformationsMap = make(map[uint]*guildInformations)
 
-func GetGuildInformationsNOA(instance uint) *guildInformations {
+func (gu *guildInformations) GetNOA(instance uint) Message {
 	guildInformations_, ok := guildInformationsMap[instance]
 
 	if ok {

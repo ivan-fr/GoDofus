@@ -22,7 +22,7 @@ type jobExperience struct {
 
 var jobExperienceMap = make(map[uint]*jobExperience)
 
-func GetJobExperienceNOA(instance uint) *jobExperience {
+func (jo *jobExperience) GetNOA(instance uint) Message {
 	jobExperience_, ok := jobExperienceMap[instance]
 
 	if ok {

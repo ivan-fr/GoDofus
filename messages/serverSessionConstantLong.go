@@ -18,7 +18,7 @@ type serverSessionConstantLong struct {
 
 var serverSessionConstantLongMap = make(map[uint]*serverSessionConstantLong)
 
-func GetServerSessionConstantLongNOA(instance uint) *serverSessionConstantLong {
+func (s *serverSessionConstantLong) GetNOA(instance uint) Message {
 	serverSessionConstantLong_, ok := serverSessionConstantLongMap[instance]
 
 	if ok {

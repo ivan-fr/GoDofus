@@ -17,7 +17,7 @@ type jobCrafterDirectorySettingsMessage struct {
 
 var jobCrafterDirectorySettingsMessageMap = make(map[uint]*jobCrafterDirectorySettingsMessage)
 
-func GetJobCrafterDirectorySettingsMessageNOA(instance uint) *jobCrafterDirectorySettingsMessage {
+func (jo *jobCrafterDirectorySettingsMessage) GetNOA(instance uint) Message {
 	jobCrafterDirectorySettingsMessage_, ok := jobCrafterDirectorySettingsMessageMap[instance]
 
 	if ok {

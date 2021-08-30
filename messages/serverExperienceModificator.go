@@ -17,7 +17,7 @@ type serverExperienceModificator struct {
 
 var serverExperienceModificatorMap = make(map[uint]*serverExperienceModificator)
 
-func GetServerExperienceModificatorNOA(instance uint) *serverExperienceModificator {
+func (s *serverExperienceModificator) GetNOA(instance uint) Message {
 	serverExperienceModificator_, ok := serverExperienceModificatorMap[instance]
 
 	if ok {

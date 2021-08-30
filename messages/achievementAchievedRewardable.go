@@ -18,7 +18,7 @@ type achievementAchievedRewardable struct {
 
 var achievementAchievedRewardableMap = make(map[uint]*achievementAchievedRewardable)
 
-func GetAchievementAchievedRewardableNOA(instance uint) *achievementAchievedRewardable {
+func (ac *achievementAchievedRewardable) GetNOA(instance uint) Message {
 	achievementAchievedRewardable_, ok := achievementAchievedRewardableMap[instance]
 
 	if ok {

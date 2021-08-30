@@ -13,7 +13,7 @@ type identificationFailed struct {
 
 var identificationFailedMap = make(map[uint]*identificationFailed)
 
-func GetIdentificationFailedNOA(instance uint) *identificationFailed {
+func (f *identificationFailed) GetNOA(instance uint) Message {
 	identificationFailed_, ok := identificationFailedMap[instance]
 
 	if ok {

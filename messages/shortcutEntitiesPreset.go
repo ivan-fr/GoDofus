@@ -18,7 +18,7 @@ type shortcutEntitiesPreset struct {
 
 var shortcutEntitiesPresetMap = make(map[uint]*shortcutEntitiesPreset)
 
-func GetShortcutEntitiesPresetNOA(instance uint) *shortcutEntitiesPreset {
+func (s *shortcutEntitiesPreset) GetNOA(instance uint) Message {
 	shortcutEntitiesPreset_, ok := shortcutEntitiesPresetMap[instance]
 
 	if ok {

@@ -17,7 +17,7 @@ type serverOptionalFeatures struct {
 
 var serverOptionalFeaturesMap = make(map[uint]*serverOptionalFeatures)
 
-func GetServerOptionalFeaturesNOA(instance uint) *serverOptionalFeatures {
+func (s *serverOptionalFeatures) GetNOA(instance uint) Message {
 	serverOptionalFeatures_, ok := serverOptionalFeaturesMap[instance]
 
 	if ok {

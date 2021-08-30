@@ -20,7 +20,7 @@ type iconNamedPreset struct {
 
 var iconNamedPresetMap = make(map[uint]*iconNamedPreset)
 
-func GetIconNamedPresetNOA(instance uint) *iconNamedPreset {
+func (ic *iconNamedPreset) GetNOA(instance uint) Message {
 	iconNamedPreset_, ok := iconNamedPresetMap[instance]
 
 	if ok {

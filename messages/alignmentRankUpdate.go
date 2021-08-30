@@ -18,7 +18,7 @@ type alignmentRankUpdate struct {
 
 var alignmentRankUpdateMap = make(map[uint]*alignmentRankUpdate)
 
-func GetAlignmentRankUpdateNOA(instance uint) *alignmentRankUpdate {
+func (al *alignmentRankUpdate) GetNOA(instance uint) Message {
 	alignmentRankUpdate_, ok := alignmentRankUpdateMap[instance]
 
 	if ok {

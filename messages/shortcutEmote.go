@@ -18,7 +18,7 @@ type shortcutEmote struct {
 
 var shortcutEmoteMap = make(map[uint]*shortcutEmote)
 
-func GetShortcutEmoteNOA(instance uint) *shortcutEmote {
+func (s *shortcutEmote) GetNOA(instance uint) Message {
 	shortcutEmote_, ok := shortcutEmoteMap[instance]
 
 	if ok {

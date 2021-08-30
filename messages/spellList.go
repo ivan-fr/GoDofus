@@ -18,7 +18,7 @@ type spellList struct {
 
 var spellListMap = make(map[uint]*spellList)
 
-func GetSpellListNOA(instance uint) *spellList {
+func (s *spellList) GetNOA(instance uint) Message {
 	spellList_, ok := spellListMap[instance]
 
 	if ok {

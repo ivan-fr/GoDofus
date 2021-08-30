@@ -15,7 +15,7 @@ type characterLoadingComplete struct {
 
 var characterLoadingCompleteMap = make(map[uint]*characterLoadingComplete)
 
-func GetCharacterLoadingCompleteNOA(instance uint) *characterLoadingComplete {
+func (ch *characterLoadingComplete) GetNOA(instance uint) Message {
 	characterLoadingComplete_, ok := characterLoadingCompleteMap[instance]
 
 	if ok {

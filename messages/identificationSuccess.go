@@ -29,7 +29,7 @@ type identificationSuccess struct {
 
 var identificationSuccessMap = make(map[uint]*identificationSuccess)
 
-func GetIdentificationSuccessNOA(instance uint) *identificationSuccess {
+func (i *identificationSuccess) GetNOA(instance uint) Message {
 	identificationSuccess_, ok := identificationSuccessMap[instance]
 
 	if ok {

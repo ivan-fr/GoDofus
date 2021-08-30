@@ -18,7 +18,7 @@ type interactiveElementNamedSkill struct {
 
 var interactiveElementNamedSkillMap = make(map[uint]*interactiveElementNamedSkill)
 
-func GetInteractiveElementNamedSkillNOA(instance uint) *interactiveElementNamedSkill {
+func (in *interactiveElementNamedSkill) GetNOA(instance uint) Message {
 	interactiveElementNamedSkill_, ok := interactiveElementNamedSkillMap[instance]
 
 	if ok {

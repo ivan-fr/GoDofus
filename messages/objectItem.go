@@ -22,7 +22,7 @@ type objectItem struct {
 
 var objectItemMap = make(map[uint]*objectItem)
 
-func GetObjectItemNOA(instance uint) *objectItem {
+func (o *objectItem) GetNOA(instance uint) Message {
 	objectItem_, ok := objectItemMap[instance]
 
 	if ok {

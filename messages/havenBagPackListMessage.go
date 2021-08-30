@@ -17,7 +17,7 @@ type havenBagPackListMessage struct {
 
 var havenBagPackListMessageMap = make(map[uint]*havenBagPackListMessage)
 
-func GetHavenBagPackListMessageNOA(instance uint) *havenBagPackListMessage {
+func (ha *havenBagPackListMessage) GetNOA(instance uint) Message {
 	havenBagPackListMessage_, ok := havenBagPackListMessageMap[instance]
 
 	if ok {

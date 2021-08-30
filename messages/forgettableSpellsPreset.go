@@ -19,7 +19,7 @@ type forgettableSpellsPreset struct {
 
 var forgettableSpellsPresetMap = make(map[uint]*forgettableSpellsPreset)
 
-func GetForgettableSpellsPresetNOA(instance uint) *forgettableSpellsPreset {
+func (fo *forgettableSpellsPreset) GetNOA(instance uint) Message {
 	forgettableSpellsPreset_, ok := forgettableSpellsPresetMap[instance]
 
 	if ok {

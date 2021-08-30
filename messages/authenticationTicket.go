@@ -19,7 +19,7 @@ type authenticationTicket struct {
 
 var authenticationTicketMap = make(map[uint]*authenticationTicket)
 
-func GetAuthenticationTicketNOA(instance uint) *authenticationTicket {
+func (a *authenticationTicket) GetNOA(instance uint) Message {
 	authenticationTicket_, ok := authenticationTicketMap[instance]
 
 	if ok {
@@ -31,9 +31,9 @@ func GetAuthenticationTicketNOA(instance uint) *authenticationTicket {
 }
 
 func (a *authenticationTicket) Serialize(buff *bytes.Buffer) {
-	id := GetIdentificationNOA(a.instance)
-	ticket := GetSelectedServerDataExtendedNOA(a.instance).SSD.ticket
-	aesKey := GetIdentificationNOA(a.instance).AesKEY_
+	id := Types_[int(IdentificationID)].GetNOA(a.instance).(*Identification)
+	ticket := Types_[int(SelectedServerDataExtendedID)].GetNOA(a.instance).(*selectedServerDataExtended).SSD.ticket
+	aesKey := id.AesKEY_
 
 	block, err := aes.NewCipher(aesKey)
 	if err != nil {

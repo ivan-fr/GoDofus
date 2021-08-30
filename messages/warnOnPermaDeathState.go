@@ -17,7 +17,7 @@ type warnOnPermaDeathState struct {
 
 var warnOnPermaDeathStateMap = make(map[uint]*warnOnPermaDeathState)
 
-func GetWarnOnPermaDeathStateNOA(instance uint) *warnOnPermaDeathState {
+func (wa *warnOnPermaDeathState) GetNOA(instance uint) Message {
 	warnOnPermaDeathState_, ok := warnOnPermaDeathStateMap[instance]
 
 	if ok {

@@ -13,7 +13,7 @@ type identificationFailedForBadVersion struct {
 
 var identificationFailedForBadVersionMap = make(map[uint]*identificationFailedForBadVersion)
 
-func GetIdentificationFailedForBadVersionNOA(instance uint) *identificationFailedForBadVersion {
+func (f *identificationFailedForBadVersion) GetNOA(instance uint) Message {
 	identificationFailedForBadVersion_, ok := identificationFailedForBadVersionMap[instance]
 
 	if ok {

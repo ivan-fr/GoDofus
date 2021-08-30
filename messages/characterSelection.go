@@ -17,7 +17,7 @@ type characterSelection struct {
 
 var characterSelectionMap = make(map[uint]*characterSelection)
 
-func GetCharacterSelectionNOA(instance uint) *characterSelection {
+func (c *characterSelection) GetNOA(instance uint) Message {
 	characterSelection_, ok := characterSelectionMap[instance]
 
 	if ok {

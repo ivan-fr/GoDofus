@@ -26,7 +26,7 @@ type gameServerInformations struct {
 
 var gameServerInformationsMap = make(map[uint]*gameServerInformations)
 
-func GetGameServerInformationsNOA(instance uint) *gameServerInformations {
+func (g *gameServerInformations) GetNOA(instance uint) Message {
 	gameServerInformations_, ok := gameServerInformationsMap[instance]
 
 	if ok {

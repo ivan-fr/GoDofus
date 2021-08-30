@@ -13,7 +13,7 @@ type clientKey struct {
 
 var clientKeyMap = make(map[uint]*clientKey)
 
-func GetClientKeyNOA(instance uint) *clientKey {
+func (ck *clientKey) GetNOA(instance uint) Message {
 	clientKey_, ok := clientKeyMap[instance]
 
 	if ok {

@@ -15,7 +15,7 @@ type helloGame struct {
 
 var helloGameMap = make(map[uint]*helloGame)
 
-func GetHelloGameNOA(instance uint) *helloGame {
+func (h *helloGame) GetNOA(instance uint) Message {
 	helloGame_, ok := helloGameMap[instance]
 
 	if ok {
