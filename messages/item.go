@@ -69,14 +69,14 @@ func getProtocolType() map[uint16]reflect.Type {
 
 func (i *item) Serialize(buff *bytes.Buffer) {
 	_ = binary.Write(buff, binary.BigEndian, i.typeId)
-	newProtocol := reflect.New(protocolType[i.typeId]).Interface().(Message)
-	newProtocol.Serialize(buff)
-	i.myProcol = newProtocol
+	i.myProcol.Serialize(buff)
 }
 
 func (i *item) Deserialize(reader *bytes.Reader) {
 	_ = binary.Read(reader, binary.BigEndian, &i.typeId)
-	i.myProcol.Deserialize(reader)
+	newProtocol := reflect.New(protocolType[i.typeId]).Interface().(Message)
+	newProtocol.Deserialize(reader)
+	i.myProcol = newProtocol
 }
 
 func (i *item) GetPacketId() uint32 {

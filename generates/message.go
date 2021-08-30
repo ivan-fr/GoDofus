@@ -240,6 +240,9 @@ func dispatchSerializer() interface{} {
 	case "uint64":
 		var t uint64
 		return t
+	case "float64":
+		var t float64
+		return t
 	case "-byte":
 		return []byte{}
 	case "-int16":
@@ -254,6 +257,8 @@ func dispatchSerializer() interface{} {
 		return []int64{}
 	case "-uint64":
 		return []uint64{}
+	case "-float64":
+		return []float64{}
 	case "":
 		return nil
 	default:
@@ -318,6 +323,8 @@ func serializer(i interface{}, firstLetter string, variableName string) {
 		putStringSimpleType(firstLetter, variableName, "int64")
 	case uint64:
 		putStringSimpleType(firstLetter, variableName, "uint64")
+	case float64:
+		putStringSimpleType(firstLetter, variableName, "float64")
 	case []byte:
 		putStringSimpleSlice(firstLetter, variableName, "byte")
 	case []int16:
@@ -332,6 +339,8 @@ func serializer(i interface{}, firstLetter string, variableName string) {
 		putStringSimpleSlice(firstLetter, variableName, "int64")
 	case []uint64:
 		putStringSimpleSlice(firstLetter, variableName, "uint64")
+	case []float64:
+		putStringSimpleSlice(firstLetter, variableName, "float64")
 	case []messages.Message:
 		t := reflect.TypeOf(i.([]messages.Message)[0])
 		messageName := t.Elem().Name()

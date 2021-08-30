@@ -25,7 +25,7 @@ func BuildRegistry() bool {
 	var names [][]string
 
 	for _, file := range files {
-		if file.Name() == "IDS.go" || file.Name() == "item.go" || file.Name() == "message.go" || file.Name() == "registry.go" {
+		if file.Name() == "IDS.go" || file.Name() == "message.go" || file.Name() == "registry.go" {
 			continue
 		}
 
