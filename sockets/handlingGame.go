@@ -24,7 +24,7 @@ func handlingGame(writeInMyClientChan, writeToOfficialServerChan chan messages.M
 					msg.Deserialize(bytes.NewReader(weft.Message))
 					fmt.Println(msg)
 					writeInMyClientChan <- msg
-					return
+					continue
 				}
 				fmt.Printf("Client: Instance n°%d there is no traitment for %d ID\n", instance, weft.PackId)
 			}

@@ -127,7 +127,7 @@ var Types_ = map[int]Message{
 	ProtocolID:                                    &protocol{},
 	RawDataID:                                     &rawData{},
 	SelectedServerDataID:                          &selectedServerData{},
-	SelectedServerDataExtendedID:                  &selectedServerDataExtended{},
+	SelectedServerDataExtendedID:                  &SelectedServerDataExtended{},
 	SequenceNumberRequestID:                       &sequenceNumberRequest{},
 	ServerExperienceModificatorID:                 &serverExperienceModificator{},
 	ServerOptionalFeaturesID:                      &serverOptionalFeatures{},

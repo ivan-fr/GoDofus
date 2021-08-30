@@ -244,7 +244,7 @@ func launchGameClientToOfficialSocket(wg *sync.WaitGroup,
 
 	myReadServer, myPipeline := pack.NewServerReader()
 
-	selectedServerDataExtended := messages.GetSelectedServerDataExtendedNOA(instance)
+	selectedServerDataExtended := messages.Types_[messages.SelectedServerDataExtendedID].GetNOA(instance).(*messages.SelectedServerDataExtended)
 	gameRAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", selectedServerDataExtended.SSD.Address, selectedServerDataExtended.SSD.Ports[0]))
 	if err != nil {
 		log.Println(err)

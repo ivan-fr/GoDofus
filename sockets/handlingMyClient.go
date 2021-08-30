@@ -49,7 +49,7 @@ func handlingMyClient(writeInMyClientChan, writeToOfficialServerChan chan messag
 					msg.Deserialize(bytes.NewReader(weft.Message))
 					fmt.Println(msg)
 					writeToOfficialServerChan <- msg
-					return
+					continue
 				}
 				fmt.Printf("Listener: Instance n°%d there is no traitment for %d ID\n", instance, weft.PackId)
 			}

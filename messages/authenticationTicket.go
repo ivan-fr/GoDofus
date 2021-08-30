@@ -32,7 +32,7 @@ func (a *authenticationTicket) GetNOA(instance uint) Message {
 
 func (a *authenticationTicket) Serialize(buff *bytes.Buffer) {
 	id := Types_[int(IdentificationID)].GetNOA(a.instance).(*Identification)
-	ticket := Types_[int(SelectedServerDataExtendedID)].GetNOA(a.instance).(*selectedServerDataExtended).SSD.ticket
+	ticket := Types_[int(SelectedServerDataExtendedID)].GetNOA(a.instance).(*SelectedServerDataExtended).SSD.ticket
 	aesKey := id.AesKEY_
 
 	block, err := aes.NewCipher(aesKey)

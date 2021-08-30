@@ -10,26 +10,26 @@ import (
 	"fmt"
 )
 
-type selectedServerDataExtended struct {
+type SelectedServerDataExtended struct {
 	PacketId uint32
 	SSD      *selectedServerData
 	GSI      []*gameServerInformations
 }
 
-var selectedServerDataExtendedMap = make(map[uint]*selectedServerDataExtended)
+var selectedServerDataExtendedMap = make(map[uint]*SelectedServerDataExtended)
 
-func (s *selectedServerDataExtended) GetNOA(instance uint) Message {
+func (s *SelectedServerDataExtended) GetNOA(instance uint) Message {
 	selectedServerDataExtended_, ok := selectedServerDataExtendedMap[instance]
 
 	if ok {
 		return selectedServerDataExtended_
 	}
 
-	selectedServerDataExtendedMap[instance] = &selectedServerDataExtended{PacketId: SelectedServerDataExtendedID}
+	selectedServerDataExtendedMap[instance] = &SelectedServerDataExtended{PacketId: SelectedServerDataExtendedID}
 	return selectedServerDataExtendedMap[instance]
 }
 
-func (s *selectedServerDataExtended) Serialize(buff *bytes.Buffer) {
+func (s *SelectedServerDataExtended) Serialize(buff *bytes.Buffer) {
 	s.SSD.Serialize(buff)
 	_ = binary.Write(buff, binary.BigEndian, uint16(len(s.GSI)))
 	for i := 0; i < len(s.GSI); i++ {
@@ -37,7 +37,7 @@ func (s *selectedServerDataExtended) Serialize(buff *bytes.Buffer) {
 	}
 }
 
-func (s *selectedServerDataExtended) Deserialize(reader *bytes.Reader) {
+func (s *SelectedServerDataExtended) Deserialize(reader *bytes.Reader) {
 	s.SSD = new(selectedServerData)
 	s.SSD.Deserialize(reader)
 
@@ -50,10 +50,10 @@ func (s *selectedServerDataExtended) Deserialize(reader *bytes.Reader) {
 	}
 }
 
-func (s *selectedServerDataExtended) GetPacketId() uint32 {
+func (s *SelectedServerDataExtended) GetPacketId() uint32 {
 	return s.PacketId
 }
 
-func (s *selectedServerDataExtended) String() string {
+func (s *SelectedServerDataExtended) String() string {
 	return fmt.Sprintf("PacketId: %d\nSelectedServerData: %v\ngameServerInformations: %v\n", s.PacketId, s.SSD, s.GSI)
 }
