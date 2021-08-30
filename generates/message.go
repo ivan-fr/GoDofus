@@ -30,7 +30,7 @@ type {{ .Name }} struct {
 
 var {{ .Name }}Map = make(map[uint]*{{ .Name }})
 
-func ({{.FistLetter}} *{{.Name}}) GetNOA(instance uint) Message { {
+func ({{.FistLetter}} *{{.Name}}) GetNOA(instance uint) Message {
 	{{ .Name }}_, ok := {{ .Name }}Map[instance]
 
 	if ok {
@@ -361,7 +361,7 @@ func serializer(i interface{}, firstLetter string, variableName string) {
 		t := reflect.TypeOf(i.(messages.Message))
 		messageName := t.Elem().Name()
 		fmt.Printf("%s\n", messageName)
-		messageName = string(instance) + messageName
+		messageName = fmt.Sprintf("%d%s", instance, messageName)
 		structFields = append(structFields, fmt.Sprintf("%s *%s", messageName, messageName))
 		serializerString = append(serializerString, fmt.Sprintf(`%s.%s.Serialize(buff)`, firstLetter, messageName))
 		deserializerString = append(deserializerString, fmt.Sprintf(`%s.%s = new(%s)

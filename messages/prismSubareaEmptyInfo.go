@@ -31,12 +31,12 @@ func (pr *prismSubareaEmptyInfo) GetNOA(instance uint) Message {
 
 func (pr *prismSubareaEmptyInfo) Serialize(buff *bytes.Buffer) {
 	utils.WriteVarInt16(buff, pr.subAreaId)
-	utils.WriteVarInt16(buff, pr.allianceId)
+	utils.WriteVarInt32(buff, pr.allianceId)
 }
 
 func (pr *prismSubareaEmptyInfo) Deserialize(reader *bytes.Reader) {
 	pr.subAreaId = utils.ReadVarInt16(reader)
-	pr.allianceId = utils.ReadVarInt16(reader)
+	pr.allianceId = utils.ReadVarInt32(reader)
 }
 
 func (pr *prismSubareaEmptyInfo) GetPacketId() uint32 {

@@ -94,7 +94,13 @@ func (i *item) Serialize(buff *bytes.Buffer) {
 
 func (i *item) Deserialize(reader *bytes.Reader) {
 	_ = binary.Read(reader, binary.BigEndian, &i.typeId)
-	newProtocol := reflect.New(protocolType[i.typeId]).Interface().(Message)
+	pType, ok := protocolType[i.typeId]
+
+	if !ok {
+		panic(i.typeId)
+	}
+
+	newProtocol := reflect.New(pType).Interface().(Message)
 	newProtocol.Deserialize(reader)
 	i.myProcol = newProtocol
 }
