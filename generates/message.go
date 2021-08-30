@@ -75,11 +75,12 @@ var deserializerString []string
 
 var instance uint
 
-type varInt16 int32
-type varInt32 int32
-type varInt64 float64
-type varUInt64 float64
+type varInt16 bool
+type varInt32 bool
+type varInt64 bool
+type varUInt64 bool
 type flag bool
+type utf bool
 
 func putStringSimpleType(firstLetter, variableName, variableType string) {
 	structFields = append(structFields, fmt.Sprintf("%s %s", variableName, variableType))
@@ -243,6 +244,9 @@ func dispatchSerializer() interface{} {
 	case "float64":
 		var t float64
 		return t
+	case "utf":
+		var t utf
+		return t
 	case "-byte":
 		return []byte{}
 	case "-int16":
@@ -305,6 +309,8 @@ func serializer(i interface{}, firstLetter string, variableName string) {
 		putStringSimpleVarType(firstLetter, variableName, "VarInt32", "int32")
 	case varInt16:
 		putStringSimpleVarType(firstLetter, variableName, "VarInt16", "int32")
+	case utf:
+		putStringSimpleVarType(firstLetter, variableName, "UTF", "[]byte")
 	case flag:
 		putStringFlag(firstLetter, variableName)
 	case bool:

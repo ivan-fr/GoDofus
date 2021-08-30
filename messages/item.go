@@ -63,6 +63,11 @@ func getProtocolType() map[uint16]reflect.Type {
 	_typesTypes[SkillActionDescriptionTimedID] = reflect.TypeOf(skillActionDescriptionTimed{})
 	_typesTypes[SkillActionDescriptionCollectID] = reflect.TypeOf(skillActionDescriptionCollect{})
 	_typesTypes[SkillActionDescriptionCraftID] = reflect.TypeOf(skillActionDescriptionCraft{})
+	_typesTypes[PrismSubareaEmptyInfoID] = reflect.TypeOf(prismSubareaEmptyInfo{})
+	_typesTypes[PrismGeolocalizedInformationID] = reflect.TypeOf(prismGeolocalizedInformation{})
+	_typesTypes[PrismInformationID] = reflect.TypeOf(prismInformation{})
+	_typesTypes[AlliancePrismInformationID] = reflect.TypeOf(alliancePrismInformation{})
+	_typesTypes[AllianceInsiderPrismInformationID] = reflect.TypeOf(allianceInsiderPrismInformation{})
 
 	return _typesTypes
 }
