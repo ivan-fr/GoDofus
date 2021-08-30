@@ -68,6 +68,10 @@ func getProtocolType() map[uint16]reflect.Type {
 	_typesTypes[PrismInformationID] = reflect.TypeOf(prismInformation{})
 	_typesTypes[AlliancePrismInformationID] = reflect.TypeOf(alliancePrismInformation{})
 	_typesTypes[AllianceInsiderPrismInformationID] = reflect.TypeOf(allianceInsiderPrismInformation{})
+	_typesTypes[AchievementAchievedID] = reflect.TypeOf(achievementAchieved{})
+	_typesTypes[AchievementAchievedRewardableID] = reflect.TypeOf(achievementAchievedRewardable{})
+	_typesTypes[IdolID] = reflect.TypeOf(idol{})
+	_typesTypes[PartyIdolID] = reflect.TypeOf(partyIdol{})
 
 	return _typesTypes
 }
