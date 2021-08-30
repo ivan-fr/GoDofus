@@ -263,6 +263,8 @@ func dispatchSerializer() interface{} {
 		return []uint64{}
 	case "-float64":
 		return []float64{}
+	case "-utf":
+		return []utf{}
 	case "":
 		return nil
 	default:
@@ -301,6 +303,8 @@ func serializer(i interface{}, firstLetter string, variableName string) {
 		putStringSimpleVarSlice(firstLetter, variableName, "VarInt32", "int32")
 	case []varInt16:
 		putStringSimpleVarSlice(firstLetter, variableName, "VarInt16", "int32")
+	case []utf:
+		putStringSimpleVarSlice(firstLetter, variableName, "UTF", "[]byte")
 	case varUInt64:
 		putStringSimpleVarType(firstLetter, variableName, "VarUInt64", "float64")
 	case varInt64:
