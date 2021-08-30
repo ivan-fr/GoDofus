@@ -38,7 +38,7 @@ var Types_ = map[int]Message{
 	CharacterMinimalInformationsID:                &characterMinimalInformations{},
 	CharacterMinimalPlusLookInformationsID:        &characterMinimalPlusLookInformations{},
 	CharacterSelectedSuccessID:                    &characterSelectedSuccess{},
-	CharacterSelectionID:                          &characterSelection{},
+	CharacterSelectionID:                          &CharacterSelection{},
 	CharactersListID:                              &charactersList{},
 	CharactersListRequestID:                       &charactersListRequest{},
 	ChatCommunityChannelCommunityID:               &chatCommunityChannelCommunity{},

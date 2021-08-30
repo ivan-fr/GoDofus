@@ -10,36 +10,36 @@ import (
 	"fmt"
 )
 
-type characterSelection struct {
+type CharacterSelection struct {
 	PacketId uint32
-	id       float64
+	Id       float64
 }
 
-var characterSelectionMap = make(map[uint]*characterSelection)
+var characterSelectionMap = make(map[uint]*CharacterSelection)
 
-func (c *characterSelection) GetNOA(instance uint) Message {
+func (c *CharacterSelection) GetNOA(instance uint) Message {
 	characterSelection_, ok := characterSelectionMap[instance]
 
 	if ok {
 		return characterSelection_
 	}
 
-	characterSelectionMap[instance] = &characterSelection{PacketId: CharacterSelectionID}
+	characterSelectionMap[instance] = &CharacterSelection{PacketId: CharacterSelectionID}
 	return characterSelectionMap[instance]
 }
 
-func (c *characterSelection) Serialize(buff *bytes.Buffer) {
-	utils.WriteVarInt64(buff, c.id)
+func (c *CharacterSelection) Serialize(buff *bytes.Buffer) {
+	utils.WriteVarInt64(buff, c.Id)
 }
 
-func (c *characterSelection) Deserialize(reader *bytes.Reader) {
-	c.id = float64(utils.ReadVarUInt64(reader))
+func (c *CharacterSelection) Deserialize(reader *bytes.Reader) {
+	c.Id = float64(utils.ReadVarUInt64(reader))
 }
 
-func (c *characterSelection) GetPacketId() uint32 {
+func (c *CharacterSelection) GetPacketId() uint32 {
 	return c.PacketId
 }
 
-func (c *characterSelection) String() string {
+func (c *CharacterSelection) String() string {
 	return fmt.Sprintf("packetId: %d\n", c.PacketId)
 }
