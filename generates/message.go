@@ -30,7 +30,7 @@ type {{ .Name }} struct {
 
 var {{ .Name }}Map = make(map[uint]*{{ .Name }})
 
-func Get{{ .NameCapFirst }}NOA(instance uint) *{{ .Name }} {
+func ({{.FistLetter}} *{{.Name}}) GetNOA(instance uint) Message { {
 	{{ .Name }}_, ok := {{ .Name }}Map[instance]
 
 	if ok {
