@@ -16,7 +16,7 @@ type prismGeolocalizedInformation struct {
 	worldX                int16
 	worldY                int16
 	mapId                 float64
-	itemWrapper           *itemWrapper
+	item                  *item
 }
 
 var prismGeolocalizedInformationMap = make(map[uint]*prismGeolocalizedInformation)
@@ -37,7 +37,7 @@ func (pr *prismGeolocalizedInformation) Serialize(buff *bytes.Buffer) {
 	_ = binary.Write(buff, binary.BigEndian, pr.worldX)
 	_ = binary.Write(buff, binary.BigEndian, pr.worldY)
 	_ = binary.Write(buff, binary.BigEndian, pr.mapId)
-	pr.itemWrapper.Serialize(buff)
+	pr.item.Serialize(buff)
 }
 
 func (pr *prismGeolocalizedInformation) Deserialize(reader *bytes.Reader) {
@@ -46,8 +46,8 @@ func (pr *prismGeolocalizedInformation) Deserialize(reader *bytes.Reader) {
 	_ = binary.Read(reader, binary.BigEndian, &pr.worldX)
 	_ = binary.Read(reader, binary.BigEndian, &pr.worldY)
 	_ = binary.Read(reader, binary.BigEndian, &pr.mapId)
-	pr.itemWrapper = new(itemWrapper)
-	pr.itemWrapper.Deserialize(reader)
+	pr.item = new(item)
+	pr.item.Deserialize(reader)
 }
 
 func (pr *prismGeolocalizedInformation) GetPacketId() uint32 {

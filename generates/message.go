@@ -136,12 +136,12 @@ func putStringSimpleVarSlice(firstLetter, variableName, variableVarType, variabl
 }
 
 func putStringMessageSlice(firstLetter, messageName string) {
-	messageName = fmt.Sprintf("%d%s", instance, messageName)
-	structFields = append(structFields, fmt.Sprintf("%s []*%s", messageName, messageName))
+	messageNameVar := fmt.Sprintf("%s%d", instance, messageName)
+	structFields = append(structFields, fmt.Sprintf("%s []*%s", messageNameVar, messageName))
 	serializerString = append(serializerString, fmt.Sprintf(`_ = binary.Write(buff, binary.BigEndian, uint16(len(%s.%s)))
 	for i := 0; i < len(%s.%s); i++ {
 		%s.%s[i].Serialize(buff)
-	}`, firstLetter, messageName, firstLetter, messageName, firstLetter, messageName))
+	}`, firstLetter, messageNameVar, firstLetter, messageNameVar, firstLetter, messageNameVar))
 
 	deserializerString = append(deserializerString, fmt.Sprintf(`var len%d_ uint16
 	_ = binary.Read(reader, binary.BigEndian, &len%d_)
@@ -150,7 +150,7 @@ func putStringMessageSlice(firstLetter, messageName string) {
 		aMessage%d := new(%s)
 		aMessage%d.Deserialize(reader)
 		%s.%s = append(%s.%s, aMessage%d)
-	}`, instance, instance, firstLetter, messageName, instance, instance, messageName, instance, firstLetter, messageName, firstLetter, messageName, instance))
+	}`, instance, instance, firstLetter, messageNameVar, instance, instance, messageName, instance, firstLetter, messageNameVar, firstLetter, messageNameVar, instance))
 }
 
 func putStringSimpleVarType(firstLetter, variableName, variableVarType, variableType string) {
@@ -361,11 +361,11 @@ func serializer(i interface{}, firstLetter string, variableName string) {
 		t := reflect.TypeOf(i.(messages.Message))
 		messageName := t.Elem().Name()
 		fmt.Printf("%s\n", messageName)
-		messageName = fmt.Sprintf("%d%s", instance, messageName)
-		structFields = append(structFields, fmt.Sprintf("%s *%s", messageName, messageName))
-		serializerString = append(serializerString, fmt.Sprintf(`%s.%s.Serialize(buff)`, firstLetter, messageName))
+		messageNameVar := fmt.Sprintf("%s%d", messageName, instance)
+		structFields = append(structFields, fmt.Sprintf("%s *%s", messageNameVar, messageName))
+		serializerString = append(serializerString, fmt.Sprintf(`%s.%s.Serialize(buff)`, firstLetter, messageNameVar))
 		deserializerString = append(deserializerString, fmt.Sprintf(`%s.%s = new(%s)
-	%s.%s.Deserialize(reader)`, firstLetter, messageName, messageName, firstLetter, messageName))
+	%s.%s.Deserialize(reader)`, firstLetter, messageNameVar, messageName, firstLetter, messageNameVar))
 	}
 
 	instance++
