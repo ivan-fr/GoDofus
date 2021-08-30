@@ -83,6 +83,12 @@ func getProtocolType() map[uint16]reflect.Type {
 	_typesTypes[HouseOnMapInformationsID] = reflect.TypeOf(houseOnMapInformations{})
 	_typesTypes[HouseInstanceInformationsID] = reflect.TypeOf(houseInstanceInformations{})
 	_typesTypes[HouseGuildedInformationsID] = reflect.TypeOf(houseGuildedInformations{})
+	_typesTypes[AcquaintanceInformationID] = reflect.TypeOf(acquaintanceInformation{})
+	_typesTypes[AcquaintanceOnlineInformationID] = reflect.TypeOf(acquaintanceOnlineInformation{})
+	_typesTypes[FriendInformationsID] = reflect.TypeOf(friendInformations{})
+	_typesTypes[FriendOnlineInformationsID] = reflect.TypeOf(friendOnlineInformations{})
+	_typesTypes[FriendSpouseInformationsID] = reflect.TypeOf(friendSpouseInformations{})
+	_typesTypes[FriendSpouseOnlineInformationsID] = reflect.TypeOf(friendSpouseOnlineInformations{})
 
 	return _typesTypes
 }
