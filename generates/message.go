@@ -370,6 +370,8 @@ func serializer(i interface{}, firstLetter string, variableName string) {
 }
 
 func GenerateMessage(name string, packetId uint32) {
+	name = strings.ToLower(name[:1]) + name[1:]
+
 	for interfaceType := dispatchSerializer(); interfaceType != nil; interfaceType = dispatchSerializer() {
 		name_ := scan("Enter variable name:", true)
 		serializer(interfaceType, (name)[:2], name_)

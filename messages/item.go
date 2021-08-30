@@ -72,6 +72,13 @@ func getProtocolType() map[uint16]reflect.Type {
 	_typesTypes[AchievementAchievedRewardableID] = reflect.TypeOf(achievementAchievedRewardable{})
 	_typesTypes[IdolID] = reflect.TypeOf(idol{})
 	_typesTypes[PartyIdolID] = reflect.TypeOf(partyIdol{})
+	_typesTypes[HouseInformationsID] = reflect.TypeOf(houseInformations{})
+	_typesTypes[AccountHouseInformationsID] = reflect.TypeOf(accountHouseInformations{})
+	_typesTypes[HouseInformationsInsideID] = reflect.TypeOf(houseInformationsInside{})
+	_typesTypes[HouseInformationsForGuildID] = reflect.TypeOf(houseInformationsForGuild{})
+	_typesTypes[HouseOnMapInformationsID] = reflect.TypeOf(houseOnMapInformations{})
+	_typesTypes[HouseInstanceInformationsID] = reflect.TypeOf(houseInstanceInformations{})
+	_typesTypes[HouseGuildedInformationsID] = reflect.TypeOf(houseGuildedInformations{})
 
 	return _typesTypes
 }
