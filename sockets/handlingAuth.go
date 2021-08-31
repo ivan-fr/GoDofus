@@ -22,12 +22,12 @@ func handlingAuth(writeInMyClientChan, writeToOfficialServerChan chan []byte, my
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)
 
-				go sendChanMsg(writeInMyClientChan, msg, true, instance)
+				sendChanMsg(writeInMyClientChan, msg, true, instance)
 
 				fmt.Println("======= GO Identification =======")
 				idMessage := messages.Types_[messages.IdentificationID].GetNOA(instance).(*messages.Identification)
 				idMessage.InitIdentificationMessage()
-				go sendChanMsg(writeToOfficialServerChan, idMessage, false, instance)
+				sendChanMsg(writeToOfficialServerChan, idMessage, false, instance)
 			case messages.SelectedServerDataExtendedID:
 				msg := messages.Types_[int(weft.PackId)].GetNOA(instance)
 				msg.Deserialize(bytes.NewReader(weft.Message))
@@ -42,11 +42,12 @@ func handlingAuth(writeInMyClientChan, writeToOfficialServerChan chan []byte, my
 					msg = msg.GetNOA(instance)
 					msg.Deserialize(bytes.NewReader(weft.Message))
 					fmt.Println(msg)
-					go sendChanMsg(writeInMyClientChan, msg, true, instance)
+					sendChanMsg(writeInMyClientChan, msg, true, instance)
 					continue
 				}
 
-				fmt.Printf("Client: Instance n°%d there is no traitment for %d ID\n", instance, weft.PackId)
+				sendChanWeft(writeInMyClientChan, weft, true, instance)
+				fmt.Printf("Client: Instance n°%d there is no traitment for %d ID\nNatural Weft sended.\n", instance, weft.PackId)
 			}
 		}
 	}
