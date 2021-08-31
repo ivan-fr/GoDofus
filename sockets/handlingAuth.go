@@ -1,7 +1,6 @@
 package sockets
 
 import (
-	"GoDofus/managers"
 	"GoDofus/messages"
 	"GoDofus/pack"
 	"bytes"
@@ -26,11 +25,9 @@ func handlingAuth(writeInMyClientChan, writeToOfficialServerChan chan messages.M
 				go sendChanMsg(writeInMyClientChan, msg)
 
 				fmt.Println("======= GO Identification =======")
-				mAuth := managers.GetAuthentificationManager(instance)
-				mAuth.InitIdentificationMessage()
-
-				authMessage := messages.Types_[messages.IdentificationID].GetNOA(instance)
-				go sendChanMsg(writeToOfficialServerChan, authMessage)
+				idMessage := messages.Types_[messages.IdentificationID].GetNOA(instance).(*messages.Identification)
+				idMessage.InitIdentificationMessage()
+				go sendChanMsg(writeToOfficialServerChan, idMessage)
 			case messages.SelectedServerDataExtendedID:
 				msg := messages.Types_[int(weft.PackId)].GetNOA(instance)
 				msg.Deserialize(bytes.NewReader(weft.Message))

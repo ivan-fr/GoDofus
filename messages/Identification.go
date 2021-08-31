@@ -1,9 +1,15 @@
 package messages
 
 import (
+	"GoDofus/managers"
+	"GoDofus/structs"
 	"GoDofus/utils"
 	"bytes"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/base64"
 	"encoding/binary"
+	"encoding/pem"
 	"fmt"
 )
 
@@ -18,7 +24,12 @@ type Identification struct {
 	UseLoginToken       bool
 	SessionOptionalSalt float64
 	FailedAttempts      []uint32
+	instance            uint
 }
+
+var publicVerifyPem = utils.ReadRSA("./binaryData/verify_key.bin")
+var blockVerify = utils.DecodePem(publicVerifyPem)
+var publicKeyVerify = utils.PublicKeyOf(blockVerify)
 
 var identificationMap = make(map[uint]*Identification)
 
@@ -30,7 +41,7 @@ func (id *Identification) GetNOA(instance uint) Message {
 	}
 
 	identificationMap[instance] = &Identification{PacketId: IdentificationID, Version: new(version),
-		UseCertificate: false, UseLoginToken: false, ServerId: 0}
+		UseCertificate: false, UseLoginToken: false, ServerId: 0, instance: instance}
 	return identificationMap[instance]
 }
 
@@ -88,6 +99,72 @@ func (id *Identification) Deserialize(reader *bytes.Reader) {
 
 func (id *Identification) GetPacketId() uint32 {
 	return id.PacketId
+}
+
+func (id *Identification) InitIdentificationMessage() {
+	idManager := managers.GetAuthentificationManager(id.instance)
+	idManager.InitLoginAction()
+
+	id.Lang = idManager.Lang
+	id.AutoSelectServer = idManager.LA.AutoSelectServer
+
+	currentVersion := structs.GetVersionNOA()
+	id.Version.Major = currentVersion.Major
+	id.Version.Minor = currentVersion.Minor
+	id.Version.Code = currentVersion.Code
+	id.Version.Build = currentVersion.Build
+	id.Version.BuildType = currentVersion.BuildType
+
+	id.Credentials = idManager.GetCipher(id.getPublicKey(), id.getSalt())
+}
+
+func (id *Identification) getPublicKey() *rsa.PublicKey {
+	idManager := managers.GetAuthentificationManager(id.instance)
+
+	hc := Types_[HelloConnectID].GetNOA(id.instance).(*HelloConnect)
+
+	if idManager.PublicKey != nil && bytes.Compare(hc.Salt, idManager.Salt) == 0 {
+		return idManager.PublicKey
+	}
+
+	if hc.Key == nil {
+		panic("helloMessage wasn't call")
+	}
+
+	publicKey := utils.RsaPublicDecrypt(publicKeyVerify, hc.Key)
+
+	pki := fmt.Sprintf("-----BEGIN PUBLIC KEY-----\n%s\n-----END PUBLIC KEY-----",
+		base64.StdEncoding.EncodeToString(publicKey))
+
+	publicKeyPem, _ := pem.Decode([]byte(pki))
+
+	pkiX, err := x509.ParsePKIXPublicKey(publicKeyPem.Bytes)
+	if err != nil {
+		panic(err)
+	}
+
+	idManager.PublicKey = pkiX.(*rsa.PublicKey)
+	return idManager.PublicKey
+}
+
+func (id *Identification) getSalt() []byte {
+	idManager := managers.GetAuthentificationManager(id.instance)
+
+	hc := Types_[HelloConnectID].GetNOA(id.instance).(*HelloConnect)
+	if hc.Salt == nil {
+		panic("helloMessage wasn't call")
+	}
+
+	mySalt := hc.Salt
+	idManager.Salt = hc.Salt
+
+	if len(mySalt) < 32 {
+		for len(mySalt) < 32 {
+			mySalt = append(mySalt, byte(' '))
+		}
+	}
+
+	return mySalt
 }
 
 func (id *Identification) String() string {
