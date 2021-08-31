@@ -195,7 +195,20 @@ func factoryServerClientToOfficial(myConnServer net.Conn,
 	}(myConnServer)
 
 	myWeftChan := make(chan *pack.Weft)
+	myPipelineChan := make(chan bool)
 	go callBack(myWeftChan)
+	go func(pipelineChan chan bool) {
+		for weft := myPipeline.Get(); ; weft = myPipeline.Get() {
+			select {
+			case <-pipelineChan:
+				return
+			default:
+				if weft != nil {
+					myWeftChan <- weft
+				}
+			}
+		}
+	}(myPipelineChan)
 
 	myLecture := make([]byte, 256)
 
@@ -219,13 +232,10 @@ func factoryServerClientToOfficial(myConnServer net.Conn,
 		}
 
 		_ = myReadServer(myLecture[:n])
-
-		for weft := myPipeline.Get(); weft != nil; weft = myPipeline.Get() {
-			myWeftChan <- weft
-		}
 	}
 
 	myWeftChan <- nil
+	myPipelineChan <- false
 	log.Printf("Dial: server official lost from instance n°%d !\n", instance)
 }
 
@@ -299,9 +309,24 @@ func launchServerForMyClientSocket(wg *sync.WaitGroup, myConnToMyClient net.Conn
 	myReadClient, myPipeline := pack.NewClientReader()
 
 	myWeftChan := make(chan *pack.Weft)
-	go callBack(myWeftChan)
+	myPipelineChan := make(chan bool)
 
-	lecture := make([]byte, 256)
+	go callBack(myWeftChan)
+	go func(pipelineChan chan bool) {
+		for weft := myPipeline.Get(); ; weft = myPipeline.Get() {
+			select {
+			case <-pipelineChan:
+				return
+			default:
+				if weft != nil {
+					myWeftChan <- weft
+				}
+			}
+		}
+	}(myPipelineChan)
+
+	myLecture := make([]byte, 256)
+
 	next := true
 	for next {
 		select {
@@ -310,21 +335,21 @@ func launchServerForMyClientSocket(wg *sync.WaitGroup, myConnToMyClient net.Conn
 		}
 
 		_ = myConnToMyClient.SetReadDeadline(time.Now().Add(time.Second * 5))
-		n, err := myConnToMyClient.Read(lecture)
+		n, err := myConnToMyClient.Read(myLecture)
 		if netErr, ok := err.(net.Error); ok {
 			if !netErr.Timeout() {
 				panic(netErr)
 			}
 		}
 
-		if n > 0 {
-			_ = myReadClient(lecture[:n])
-			for weft := myPipeline.Get(); weft != nil; weft = myPipeline.Get() {
-				myWeftChan <- weft
-			}
+		if n == 0 {
+			continue
 		}
+
+		_ = myReadClient(myLecture[:n])
 	}
 
 	myWeftChan <- nil
+	myPipelineChan <- false
 	log.Printf("Listener: Go client lost from instance n°%d !\n", instance)
 }

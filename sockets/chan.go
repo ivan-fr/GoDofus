@@ -6,11 +6,9 @@ import (
 )
 
 func sendChanMsg(channel chan []byte, msg messages.Message, toClient bool, instance uint) {
-	packer := pack.Write(msg, toClient, instance)
-	channel <- packer
+	channel <- pack.Write(msg, toClient, instance)
 }
 
 func sendChanWeft(channel chan []byte, msg *pack.Weft, toClient bool, instance uint) {
-	packer := pack.WriteWeft(msg, toClient, instance)
-	channel <- packer
+	channel <- pack.WriteWeft(msg, toClient, instance)
 }
