@@ -11,39 +11,39 @@ import (
 	"fmt"
 )
 
-type currentMap struct {
+type CurrentMap struct {
 	PacketId uint32
-	mapId    float64
+	MapId    float64
 	mapKey   []byte
 }
 
-var currentMapMap = make(map[uint]*currentMap)
+var currentMapMap = make(map[uint]*CurrentMap)
 
-func (cu *currentMap) GetNOA(instance uint) Message {
+func (cu *CurrentMap) GetNOA(instance uint) Message {
 	currentMap_, ok := currentMapMap[instance]
 
 	if ok {
 		return currentMap_
 	}
 
-	currentMapMap[instance] = &currentMap{PacketId: CurrentMapID}
+	currentMapMap[instance] = &CurrentMap{PacketId: CurrentMapID}
 	return currentMapMap[instance]
 }
 
-func (cu *currentMap) Serialize(buff *bytes.Buffer) {
-	_ = binary.Write(buff, binary.BigEndian, cu.mapId)
+func (cu *CurrentMap) Serialize(buff *bytes.Buffer) {
+	_ = binary.Write(buff, binary.BigEndian, cu.MapId)
 	utils.WriteUTF(buff, cu.mapKey)
 }
 
-func (cu *currentMap) Deserialize(reader *bytes.Reader) {
-	_ = binary.Read(reader, binary.BigEndian, &cu.mapId)
+func (cu *CurrentMap) Deserialize(reader *bytes.Reader) {
+	_ = binary.Read(reader, binary.BigEndian, &cu.MapId)
 	cu.mapKey = utils.ReadUTF(reader)
 }
 
-func (cu *currentMap) GetPacketId() uint32 {
+func (cu *CurrentMap) GetPacketId() uint32 {
 	return cu.PacketId
 }
 
-func (cu *currentMap) String() string {
+func (cu *CurrentMap) String() string {
 	return fmt.Sprintf("packetId: %d\n", cu.PacketId)
 }
