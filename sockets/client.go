@@ -14,7 +14,7 @@ import (
 func GoSocket() {
 	instanceChan := make(chan uint)
 	connToMyClientChanChan := make(chan chan net.Conn)
-	writeTChanChan := make(chan [2]chan messages.Message)
+	writeTChanChan := make(chan [2]chan []byte)
 
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -34,7 +34,7 @@ func getRAddr() *net.TCPAddr {
 	return rAddr
 }
 
-func channelWriter(aChanMessage chan messages.Message, aChanConnexion chan net.Conn, toClient bool, instance uint) {
+func channelWriter(aChanMessage chan []byte, aChanConnexion chan net.Conn, instance uint) {
 	aConn := <-aChanConnexion
 
 	for {
@@ -45,7 +45,7 @@ func channelWriter(aChanMessage chan messages.Message, aChanConnexion chan net.C
 				log.Printf("Writer instance n°%d updated\n", instance)
 			}
 
-			_, err := aConn.Write(pack.Write(msg, toClient, instance))
+			_, err := aConn.Write(msg)
 			if _, ok := err.(net.Error); ok {
 				break
 			}
@@ -58,7 +58,7 @@ func channelWriter(aChanMessage chan messages.Message, aChanConnexion chan net.C
 func loginListener(wg *sync.WaitGroup,
 	instanceChan chan uint,
 	connToMyClientChanChan chan chan net.Conn,
-	writeTChanChan chan [2]chan messages.Message) {
+	writeTChanChan chan [2]chan []byte) {
 	defer wg.Done()
 
 	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", settings.Settings.LocalAddress, settings.Settings.LocalLoginPort))
@@ -88,13 +88,13 @@ func loginListener(wg *sync.WaitGroup,
 			myConnToMyClientChan := make(chan net.Conn)
 			myConnToOfficialChan := make(chan net.Conn)
 
-			writeInMyClientChan := make(chan messages.Message)
-			writeToOfficialServerChan := make(chan messages.Message)
+			writeInMyClientChan := make(chan []byte)
+			writeToOfficialServerChan := make(chan []byte)
 
 			myClientContinueChan := make(chan bool)
 			officialServerContinueChan := make(chan bool)
 
-			go channelWriter(writeInMyClientChan, myConnToMyClientChan, true, instance)
+			go channelWriter(writeInMyClientChan, myConnToMyClientChan, instance)
 			myConnToMyClientChan <- myConnToMyClient
 
 			go func() {
@@ -120,7 +120,7 @@ func loginListener(wg *sync.WaitGroup,
 
 				instanceChan <- instance
 				connToMyClientChanChan <- myConnToMyClientChan
-				writeTChanChan <- [2]chan messages.Message{writeInMyClientChan, writeToOfficialServerChan}
+				writeTChanChan <- [2]chan []byte{writeInMyClientChan, writeToOfficialServerChan}
 			}()
 		}()
 	}
@@ -129,7 +129,7 @@ func loginListener(wg *sync.WaitGroup,
 func gameListener(wg *sync.WaitGroup,
 	instanceChan chan uint,
 	connToMyClientChanChan chan chan net.Conn,
-	writeTChanChan chan [2]chan messages.Message) {
+	writeTChanChan chan [2]chan []byte) {
 	defer wg.Done()
 
 	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", settings.Settings.LocalAddress, settings.Settings.LocalGamePort))
@@ -256,7 +256,7 @@ func launchGameClientToOfficialSocket(wg *sync.WaitGroup,
 }
 
 func launchLoginClientToOfficialSocket(wg *sync.WaitGroup,
-	writeToOfficialServerChan chan messages.Message,
+	writeToOfficialServerChan chan []byte,
 	officialServerContinueChan chan bool,
 	callBack func(chan *pack.Weft),
 	instance uint, myConnToOfficialChan chan net.Conn) {
@@ -278,7 +278,7 @@ func launchLoginClientToOfficialSocket(wg *sync.WaitGroup,
 		log.Printf("Connexion to official server LOGIN for instance n°%d OK.\n", instance)
 	}
 
-	go channelWriter(writeToOfficialServerChan, myConnToOfficialChan, false, instance)
+	go channelWriter(writeToOfficialServerChan, myConnToOfficialChan, instance)
 	myConnToOfficialChan <- myConnServer
 
 	factoryServerClientToOfficial(myConnServer, myReadServer, myPipeline, officialServerContinueChan, callBack, instance)

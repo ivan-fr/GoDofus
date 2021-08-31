@@ -1,11 +1,13 @@
 package sockets
 
-import "GoDofus/messages"
+import (
+	"GoDofus/messages"
+	"GoDofus/pack"
+)
 
-func sendChanMsg(channel chan messages.Message, msg messages.Message) {
-	channel <- msg
-}
-
-func sendChanBool(channel chan bool, b bool) {
-	channel <- b
+func sendChanMsg(channel chan []byte, msg messages.Message, toClient bool, instance uint) {
+	packer := pack.Write(msg, toClient, instance)
+	go func() {
+		channel <- packer
+	}()
 }

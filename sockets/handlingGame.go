@@ -7,7 +7,7 @@ import (
 	"fmt"
 )
 
-func handlingGame(writeInMyClientChan, writeToOfficialServerChan chan messages.Message, myClientContinueChan, officialServerContinueChan chan bool, instance uint) func(chan *pack.Weft) {
+func handlingGame(writeInMyClientChan, writeToOfficialServerChan chan []byte, myClientContinueChan, officialServerContinueChan chan bool, instance uint) func(chan *pack.Weft) {
 	return func(weftChan chan *pack.Weft) {
 		for {
 			weft := <-weftChan
@@ -23,7 +23,7 @@ func handlingGame(writeInMyClientChan, writeToOfficialServerChan chan messages.M
 					msg = msg.GetNOA(instance)
 					msg.Deserialize(bytes.NewReader(weft.Message))
 					fmt.Println(msg)
-					go sendChanMsg(writeInMyClientChan, msg)
+					go sendChanMsg(writeInMyClientChan, msg, true, instance)
 					continue
 				}
 				fmt.Printf("Client: Instance n°%d there is no traitment for %d ID\n", instance, weft.PackId)
