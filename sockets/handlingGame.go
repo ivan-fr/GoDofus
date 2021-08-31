@@ -28,7 +28,6 @@ func handlingGame(writeInMyClientChan, writeToOfficialServerChan chan []byte, my
 				}
 
 				sendChanWeft(writeInMyClientChan, weft, true, instance)
-				fmt.Printf("Client: Instance n°%d there is no traitment for %d ID\nNatural Weft sended.\n", instance, weft.PackId)
 			}
 		}
 	}

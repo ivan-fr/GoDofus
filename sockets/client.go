@@ -45,11 +45,7 @@ func channelWriter(aChanMessage chan []byte, aChanConnexion chan net.Conn, insta
 				log.Printf("Writer instance n°%d updated\n", instance)
 			}
 
-			err := aConn.SetWriteDeadline(time.Now().Add(time.Second * 5))
-			if err != nil {
-				panic(err)
-			}
-			_, err = aConn.Write(msg)
+			_, err := aConn.Write(msg)
 			if netErr, ok := err.(net.Error); ok {
 				if !netErr.Timeout() {
 					panic(netErr)
@@ -219,7 +215,7 @@ func factoryServerClientToOfficial(myConnServer net.Conn,
 		default:
 		}
 
-		_ = myConnServer.SetReadDeadline(time.Now().Add(time.Second * 5))
+		_ = myConnServer.SetReadDeadline(time.Now().Add(time.Microsecond * 500))
 		n, err := myConnServer.Read(myLecture)
 		if netErr, ok := err.(net.Error); ok {
 			if !netErr.Timeout() {
@@ -334,7 +330,7 @@ func launchServerForMyClientSocket(wg *sync.WaitGroup, myConnToMyClient net.Conn
 		default:
 		}
 
-		_ = myConnToMyClient.SetReadDeadline(time.Now().Add(time.Second * 5))
+		_ = myConnToMyClient.SetReadDeadline(time.Now().Add(time.Microsecond * 500))
 		n, err := myConnToMyClient.Read(myLecture)
 		if netErr, ok := err.(net.Error); ok {
 			if !netErr.Timeout() {

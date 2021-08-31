@@ -29,9 +29,7 @@ func WriteWeft(weft *Weft, toClient bool, instance uint) []byte {
 	packetId := weft.PackId
 
 	defer func() {
-		if toClient {
-			fmt.Printf("Instance n°%d: write to the client %d...\n", instance, packetId)
-		} else {
+		if !toClient {
 			fmt.Printf("Instance n°%d: write to the official server %d...\n", instance, packetId)
 		}
 	}()
@@ -80,9 +78,7 @@ func Write(message messages.Message, toClient bool, instance uint) []byte {
 	packetId := uint16(message.GetPacketId())
 
 	defer func() {
-		if toClient {
-			fmt.Printf("Instance n°%d: write to the client %d...\n", instance, packetId)
-		} else {
+		if !toClient {
 			fmt.Printf("Instance n°%d: write to the official server %d...\n", instance, packetId)
 		}
 	}()
