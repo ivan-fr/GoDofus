@@ -21,8 +21,8 @@ func handlingGame(writeInMyClientChan, writeToOfficialServerChan chan []byte, my
 
 				if ok {
 					msg = msg.GetNOA(instance)
-					msg.Deserialize(bytes.NewReader(weft.Message))
 					fmt.Println(msg)
+					msg.Deserialize(bytes.NewReader(weft.Message))
 					sendChanMsg(writeInMyClientChan, msg, true, instance)
 					continue
 				}

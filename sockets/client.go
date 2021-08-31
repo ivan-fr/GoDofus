@@ -306,7 +306,7 @@ func launchServerForMyClientSocket(wg *sync.WaitGroup, myConnToMyClient net.Conn
 		n, err := myConnToMyClient.Read(lecture)
 		if netErr, ok := err.(net.Error); ok {
 			if !netErr.Timeout() {
-				break
+				panic(netErr)
 			}
 		}
 

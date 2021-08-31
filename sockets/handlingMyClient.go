@@ -19,7 +19,7 @@ func handlingMyClient(writeInMyClientChan, writeToOfficialServerChan chan []byte
 			switch weft.PackId {
 			case messages.IdentificationID:
 				continue
-			case messages.CharactersListRequestID, messages.AuthenticationTicketID, messages.HaapiApiKeyRequestID:
+			case messages.AuthenticationTicketID:
 				msg := messages.Types_[int(weft.PackId)].GetNOA(instance)
 				sendChanMsg(writeToOfficialServerChan, msg, false, instance)
 			default:
