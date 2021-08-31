@@ -8,6 +8,8 @@ import (
 	"GoDofus/settings"
 	"GoDofus/utils"
 	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
 	"encoding/binary"
 	"fmt"
 )
@@ -20,6 +22,7 @@ type selectedServerData struct {
 	Ports                 []int32
 	canCreateNewCharacter bool
 	ticket                []byte
+	instance              uint
 }
 
 var selectedServerDataMap = make(map[uint]*selectedServerData)
@@ -31,7 +34,7 @@ func (s *selectedServerData) GetNOA(instance uint) Message {
 		return selectedServerData_
 	}
 
-	selectedServerDataMap[instance] = &selectedServerData{PacketId: SelectedServerDataID}
+	selectedServerDataMap[instance] = &selectedServerData{PacketId: SelectedServerDataID, instance: instance}
 	return selectedServerDataMap[instance]
 }
 
@@ -46,8 +49,26 @@ func (s *selectedServerData) Serialize(buff *bytes.Buffer) {
 
 	_ = binary.Write(buff, binary.BigEndian, s.canCreateNewCharacter)
 
-	reader := bytes.NewReader(s.ticket)
-	theTicket := utils.DecryptV(reader)
+	id := Types_[int(IdentificationID)].GetNOA(s.instance).(*Identification)
+	theTicket := s.ticket
+	aesKey := id.AesKEY_
+
+	block, err := aes.NewCipher(aesKey)
+	if err != nil {
+		panic(err)
+	}
+
+	if len(theTicket) < aes.BlockSize {
+		panic("ciphertext too short")
+	}
+	iv := aesKey[:aes.BlockSize]
+
+	if len(theTicket)%aes.BlockSize != 0 {
+		panic("ciphertext is not a multiple of the block size")
+	}
+
+	mode := cipher.NewCBCDecrypter(block, iv)
+	mode.CryptBlocks(theTicket, theTicket)
 
 	utils.WriteVarInt32(buff, int32(len(theTicket)))
 	_ = binary.Write(buff, binary.BigEndian, theTicket)
