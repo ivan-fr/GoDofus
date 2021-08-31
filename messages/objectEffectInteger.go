@@ -37,7 +37,7 @@ func (o *objectEffectInteger) Serialize(buff *bytes.Buffer) {
 func (o *objectEffectInteger) Deserialize(reader *bytes.Reader) {
 	o.oE = new(objectEffect)
 	o.oE.Deserialize(reader)
-	utils.ReadVarInt32(reader)
+	o.value = utils.ReadVarInt32(reader)
 }
 
 func (o *objectEffectInteger) GetPacketId() uint32 {

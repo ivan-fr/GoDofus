@@ -16,7 +16,6 @@ var Types_ = map[int]Message{
 	ItemID:                              &item{},
 	ItemForPresetID:                     &itemForPreset{},
 	ItemWrapperID:                       &itemWrapper{},
-	ItemsPresetID:                       &itemsPreset{},
 	ObjectEffectID:                      &objectEffect{},
 	ObjectEffectCreatureID:              &objectEffectCreature{},
 	ObjectEffectDateID:                  &objectEffectDate{},

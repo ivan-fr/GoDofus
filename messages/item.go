@@ -37,7 +37,6 @@ func getProtocolType() map[uint16]reflect.Type {
 	_typesTypes[ObjectEffectDiceID] = reflect.TypeOf(objectEffectDice{})
 	_typesTypes[ObjectEffectDateID] = reflect.TypeOf(objectEffectDate{})
 	_typesTypes[ObjectEffectMountID] = reflect.TypeOf(objectEffectMount{})
-	_typesTypes[ItemsPresetID] = reflect.TypeOf(itemsPreset{})
 
 	return _typesTypes
 }
