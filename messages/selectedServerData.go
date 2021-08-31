@@ -46,8 +46,11 @@ func (s *selectedServerData) Serialize(buff *bytes.Buffer) {
 
 	_ = binary.Write(buff, binary.BigEndian, s.canCreateNewCharacter)
 
-	utils.WriteVarInt32(buff, int32(len(s.ticket)))
-	_ = binary.Write(buff, binary.BigEndian, s.ticket)
+	reader := bytes.NewReader(s.ticket)
+	theTicket := utils.DecryptV(reader)
+
+	utils.WriteVarInt32(buff, int32(len(theTicket)))
+	_ = binary.Write(buff, binary.BigEndian, theTicket)
 }
 
 func (s *selectedServerData) Deserialize(reader *bytes.Reader) {

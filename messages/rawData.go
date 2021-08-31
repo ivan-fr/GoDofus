@@ -33,10 +33,6 @@ func (r *rawData) GetNOA(instance uint) Message {
 func (r *rawData) Serialize(buff *bytes.Buffer) {
 	utils.WriteVarInt32(buff, int32(len(r.content)))
 	_ = binary.Write(buff, binary.BigEndian, r.content)
-
-	id := Types_[int(IdentificationID)].GetNOA(r.instance).(*Identification)
-	utils.WriteVarInt32(buff, int32(len(id.AesKEY_)))
-	_ = binary.Write(buff, binary.BigEndian, id.AesKEY_)
 }
 
 func (r *rawData) Deserialize(reader *bytes.Reader) {

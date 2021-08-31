@@ -52,6 +52,7 @@ func channelWriter(aChanMessage chan messages.Message, aChanConnexion chan net.C
 				aConn = <-aChanConnexion
 				log.Printf("Writer instance n°%d updated\n", instance)
 			}
+
 			_, err := aConn.Write(pack.Write(msg, toClient, instance))
 			if _, ok := err.(net.Error); ok {
 				break
@@ -197,7 +198,7 @@ func factoryServerClientToOfficial(myConnServer net.Conn,
 	myWeftChan := make(chan *pack.Weft)
 	go callBack(myWeftChan)
 
-	myLecture := make([]byte, 1024)
+	myLecture := make([]byte, 256)
 
 	next := true
 	for next {
@@ -217,7 +218,6 @@ func factoryServerClientToOfficial(myConnServer net.Conn,
 		if n == 0 {
 			continue
 		}
-		log.Printf("Dial: server official from instance n°%d: read %d octets\n", instance, n)
 
 		_ = myReadServer(myLecture[:n])
 
@@ -302,7 +302,7 @@ func launchServerForMyClientSocket(wg *sync.WaitGroup, myConnToMyClient net.Conn
 	myWeftChan := make(chan *pack.Weft)
 	go callBack(myWeftChan)
 
-	lecture := make([]byte, 1024)
+	lecture := make([]byte, 256)
 	next := true
 	for next {
 		select {
