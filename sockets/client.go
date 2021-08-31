@@ -1,7 +1,6 @@
 package sockets
 
 import (
-	"GoDofus/commands"
 	"GoDofus/messages"
 	"GoDofus/pack"
 	"GoDofus/settings"
@@ -100,43 +99,6 @@ func loginListener(wg *sync.WaitGroup,
 
 			go channelWriter(writeInMyClientChan, myConnToMyClientChan, instance)
 			myConnToMyClientChan <- myConnToMyClient
-
-			go func() {
-				for {
-					currentMap := messages.Types_[messages.CurrentMapID].GetNOA(instance).(*messages.CurrentMap)
-					move := commands.Move{MapId: currentMap.MapId}
-					move.SetFromMapId()
-
-					var aCommand string
-					fmt.Println("Command!")
-					_, err := fmt.Scanln(&aCommand)
-					if err != nil {
-						continue
-					}
-					switch aCommand {
-					case "d":
-						move.X += 1
-					case "q":
-						move.X -= 1
-					case "s":
-						move.Y += 1
-					case "z":
-						move.Y -= 1
-					default:
-						continue
-					}
-
-					if move.SetFromCoords() {
-						msg := messages.Types_[messages.ChangeMapID].GetNOA(instance).(*messages.ChangeMap)
-						msg.MapId = move.MapId
-						sendChanMsg(writeToOfficialServerChan, msg, false, instance)
-						time.Sleep(time.Millisecond * 400)
-						msg2 := messages.Types_[messages.MapInformationsRequestID].GetNOA(instance).(*messages.MapInformationsRequest)
-						msg2.MapId = move.MapId
-						sendChanMsg(writeToOfficialServerChan, msg2, false, instance)
-					}
-				}
-			}()
 
 			go func() {
 				var myWg sync.WaitGroup
