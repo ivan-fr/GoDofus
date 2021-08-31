@@ -21,7 +21,7 @@ func handlingMyClient(writeInMyClientChan, writeToOfficialServerChan chan messag
 				continue
 			case messages.CharactersListRequestID, messages.AuthenticationTicketID, messages.HaapiApiKeyRequestID:
 				msg := messages.Types_[int(weft.PackId)].GetNOA(instance)
-				writeToOfficialServerChan <- msg
+				go sendChanMsg(writeToOfficialServerChan, msg)
 			default:
 				msg, ok := messages.Types_[int(weft.PackId)]
 
@@ -29,7 +29,7 @@ func handlingMyClient(writeInMyClientChan, writeToOfficialServerChan chan messag
 					msg = msg.GetNOA(instance)
 					msg.Deserialize(bytes.NewReader(weft.Message))
 					fmt.Println(msg)
-					writeToOfficialServerChan <- msg
+					go sendChanMsg(writeToOfficialServerChan, msg)
 					continue
 				}
 				fmt.Printf("Listener: Instance n°%d there is no traitment for %d ID\n", instance, weft.PackId)
