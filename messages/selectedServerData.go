@@ -51,8 +51,11 @@ func (s *selectedServerData) Serialize(buff *bytes.Buffer) {
 	_ = binary.Write(buff, binary.BigEndian, s.canCreateNewCharacter)
 
 	idManager := managers.GetAuthentificationManager(s.instance)
-	theTicket := s.ticket[:]
-	aesKey := idManager.AESKey[:]
+	theTicket := make([]byte, len(s.ticket))
+	copy(theTicket, s.ticket)
+
+	aesKey := make([]byte, 32)
+	copy(aesKey, idManager.AESKey)
 
 	block, err := aes.NewCipher(aesKey)
 	if err != nil {

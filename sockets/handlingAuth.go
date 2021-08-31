@@ -32,9 +32,9 @@ func handlingAuth(writeInMyClientChan, writeToOfficialServerChan chan messages.M
 				msg := messages.Types_[int(weft.PackId)].GetNOA(instance)
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)
-				go sendChanMsg(writeInMyClientChan, msg)
-				go sendChanBool(myClientContinueChan, false)
-				go sendChanBool(officialServerContinueChan, false)
+				writeInMyClientChan <- msg
+				myClientContinueChan <- false
+				officialServerContinueChan <- false
 			default:
 				msg, ok := messages.Types_[int(weft.PackId)]
 
