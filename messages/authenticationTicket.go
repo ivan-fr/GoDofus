@@ -5,6 +5,7 @@
 package messages
 
 import (
+	"GoDofus/managers"
 	"GoDofus/utils"
 	"bytes"
 	"crypto/aes"
@@ -31,9 +32,9 @@ func (a *authenticationTicket) GetNOA(instance uint) Message {
 }
 
 func (a *authenticationTicket) Serialize(buff *bytes.Buffer) {
-	id := Types_[int(IdentificationID)].GetNOA(a.instance).(*Identification)
-	ticket := Types_[int(SelectedServerDataExtendedID)].GetNOA(a.instance).(*SelectedServerDataExtended).SSD.ticket
-	aesKey := id.AesKEY_
+	idManager := managers.GetAuthentificationManager(a.instance)
+	ticket := Types_[int(SelectedServerDataExtendedID)].GetNOA(a.instance).(*SelectedServerDataExtended).SSD.ticket[:]
+	aesKey := idManager.AESKey[:]
 
 	block, err := aes.NewCipher(aesKey)
 	if err != nil {
@@ -52,7 +53,7 @@ func (a *authenticationTicket) Serialize(buff *bytes.Buffer) {
 	mode := cipher.NewCBCDecrypter(block, iv)
 	mode.CryptBlocks(ticket, ticket)
 
-	utils.WriteUTF(buff, id.Lang)
+	utils.WriteUTF(buff, idManager.Lang)
 	utils.WriteUTF(buff, ticket)
 }
 

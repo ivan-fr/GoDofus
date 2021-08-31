@@ -5,6 +5,7 @@
 package messages
 
 import (
+	"GoDofus/managers"
 	"GoDofus/settings"
 	"GoDofus/utils"
 	"bytes"
@@ -49,9 +50,9 @@ func (s *selectedServerData) Serialize(buff *bytes.Buffer) {
 
 	_ = binary.Write(buff, binary.BigEndian, s.canCreateNewCharacter)
 
-	id := Types_[int(IdentificationID)].GetNOA(s.instance).(*Identification)
-	theTicket := s.ticket
-	aesKey := id.AesKEY_
+	idManager := managers.GetAuthentificationManager(s.instance)
+	theTicket := s.ticket[:]
+	aesKey := idManager.AESKey[:]
 
 	block, err := aes.NewCipher(aesKey)
 	if err != nil {

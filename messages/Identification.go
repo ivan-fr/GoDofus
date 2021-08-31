@@ -18,7 +18,6 @@ type Identification struct {
 	UseLoginToken       bool
 	SessionOptionalSalt float64
 	FailedAttempts      []uint32
-	AesKEY_             []byte
 }
 
 var identificationMap = make(map[uint]*Identification)

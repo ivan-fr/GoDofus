@@ -23,14 +23,14 @@ func handlingAuth(writeInMyClientChan, writeToOfficialServerChan chan messages.M
 				msg.Deserialize(bytes.NewReader(weft.Message))
 				fmt.Println(msg)
 
-				writeInMyClientChan <- msg
+				go sendChanMsg(writeInMyClientChan, msg)
 
 				fmt.Println("======= GO Identification =======")
 				mAuth := managers.GetAuthentificationManager(instance)
 				mAuth.InitIdentificationMessage()
 
 				authMessage := messages.Types_[messages.IdentificationID].GetNOA(instance)
-				writeToOfficialServerChan <- authMessage
+				go sendChanMsg(writeToOfficialServerChan, authMessage)
 			case messages.SelectedServerDataExtendedID:
 				msg := messages.Types_[int(weft.PackId)].GetNOA(instance)
 				msg.Deserialize(bytes.NewReader(weft.Message))

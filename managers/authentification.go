@@ -28,7 +28,7 @@ type loginAction struct {
 type Authentification struct {
 	AESKey    []byte
 	lA        *loginAction
-	lang      []byte
+	Lang      []byte
 	publicKey *rsa.PublicKey
 	salt      []byte
 	instance  uint
@@ -49,7 +49,7 @@ func GetAuthentificationManager(instance uint) *Authentification {
 		return authentificationMap_
 	}
 
-	authentificationMap[instance] = &Authentification{AESKey: generateAESKey(), lang: []byte("fr"), instance: instance}
+	authentificationMap[instance] = &Authentification{AESKey: generateAESKey(), Lang: []byte("fr"), instance: instance}
 	return authentificationMap[instance]
 }
 
@@ -82,10 +82,7 @@ func (a *Authentification) InitIdentificationMessage() {
 	a.initLoginAction()
 	identification := messages.Types_[int(messages.IdentificationID)].GetNOA(a.instance).(*messages.Identification)
 
-	identification.AesKEY_ = make([]byte, len(a.AESKey))
-	copy(identification.AesKEY_, a.AESKey)
-
-	identification.Lang = a.lang
+	identification.Lang = a.Lang
 	identification.AutoSelectServer = a.lA.autoSelectServer
 
 	currentVersion := structs.GetVersionNOA()
