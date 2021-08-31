@@ -4,7 +4,6 @@ import (
 	"GoDofus/messages"
 	"GoDofus/pack"
 	"bytes"
-	"fmt"
 )
 
 func handlingAuth(writeInMyClientChan, writeToOfficialServerChan chan []byte, myClientContinueChan, officialServerContinueChan chan bool, instance uint) func(chan *pack.Weft) {
@@ -20,18 +19,13 @@ func handlingAuth(writeInMyClientChan, writeToOfficialServerChan chan []byte, my
 			case messages.HelloConnectID:
 				msg := messages.Types_[int(weft.PackId)].GetNOA(instance)
 				msg.Deserialize(bytes.NewReader(weft.Message))
-				fmt.Println(msg)
-
 				sendChanMsg(writeInMyClientChan, msg, true, instance)
-
-				fmt.Println("======= GO Identification =======")
 				idMessage := messages.Types_[messages.IdentificationID].GetNOA(instance).(*messages.Identification)
 				idMessage.InitIdentificationMessage()
 				sendChanMsg(writeToOfficialServerChan, idMessage, false, instance)
 			case messages.SelectedServerDataExtendedID:
 				msg := messages.Types_[int(weft.PackId)].GetNOA(instance)
 				msg.Deserialize(bytes.NewReader(weft.Message))
-				fmt.Println(msg)
 				writeInMyClientChan <- pack.Write(msg, true, instance)
 				myClientContinueChan <- false
 				officialServerContinueChan <- false
@@ -41,7 +35,6 @@ func handlingAuth(writeInMyClientChan, writeToOfficialServerChan chan []byte, my
 				if ok {
 					msg = msg.GetNOA(instance)
 					msg.Deserialize(bytes.NewReader(weft.Message))
-					fmt.Println(msg)
 					sendChanMsg(writeInMyClientChan, msg, true, instance)
 					continue
 				}

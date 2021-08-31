@@ -4,7 +4,6 @@ import (
 	"GoDofus/messages"
 	"GoDofus/pack"
 	"bytes"
-	"fmt"
 )
 
 func handlingMyClient(writeInMyClientChan, writeToOfficialServerChan chan []byte, myClientContinueChan, officialServerContinueChan chan bool, instance uint) func(chan *pack.Weft) {
@@ -28,13 +27,11 @@ func handlingMyClient(writeInMyClientChan, writeToOfficialServerChan chan []byte
 				if ok {
 					msg = msg.GetNOA(instance)
 					msg.Deserialize(bytes.NewReader(weft.Message))
-					fmt.Println(msg)
 					sendChanMsg(writeToOfficialServerChan, msg, false, instance)
 					continue
 				}
 
 				sendChanWeft(writeToOfficialServerChan, weft, false, instance)
-				fmt.Printf("Listener: Instance n°%d there is no traitment for %d ID\nNatural Weft sended.\n", instance, weft.PackId)
 			}
 		}
 	}

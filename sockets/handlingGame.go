@@ -4,7 +4,6 @@ import (
 	"GoDofus/messages"
 	"GoDofus/pack"
 	"bytes"
-	"fmt"
 )
 
 func handlingGame(writeInMyClientChan, writeToOfficialServerChan chan []byte, myClientContinueChan, officialServerContinueChan chan bool, instance uint) func(chan *pack.Weft) {
@@ -21,7 +20,6 @@ func handlingGame(writeInMyClientChan, writeToOfficialServerChan chan []byte, my
 
 				if ok {
 					msg = msg.GetNOA(instance)
-					fmt.Println(msg)
 					msg.Deserialize(bytes.NewReader(weft.Message))
 					sendChanMsg(writeInMyClientChan, msg, true, instance)
 					continue
