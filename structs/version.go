@@ -17,7 +17,7 @@ const (
 	RELEASE = iota
 )
 
-var version_ = getVersion("2.60.4-13", RELEASE)
+var version_ = getVersion("2.60.4-14", RELEASE)
 
 func getVersion(args ...interface{}) *version {
 	v := &version{}

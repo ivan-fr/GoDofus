@@ -305,7 +305,7 @@ func launchServerForMyClientSocket(wg *sync.WaitGroup, myConnToMyClient net.Conn
 	myReadClient, myPipeline := pack.NewClientReader()
 
 	myWeftChan := make(chan *pack.Weft)
-	continueMyGoChan := make(chan bool)
+	pipelineChan := make(chan bool)
 
 	go callBack(myWeftChan)
 	go func(pipelineChan chan bool) {
@@ -319,7 +319,7 @@ func launchServerForMyClientSocket(wg *sync.WaitGroup, myConnToMyClient net.Conn
 				}
 			}
 		}
-	}(continueMyGoChan)
+	}(pipelineChan)
 
 	myLecture := make([]byte, 256)
 
@@ -334,7 +334,7 @@ func launchServerForMyClientSocket(wg *sync.WaitGroup, myConnToMyClient net.Conn
 		n, err := myConnToMyClient.Read(myLecture)
 		if netErr, ok := err.(net.Error); ok {
 			if !netErr.Timeout() {
-				panic(netErr)
+				break
 			}
 		}
 
@@ -346,6 +346,6 @@ func launchServerForMyClientSocket(wg *sync.WaitGroup, myConnToMyClient net.Conn
 	}
 
 	myWeftChan <- nil
-	continueMyGoChan <- false
+	pipelineChan <- false
 	log.Printf("Listener: Go client lost from instance n°%d !\n", instance)
 }
