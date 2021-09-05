@@ -1,4 +1,4 @@
-package generates
+package parsers
 
 import (
 	"GoDofus/utils"
@@ -398,12 +398,12 @@ func DecodeAllD2p(d2pPath string) {
 		DecodeAllD2p(newFile)
 	} else {
 		marshal, _ := json.Marshal(indexes)
-		_ = os.WriteFile("./map/d2p_indexes.json", marshal, 0644)
+		_ = os.WriteFile("./binaryData/d2p_indexes.json", marshal, 0644)
 	}
 }
 
 func getEffectiveIndexes() bool {
-	file, err := os.ReadFile("./map/d2p_indexes.json")
+	file, err := os.ReadFile("./binaryData/d2p_indexes.json")
 	if err != nil {
 		return false
 	}

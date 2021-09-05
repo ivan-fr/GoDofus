@@ -2,6 +2,7 @@ package main
 
 import (
 	"GoDofus/generates"
+	"GoDofus/parsers"
 	"GoDofus/sockets"
 	"flag"
 	"log"
@@ -62,6 +63,6 @@ func main() {
 	}
 
 	if *decodeD2P {
-		generates.DecodeAllD2p("C:\\Users\\Ivan\\Desktop\\Dofus\\content\\maps\\maps0.d2p")
+		parsers.DecodeAllD2p("C:\\Users\\Ivan\\Desktop\\Dofus\\content\\maps\\maps0.d2p")
 	}
 }
