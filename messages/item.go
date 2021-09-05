@@ -24,19 +24,19 @@ func (i *item) GetNOA(instance uint) Message {
 	return nil
 }
 
-func getProtocolType() map[uint16]reflect.Type {
+func getProtocolType() map[uint16]interface{} {
 
-	var _typesTypes = make(map[uint16]reflect.Type)
-	_typesTypes[ObjectEffectID] = reflect.TypeOf(objectEffect{})
-	_typesTypes[ObjectEffectIntegerID] = reflect.TypeOf(objectEffectInteger{})
-	_typesTypes[ObjectEffectCreatureID] = reflect.TypeOf(objectEffectCreature{})
-	_typesTypes[ObjectEffectLadderID] = reflect.TypeOf(objectEffectLadder{})
-	_typesTypes[ObjectEffectMinMaxID] = reflect.TypeOf(objectEffectMinMax{})
-	_typesTypes[ObjectEffectDurationID] = reflect.TypeOf(objectEffectDuration{})
-	_typesTypes[ObjectEffectStringID] = reflect.TypeOf(objectEffectString{})
-	_typesTypes[ObjectEffectDiceID] = reflect.TypeOf(objectEffectDice{})
-	_typesTypes[ObjectEffectDateID] = reflect.TypeOf(objectEffectDate{})
-	_typesTypes[ObjectEffectMountID] = reflect.TypeOf(objectEffectMount{})
+	var _typesTypes = make(map[uint16]interface{})
+	_typesTypes[ObjectEffectID] = objectEffect{}
+	_typesTypes[ObjectEffectIntegerID] = objectEffectInteger{}
+	_typesTypes[ObjectEffectCreatureID] = objectEffectCreature{}
+	_typesTypes[ObjectEffectLadderID] = objectEffectLadder{}
+	_typesTypes[ObjectEffectMinMaxID] = objectEffectMinMax{}
+	_typesTypes[ObjectEffectDurationID] = objectEffectDuration{}
+	_typesTypes[ObjectEffectStringID] = objectEffectString{}
+	_typesTypes[ObjectEffectDiceID] = objectEffectDice{}
+	_typesTypes[ObjectEffectDateID] = objectEffectDate{}
+	_typesTypes[ObjectEffectMountID] = objectEffectMount{}
 
 	return _typesTypes
 }
@@ -54,7 +54,7 @@ func (i *item) Deserialize(reader *bytes.Reader) {
 		panic(i.typeId)
 	}
 
-	newProtocol := reflect.New(pType).Interface().(Message)
+	newProtocol := reflect.New(reflect.TypeOf(pType)).Interface().(Message)
 	newProtocol.Deserialize(reader)
 	i.myProcol = newProtocol
 }

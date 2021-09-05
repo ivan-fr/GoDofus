@@ -182,7 +182,7 @@ func gameListener(wg *sync.WaitGroup,
 }
 
 func factoryServerClientToOfficial(myConnServer net.Conn,
-	myReadServer func([]byte) bool, myPipeline *pack.Pipe,
+	myReadServer *pack.Reader,
 	officialServerContinueChan chan bool,
 	callBack func(chan *pack.Weft), instance uint) {
 
@@ -194,7 +194,7 @@ func factoryServerClientToOfficial(myConnServer net.Conn,
 	myPipelineChan := make(chan bool)
 	go callBack(myWeftChan)
 	go func(pipelineChan chan bool) {
-		for weft := myPipeline.Get(); ; weft = myPipeline.Get() {
+		for weft := myReadServer.APipeline.Get(); ; weft = myReadServer.APipeline.Get() {
 			select {
 			case <-pipelineChan:
 				return
@@ -215,7 +215,7 @@ func factoryServerClientToOfficial(myConnServer net.Conn,
 		default:
 		}
 
-		_ = myConnServer.SetReadDeadline(time.Now().Add(time.Microsecond * 500))
+		_ = myConnServer.SetReadDeadline(time.Now().Add(time.Millisecond))
 		n, err := myConnServer.Read(myLecture)
 		if netErr, ok := err.(net.Error); ok {
 			if !netErr.Timeout() {
@@ -227,7 +227,7 @@ func factoryServerClientToOfficial(myConnServer net.Conn,
 			continue
 		}
 
-		_ = myReadServer(myLecture[:n])
+		myReadServer.Read(false, myLecture[:n])
 	}
 
 	myWeftChan <- nil
@@ -247,7 +247,7 @@ func launchGameClientToOfficialSocket(wg *sync.WaitGroup,
 		defer wg.Done()
 	}
 
-	myReadServer, myPipeline := pack.NewServerReader()
+	myReadServer := pack.NewReader()
 
 	selectedServerDataExtended := messages.Types_[messages.SelectedServerDataExtendedID].GetNOA(instance).(*messages.SelectedServerDataExtended)
 	gameRAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", selectedServerDataExtended.SSD.Address, selectedServerDataExtended.SSD.Ports[0]))
@@ -265,7 +265,7 @@ func launchGameClientToOfficialSocket(wg *sync.WaitGroup,
 	}
 
 	myConnToOfficialChan <- myConnServer
-	factoryServerClientToOfficial(myConnServer, myReadServer, myPipeline, officialServerContinueChan, callBack, instance)
+	factoryServerClientToOfficial(myConnServer, myReadServer, officialServerContinueChan, callBack, instance)
 }
 
 func launchLoginClientToOfficialSocket(wg *sync.WaitGroup,
@@ -281,7 +281,7 @@ func launchLoginClientToOfficialSocket(wg *sync.WaitGroup,
 		defer wg.Done()
 	}
 
-	myReadServer, myPipeline := pack.NewServerReader()
+	myReadServer := pack.NewReader()
 	myConnServer, err := net.DialTCP("tcp", nil, rAddr)
 
 	if err != nil {
@@ -294,7 +294,7 @@ func launchLoginClientToOfficialSocket(wg *sync.WaitGroup,
 	go channelWriter(writeToOfficialServerChan, myConnToOfficialChan, instance)
 	myConnToOfficialChan <- myConnServer
 
-	factoryServerClientToOfficial(myConnServer, myReadServer, myPipeline, officialServerContinueChan, callBack, instance)
+	factoryServerClientToOfficial(myConnServer, myReadServer, officialServerContinueChan, callBack, instance)
 }
 
 func launchServerForMyClientSocket(wg *sync.WaitGroup, myConnToMyClient net.Conn, myClientContinueChan chan bool, callBack func(chan *pack.Weft), instance uint) {
@@ -302,14 +302,14 @@ func launchServerForMyClientSocket(wg *sync.WaitGroup, myConnToMyClient net.Conn
 		defer wg.Done()
 	}
 
-	myReadClient, myPipeline := pack.NewClientReader()
+	myReadClient := pack.NewReader()
 
 	myWeftChan := make(chan *pack.Weft)
 	pipelineChan := make(chan bool)
 
 	go callBack(myWeftChan)
 	go func(pipelineChan chan bool) {
-		for weft := myPipeline.Get(); ; weft = myPipeline.Get() {
+		for weft := myReadClient.APipeline.Get(); ; weft = myReadClient.APipeline.Get() {
 			select {
 			case <-pipelineChan:
 				return
@@ -330,7 +330,7 @@ func launchServerForMyClientSocket(wg *sync.WaitGroup, myConnToMyClient net.Conn
 		default:
 		}
 
-		_ = myConnToMyClient.SetReadDeadline(time.Now().Add(time.Microsecond * 500))
+		_ = myConnToMyClient.SetReadDeadline(time.Now().Add(time.Millisecond))
 		n, err := myConnToMyClient.Read(myLecture)
 		if netErr, ok := err.(net.Error); ok {
 			if !netErr.Timeout() {
@@ -342,7 +342,7 @@ func launchServerForMyClientSocket(wg *sync.WaitGroup, myConnToMyClient net.Conn
 			continue
 		}
 
-		_ = myReadClient(myLecture[:n])
+		myReadClient.Read(true, myLecture[:n])
 	}
 
 	myWeftChan <- nil

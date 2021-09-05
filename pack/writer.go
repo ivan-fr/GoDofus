@@ -56,8 +56,8 @@ func WriteWeft(weft *Weft, toClient bool, instance uint) []byte {
 		var lenMessage = uint16(weft.Length)
 		_ = binary.Write(buff, binary.BigEndian, lenMessage)
 	case 3:
-		var high = uint8(weft.Length >> 16 & uint32(math.MaxUint8))
-		var low = uint16(weft.Length & uint32(math.MaxUint16))
+		var high = uint8(weft.Length >> 16 & math.MaxUint8)
+		var low = uint16(weft.Length & math.MaxUint16)
 		_ = binary.Write(buff, binary.BigEndian, high)
 		_ = binary.Write(buff, binary.BigEndian, low)
 	case 0:

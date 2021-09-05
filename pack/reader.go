@@ -10,21 +10,9 @@ type Weft struct {
 	PackId     uint16
 	LengthType uint16
 	instanceID uint32
-	Length     uint32
+	Length     int
 	Message    []byte
 	waitLength bool
-}
-
-type lastSignal struct {
-	request        int
-	TypeRequest    int
-	containForType []byte
-	containNoType  []byte
-}
-
-type Pipe struct {
-	Wefts []*Weft
-	index int
 }
 
 const (
@@ -34,6 +22,20 @@ const (
 	messageLength
 	noType
 )
+
+type Signal struct {
+	request            int
+	Type               int
+	contentForType     []byte
+	contentForNextType []byte
+}
+
+var noSignal = &Signal{Type: noType}
+
+type Pipe struct {
+	Wefts []*Weft
+	index int
+}
 
 func (p *Pipe) append(w *Weft) {
 	p.Wefts = append(p.Wefts, w)
@@ -66,277 +68,259 @@ func (p *Pipe) Contains(packetIDs map[uint16]bool) bool {
 	return false
 }
 
-func (lS *lastSignal) update(request int, typeRequest int, containForType []byte, containNoType []byte) {
-	if typeRequest == lS.TypeRequest && lS.request < 0 && request <= lS.request {
-		return
+func (lS *Signal) updateWith(newSignal *Signal) {
+	if newSignal.Type == lS.Type && lS.request < 0 && newSignal.request <= lS.request {
+		panic("incoherence from arguments")
 	}
 
-	if typeRequest == lS.TypeRequest && lS.request < 0 && request > lS.request {
-		lS.request = request
-		lS.containForType = append(lS.containForType, containForType...)
-	} else if lS.request == 0 || typeRequest == noType {
-		lS.request = request
-		lS.TypeRequest = typeRequest
-		lS.containForType = containForType
-		lS.containNoType = nil
+	if newSignal.Type == noType {
+		if len(lS.contentForType) > 0 {
+			panic("incoherence from arguments")
+		}
+
+		lS.Type = newSignal.Type
+	} else if newSignal.Type == lS.Type && lS.request < 0 && newSignal.request > lS.request {
+		lS.request = newSignal.request
+		lS.contentForType = append(lS.contentForType, newSignal.contentForType...)
+		lS.contentForNextType = newSignal.contentForNextType
+	} else if lS.request >= 0 && newSignal.Type != lS.Type {
+		lS.request = newSignal.request
+		lS.Type = newSignal.Type
+		lS.contentForType = newSignal.contentForType
+		lS.contentForNextType = newSignal.contentForNextType
 	} else {
-		panic("incoherence from lastSignal")
-	}
-
-	if lS.request > 0 {
-		if containNoType == nil {
-			panic("incoherence contain no type can't be nil")
-		}
-
-		lS.containNoType = containNoType
+		panic("incoherence from arguments")
 	}
 }
 
-func commit(aPipeline *Pipe, aLWeft **Weft, aLSignal *lastSignal) {
-	if aLSignal.request >= 0 {
-		if *aLWeft == nil {
+type Reader struct {
+	aLSignal  *Signal
+	APipeline *Pipe
+	aLWeft    *Weft
+}
+
+func (r *Reader) commit() {
+	if r.aLSignal.request >= 0 {
+		if r.aLWeft == nil {
 			return
 		}
 
-		if (*aLWeft).LengthType == 0 && (*aLWeft).waitLength {
-			(*aLWeft).waitLength = false
-			aPipeline.append(*aLWeft)
-			*aLWeft = nil
+		if r.aLWeft.LengthType == 0 && r.aLWeft.waitLength {
+			r.aLWeft.waitLength = false
+			r.APipeline.append(r.aLWeft)
+			r.aLWeft = nil
 			return
 		}
 
-		if len((*aLWeft).Message) > 0 {
-			return
+		if len(r.aLWeft.Message) > 0 {
+			panic("incoherence in class")
 		}
 
-		if aLSignal.TypeRequest == messageLength {
-			(*aLWeft).Message = aLSignal.containForType
-			aPipeline.append(*aLWeft)
-			*aLWeft = nil
+		if r.aLSignal.Type == messageLength {
+			r.aLWeft.Message = r.aLSignal.contentForType
+			r.APipeline.append(r.aLWeft)
+			r.aLWeft = nil
 		}
 	}
 }
 
-func min(a, b uint) uint {
+func min(a, b int) int {
 	if a < b {
 		return a
 	}
 	return b
 }
 
-func tryRead(aLSignal *lastSignal, reader *bytes.Reader, step int, bytesWanted uint) bool {
-	readerLen := uint(reader.Len())
-	nbBytesToRead := min(uint(reader.Len()), bytesWanted) // <= bytesWanted && <= reader.Len
-	var containForType = make([]byte, nbBytesToRead)
-	_, _ = io.ReadFull(reader, containForType)
+func (r *Reader) tryRead(hotBytes []byte, step int, bytesWanted int) bool {
+	reader := bytes.NewReader(append(r.aLSignal.contentForNextType, hotBytes...))
 
-	request := int(readerLen - bytesWanted)
-	ok := false
-	var containNoType []byte
+	nbBytesToRead := min(reader.Len(), bytesWanted) // <= bytesWanted && <= reader.Len
+	nSignal := &Signal{contentForType: make([]byte, nbBytesToRead), Type: step}
 
-	if request >= 0 {
-		ok = true
+	n, _ := io.ReadFull(reader, nSignal.contentForType)
+
+	nSignal.request = n - bytesWanted
+	ok := nSignal.request >= 0
+
+	if nSignal.request > 0 {
+		nSignal.contentForNextType, _ = io.ReadAll(reader)
 	}
 
-	if request > 0 {
-		containNoType, _ = io.ReadAll(reader)
-	}
-
-	aLSignal.update(request, step, containForType, containNoType)
+	r.aLSignal.updateWith(nSignal)
 	return ok
 }
 
-func readHeaderTwoFirstBytes(aLWeft **Weft, aLSignal *lastSignal, reader *bytes.Reader) bool {
-	ok := tryRead(aLSignal, reader, headerTwoFirstBytes, 2)
+func (r *Reader) readHeaderTwoFirstBytes(hotBytes []byte) bool {
+	return r.readHeaderTwoFirstBytesRest(hotBytes, 2)
+}
+
+func (r *Reader) readHeaderTwoFirstBytesRest(hotBytes []byte, rest int) bool {
+	ok := r.tryRead(hotBytes, headerTwoFirstBytes, rest)
 
 	if !ok {
 		return false
 	}
 
-	twoBytes := binary.BigEndian.Uint16(aLSignal.containForType)
+	twoBytes := binary.BigEndian.Uint16(r.aLSignal.contentForType)
 	packetId := twoBytes >> 2
 	lengthType := twoBytes & 0b11
 
-	*aLWeft = &Weft{PackId: packetId, LengthType: lengthType, waitLength: true}
+	r.aLWeft = &Weft{PackId: packetId, LengthType: lengthType, waitLength: true}
 	return true
 }
 
-func readHeaderInstance(aLWeft *Weft, aLSignal *lastSignal, reader *bytes.Reader) bool {
-	ok := tryRead(aLSignal, reader, headerInstance, 4)
+func (r *Reader) readHeaderInstance(hotBytes []byte) bool {
+	return r.readHeaderInstanceRest(hotBytes, 4)
+}
+
+func (r *Reader) readHeaderInstanceRest(hotBytes []byte, rest int) bool {
+	ok := r.tryRead(hotBytes, headerInstance, rest)
 
 	if !ok {
 		return false
 	}
 
-	instanceID := binary.BigEndian.Uint32(aLSignal.containForType)
+	instanceID := binary.BigEndian.Uint32(r.aLSignal.contentForType)
 
-	aLWeft.instanceID = instanceID
+	r.aLWeft.instanceID = instanceID
 	return true
 }
 
-func readHeaderLength(aLWeft *Weft, aLSignal *lastSignal, reader *bytes.Reader) bool {
-	if aLWeft == nil {
+func (r *Reader) readHeaderLength(hotBytes []byte) bool {
+	return r.readHeaderLengthRest(hotBytes, int(r.aLWeft.LengthType))
+}
+
+func (r *Reader) readHeaderLengthRest(hotBytes []byte, rest int) bool {
+	if r.aLWeft == nil {
 		panic("incoherence last weft can't be nil")
 	}
 
-	ok := tryRead(aLSignal, reader, headerLength, uint(aLWeft.LengthType))
+	ok := r.tryRead(hotBytes, headerLength, rest)
 
 	if !ok {
 		return false
 	}
 
-	switch aLWeft.LengthType {
+	switch r.aLWeft.LengthType {
 	case 3:
-		var specialCaseReader = bytes.NewReader(aLSignal.containForType)
-		var firstByte uint8
-		_ = binary.Read(specialCaseReader, binary.BigEndian, &firstByte)
-		var secondByte uint8
-		_ = binary.Read(specialCaseReader, binary.BigEndian, &secondByte)
-		var thirdByte uint8
-		_ = binary.Read(specialCaseReader, binary.BigEndian, &thirdByte)
-		aLWeft.Length = (uint32(firstByte) << 16) + (uint32(secondByte) << 8) + (uint32(thirdByte) & 255)
+		var firstByte = r.aLSignal.contentForType[0]
+		var secondByte = r.aLSignal.contentForType[1]
+		var thirdByte = r.aLSignal.contentForType[2]
+		r.aLWeft.Length = (int(firstByte) << 16) + (int(secondByte) << 8) + (int(thirdByte) & 255)
 	case 2:
-		aLWeft.Length = uint32(binary.BigEndian.Uint16(aLSignal.containForType))
+		r.aLWeft.Length = int(binary.BigEndian.Uint16(r.aLSignal.contentForType))
 	case 1:
-		aLWeft.Length = uint32(aLSignal.containForType[0])
+		r.aLWeft.Length = int(r.aLSignal.contentForType[0])
 	case 0:
-		aLWeft.Length = 0
+		r.aLWeft.Length = 0
 	default:
 		panic("wrong length type")
 	}
 
-	aLWeft.waitLength = false
+	r.aLWeft.waitLength = false
 	return true
 }
 
-func read(aPipeline *Pipe, aLWeft **Weft, aLSignal *lastSignal, toClient bool, bytesPack []byte) bool {
-	switch aLSignal.TypeRequest {
+func (r *Reader) Read(toClient bool, hotBytes []byte) {
+	switch r.aLSignal.Type {
 	case messageLength:
 		switch {
-		case aLSignal.request == 0:
-			commit(aPipeline, aLWeft, aLSignal)
-			aLSignal.update(0, noType, nil, nil)
-			return read(aPipeline, aLWeft, aLSignal, toClient, bytesPack)
-		case aLSignal.request > 0:
-			commit(aPipeline, aLWeft, aLSignal)
-			newBytesPack := append(aLSignal.containNoType, bytesPack...)
-			aLSignal.update(0, noType, nil, nil)
-			return read(aPipeline, aLWeft, aLSignal, toClient, newBytesPack)
-		case aLSignal.request < 0:
-			reader := bytes.NewReader(bytesPack)
-			ok := tryRead(aLSignal, reader, messageLength, uint(-aLSignal.request))
+		case r.aLSignal.request < 0:
+			ok := r.tryRead(hotBytes, messageLength, -r.aLSignal.request)
 
 			if !ok {
-				return false
+				return
 			}
 
-			commit(aPipeline, aLWeft, aLSignal)
-			newBytesPack := aLSignal.containNoType
-			aLSignal.update(0, noType, nil, nil)
-			return read(aPipeline, aLWeft, aLSignal, toClient, newBytesPack)
+			r.commit()
+			r.aLSignal.updateWith(noSignal)
+			return
 		}
 	case headerTwoFirstBytes:
 		switch {
-		case aLSignal.request < 0:
-			reader := bytes.NewReader(bytesPack)
-			ok := readHeaderTwoFirstBytes(aLWeft, aLSignal, reader)
+		case r.aLSignal.request < 0:
+			ok := r.readHeaderTwoFirstBytesRest(hotBytes, -r.aLSignal.request)
 			if !ok {
-				return false
+				return
 			}
 
-			newBytesPack := aLSignal.containNoType
-			aLSignal.update(0, noType, nil, nil)
-			return read(aPipeline, aLWeft, aLSignal, toClient, newBytesPack)
+			r.aLSignal.updateWith(noSignal)
+			r.Read(toClient, nil)
 		default:
 			panic("incoherence, last signal can't be positive")
 		}
 	case headerLength:
 		switch {
-		case aLSignal.request < 0:
-			reader := bytes.NewReader(bytesPack)
-			ok := readHeaderLength(*aLWeft, aLSignal, reader)
+		case r.aLSignal.request < 0:
+			ok := r.readHeaderLengthRest(hotBytes, -r.aLSignal.request)
 			if !ok {
-				return false
+				return
 			}
 
-			newBytesPack := aLSignal.containNoType
-			aLSignal.update(0, noType, nil, nil)
-			return read(aPipeline, aLWeft, aLSignal, toClient, newBytesPack)
+			r.aLSignal.updateWith(noSignal)
+			r.Read(toClient, nil)
 		default:
 			panic("incoherence, last signal can't be positive")
 		}
 	case headerInstance:
 		switch {
-		case aLSignal.request < 0:
-			reader := bytes.NewReader(bytesPack)
-			ok := readHeaderInstance(*aLWeft, aLSignal, reader)
+		case r.aLSignal.request < 0:
+			ok := r.readHeaderInstanceRest(hotBytes, -r.aLSignal.request)
 			if !ok {
-				return false
+				return
 			}
 
-			newBytesPack := aLSignal.containNoType
-			aLSignal.update(0, noType, nil, nil)
-			return read(aPipeline, aLWeft, aLSignal, toClient, newBytesPack)
+			r.aLSignal.updateWith(noSignal)
+			r.Read(toClient, nil)
 		default:
 			panic("incoherence, last signal can't be positive")
 		}
 	case noType:
 		switch {
-		case bytesPack == nil:
-			commit(aPipeline, aLWeft, aLSignal)
-			return true
-		case (*aLWeft) == nil:
-			reader := bytes.NewReader(bytesPack)
-			ok := readHeaderTwoFirstBytes(aLWeft, aLSignal, reader)
+		case r.aLWeft == nil:
+			ok := r.readHeaderTwoFirstBytes(hotBytes)
 			if !ok {
-				return false
+				return
 			}
 
-			newBytesPack := aLSignal.containNoType
-			aLSignal.update(0, noType, nil, nil)
-			return read(aPipeline, aLWeft, aLSignal, toClient, newBytesPack)
-		case (*aLWeft).instanceID == 0 && toClient:
-			reader := bytes.NewReader(bytesPack)
-			ok := readHeaderInstance(*aLWeft, aLSignal, reader)
+			r.aLSignal.updateWith(noSignal)
+			r.Read(toClient, nil)
+		case r.aLWeft.instanceID == 0 && toClient:
+			ok := r.readHeaderInstance(nil)
 			if !ok {
-				return false
+				return
 			}
 
-			newBytesPack := aLSignal.containNoType
-			aLSignal.update(0, noType, nil, nil)
-			return read(aPipeline, aLWeft, aLSignal, toClient, newBytesPack)
-		case (*aLWeft).waitLength:
-			reader := bytes.NewReader(bytesPack)
-			ok := readHeaderLength(*aLWeft, aLSignal, reader)
+			r.aLSignal.updateWith(noSignal)
+			r.Read(toClient, nil)
+		case r.aLWeft.waitLength:
+			ok := r.readHeaderLength(nil)
 			if !ok {
-				return false
+				return
 			}
 
-			newBytesPack := aLSignal.containNoType
-			aLSignal.update(0, noType, nil, nil)
-			return read(aPipeline, aLWeft, aLSignal, toClient, newBytesPack)
+			r.aLSignal.updateWith(noSignal)
+			r.Read(toClient, nil)
 		default:
-			reader := bytes.NewReader(bytesPack)
-			_ = tryRead(aLSignal, reader, messageLength, uint((*aLWeft).Length))
-			return read(aPipeline, aLWeft, aLSignal, toClient, nil)
+			ok := r.tryRead(nil, messageLength, r.aLWeft.Length)
+
+			if !ok {
+				return
+			}
+
+			r.commit()
+			r.aLSignal.updateWith(noSignal)
+			return
 		}
 	default:
 		panic("program don't know the step.")
 	}
-
-	return false
 }
 
-func NewServerReader() (func([]byte) bool, *Pipe) {
-	var aLSignal = &lastSignal{TypeRequest: noType}
-	var aPipeline = new(Pipe)
-	var aLWeft *Weft = nil
-	return func(bytesPack []byte) bool { return read(aPipeline, &aLWeft, aLSignal, false, bytesPack) }, aPipeline
-}
-
-func NewClientReader() (func([]byte) bool, *Pipe) {
-	var aLSignal = &lastSignal{TypeRequest: noType}
-	var aPipeline = new(Pipe)
-	var aLWeft *Weft = nil
-	return func(bytesPack []byte) bool { return read(aPipeline, &aLWeft, aLSignal, true, bytesPack) }, aPipeline
+func NewReader() *Reader {
+	return &Reader{
+		aLWeft:    nil,
+		aLSignal:  &Signal{Type: noType},
+		APipeline: new(Pipe),
+	}
 }
