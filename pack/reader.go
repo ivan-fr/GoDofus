@@ -33,27 +33,27 @@ type Signal struct {
 var noSignal = &Signal{Type: noType}
 
 type Pipe struct {
-	Wefts []*Weft
+	wefts []*Weft
 	index int
 }
 
 func (p *Pipe) append(w *Weft) {
-	p.Wefts = append(p.Wefts, w)
+	p.wefts = append(p.wefts, w)
 }
 
 func (p *Pipe) Get() *Weft {
-	if len(p.Wefts) == 0 {
+	if len(p.wefts) == 0 {
 		return nil
 	}
 
-	w := p.Wefts[0]
-	p.Wefts = p.Wefts[1:]
+	w := p.wefts[0]
+	p.wefts = p.wefts[1:]
 	return w
 }
 
 func (p *Pipe) Contains(packetIDs map[uint16]bool) bool {
 	var found []uint16
-	for _, weftInPipe := range p.Wefts {
+	for _, weftInPipe := range p.wefts {
 		_, ok := packetIDs[weftInPipe.PackId]
 
 		if ok {
@@ -74,11 +74,8 @@ func (lS *Signal) updateWith(newSignal *Signal) {
 	}
 
 	if newSignal.Type == noType {
-		if len(lS.contentForType) > 0 {
-			panic("incoherence from arguments")
-		}
-
 		lS.Type = newSignal.Type
+		lS.contentForType = nil
 	} else if newSignal.Type == lS.Type && lS.request < 0 && newSignal.request > lS.request {
 		lS.request = newSignal.request
 		lS.contentForType = append(lS.contentForType, newSignal.contentForType...)
@@ -102,7 +99,7 @@ type Reader struct {
 func (r *Reader) commit() {
 	if r.aLSignal.request >= 0 {
 		if r.aLWeft == nil {
-			return
+			panic("cannot commit a nil weft")
 		}
 
 		if r.aLWeft.LengthType == 0 && r.aLWeft.waitLength {
@@ -285,6 +282,8 @@ func (r *Reader) Read(toClient bool, hotBytes []byte) {
 
 			r.aLSignal.updateWith(noSignal)
 			r.Read(toClient, nil)
+		case r.aLWeft.LengthType == 0 && r.aLWeft.waitLength:
+			r.commit()
 		case r.aLWeft.instanceID == 0 && toClient:
 			ok := r.readHeaderInstance(nil)
 			if !ok {
