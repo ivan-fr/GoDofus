@@ -96,7 +96,7 @@ type Reader struct {
 	aLWeft    *Weft
 }
 
-func (r *Reader) commit(fromClient bool) {
+func (r *Reader) commit() {
 	if r.aLSignal.request >= 0 {
 		if r.aLWeft == nil {
 			panic("cannot commit a nil weft")
@@ -106,10 +106,6 @@ func (r *Reader) commit(fromClient bool) {
 			r.aLWeft.waitLength = false
 			r.APipeline.append(r.aLWeft)
 			r.aLWeft = nil
-
-			if len(r.aLSignal.contentForNextType) > 0 {
-				r.Read(fromClient, nil)
-			}
 			return
 		}
 
@@ -121,10 +117,6 @@ func (r *Reader) commit(fromClient bool) {
 			r.aLWeft.Message = r.aLSignal.contentForType
 			r.APipeline.append(r.aLWeft)
 			r.aLWeft = nil
-
-			if len(r.aLSignal.contentForNextType) > 0 {
-				r.Read(fromClient, nil)
-			}
 			return
 		}
 	}
@@ -239,9 +231,11 @@ func (r *Reader) Read(fromClient bool, hotBytes []byte) {
 				return
 			}
 
-			r.commit(fromClient)
+			r.commit()
 			r.aLSignal.updateWith(noSignal)
-			return
+			if len(r.aLSignal.contentForNextType) > 0 {
+				r.Read(fromClient, nil)
+			}
 		}
 	case headerTwoFirstBytes:
 		switch {
@@ -292,7 +286,6 @@ func (r *Reader) Read(fromClient bool, hotBytes []byte) {
 
 			r.aLSignal.updateWith(noSignal)
 			r.Read(fromClient, nil)
-
 		case r.aLWeft.instanceID == 0 && fromClient:
 			ok := r.readHeaderInstance(nil)
 			if !ok {
@@ -302,7 +295,11 @@ func (r *Reader) Read(fromClient bool, hotBytes []byte) {
 			r.aLSignal.updateWith(noSignal)
 			r.Read(fromClient, nil)
 		case r.aLWeft.LengthType == 0 && r.aLWeft.waitLength:
-			r.commit(fromClient)
+			r.commit()
+			r.aLSignal.updateWith(noSignal)
+			if len(r.aLSignal.contentForNextType) > 0 {
+				r.Read(fromClient, nil)
+			}
 		case r.aLWeft.waitLength:
 			ok := r.readHeaderLength(nil)
 			if !ok {
@@ -318,9 +315,11 @@ func (r *Reader) Read(fromClient bool, hotBytes []byte) {
 				return
 			}
 
-			r.commit(fromClient)
+			r.commit()
 			r.aLSignal.updateWith(noSignal)
-			return
+			if len(r.aLSignal.contentForNextType) > 0 {
+				r.Read(fromClient, nil)
+			}
 		}
 	default:
 		panic("program don't know the step.")

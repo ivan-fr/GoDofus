@@ -17,9 +17,10 @@ func main() {
 	buildRegistry := flag.Bool("buildR", false, "build Registry")
 	msgName := flag.String("msgName", "", "msgName")
 	msgId := flag.Uint("msgId", 0, "packet id")
-	decodeD2P := flag.Bool("decodeD2P", false, "decode decode d2p")
 
 	flag.Parse()
+
+	parsers.DecodeAllD2p("C:\\Users\\Ivan\\Desktop\\Dofus\\content\\maps\\maps0.d2p")
 
 	if *buildRegistry {
 		generates.BuildRegistry()
@@ -60,9 +61,5 @@ func main() {
 
 	if *msgName != "" && *msgId != 0 {
 		generates.GenerateMessage(*msgName, uint32(*msgId))
-	}
-
-	if *decodeD2P {
-		parsers.DecodeAllD2p("C:\\Users\\Ivan\\Desktop\\Dofus\\content\\maps\\maps0.d2p")
 	}
 }

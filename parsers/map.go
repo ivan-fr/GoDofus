@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -396,29 +395,14 @@ func DecodeAllD2p(d2pPath string) {
 
 	if newFile != "" {
 		DecodeAllD2p(newFile)
-	} else {
-		marshal, _ := json.Marshal(indexes)
-		_ = os.WriteFile("./binaryData/d2p_indexes.json", marshal, 0644)
 	}
 }
-
-func getEffectiveIndexes() bool {
-	file, err := os.ReadFile("./binaryData/d2p_indexes.json")
-	if err != nil {
-		return false
-	}
-	_ = json.Unmarshal(file, &effectiveIndexes)
-	return true
-}
-
-var effectiveIndexes map[string]map[string]interface{}
-var _ = getEffectiveIndexes()
 
 func LoadMap(mapId uint64) *Map_ {
-	index := effectiveIndexes[fmt.Sprintf("%d/%d.dlm", mapId%10, mapId)]
+	index := indexes[fmt.Sprintf("%d/%d.dlm", mapId%10, mapId)]
 	fs := index["stream"].([]byte)
 	reader := bytes.NewReader(fs)
-	_, err := reader.Seek(index["o"].(int64), io.SeekStart)
+	_, err := reader.Seek(int64(index["o"].(uint32)), io.SeekStart)
 	if err != nil {
 		panic("wrong seek")
 	}
