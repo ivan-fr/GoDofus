@@ -3,7 +3,6 @@ package pack
 import (
 	"bytes"
 	"encoding/binary"
-	"fmt"
 	"io"
 )
 
@@ -97,7 +96,7 @@ type Reader struct {
 	aLWeft    *Weft
 }
 
-func (r *Reader) commit() {
+func (r *Reader) commit(fromClient bool) {
 	if r.aLSignal.request >= 0 {
 		if r.aLWeft == nil {
 			panic("cannot commit a nil weft")
@@ -107,7 +106,10 @@ func (r *Reader) commit() {
 			r.aLWeft.waitLength = false
 			r.APipeline.append(r.aLWeft)
 			r.aLWeft = nil
-			return
+
+			if len(r.aLSignal.contentForNextType) > 0 {
+				r.Read(fromClient, nil)
+			}
 		}
 
 		if len(r.aLWeft.Message) > 0 {
@@ -118,6 +120,10 @@ func (r *Reader) commit() {
 			r.aLWeft.Message = r.aLSignal.contentForType
 			r.APipeline.append(r.aLWeft)
 			r.aLWeft = nil
+
+			if len(r.aLSignal.contentForNextType) > 0 {
+				r.Read(fromClient, nil)
+			}
 		}
 	}
 }
@@ -221,8 +227,6 @@ func (r *Reader) readHeaderLengthRest(hotBytes []byte, rest int) bool {
 }
 
 func (r *Reader) Read(fromClient bool, hotBytes []byte) {
-	fmt.Println("start")
-
 	switch r.aLSignal.Type {
 	case messageLength:
 		switch {
@@ -233,7 +237,7 @@ func (r *Reader) Read(fromClient bool, hotBytes []byte) {
 				return
 			}
 
-			r.commit()
+			r.commit(fromClient)
 			r.aLSignal.updateWith(noSignal)
 			return
 		}
@@ -296,7 +300,7 @@ func (r *Reader) Read(fromClient bool, hotBytes []byte) {
 			r.aLSignal.updateWith(noSignal)
 			r.Read(fromClient, nil)
 		case r.aLWeft.LengthType == 0 && r.aLWeft.waitLength:
-			r.commit()
+			r.commit(fromClient)
 		case r.aLWeft.waitLength:
 			ok := r.readHeaderLength(nil)
 			if !ok {
@@ -312,15 +316,13 @@ func (r *Reader) Read(fromClient bool, hotBytes []byte) {
 				return
 			}
 
-			r.commit()
+			r.commit(fromClient)
 			r.aLSignal.updateWith(noSignal)
 			return
 		}
 	default:
 		panic("program don't know the step.")
 	}
-
-	fmt.Println("finish")
 }
 
 func NewReader() *Reader {

@@ -227,6 +227,8 @@ func factoryServerClientToOfficial(myConnServer net.Conn,
 			continue
 		}
 
+		fmt.Printf("%d ==== bytes\n", n)
+
 		myReadServer.Read(false, myLecture[:n])
 	}
 
