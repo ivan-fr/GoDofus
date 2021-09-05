@@ -250,7 +250,18 @@ func launchGameClientToOfficialSocket(wg *sync.WaitGroup,
 	myReadServer := pack.NewReader()
 
 	selectedServerDataExtended := messages.Types_[messages.SelectedServerDataExtendedID].GetNOA(instance).(*messages.SelectedServerDataExtended)
-	gameRAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", selectedServerDataExtended.SSD.Address, selectedServerDataExtended.SSD.Ports[0]))
+
+	var gameRAddr *net.TCPAddr
+	var err error
+
+	for {
+		if selectedServerDataExtended.SSD == nil {
+			continue
+		}
+		gameRAddr, err = net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", selectedServerDataExtended.SSD.Address, selectedServerDataExtended.SSD.Ports[0]))
+		break
+	}
+
 	if err != nil {
 		log.Println(err)
 		return

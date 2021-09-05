@@ -6,7 +6,6 @@ import (
 	"GoDofus/pack"
 	"bytes"
 	"fmt"
-	"log"
 	"time"
 )
 
@@ -15,7 +14,6 @@ func handlingMyClient(writeInMyClientChan, writeToOfficialServerChan chan []byte
 	go func(chanCrypt chan []byte) {
 		for {
 			currentMap := messages.Types_[messages.CurrentMapID].GetNOA(instance).(*messages.CurrentMap)
-			log.Println(currentMap.MapId)
 			move := commands.Move{MapId: currentMap.MapId}
 			move.SetFromMapId()
 
@@ -41,13 +39,11 @@ func handlingMyClient(writeInMyClientChan, writeToOfficialServerChan chan []byte
 			if move.SetFromCoords() {
 				msg := messages.Types_[messages.ChangeMapID].GetNOA(instance).(*messages.ChangeMap)
 				msg.MapId = currentMap.MapId
-				log.Println(currentMap.MapId)
 				sendChanMsg(writeToOfficialServerChan, msg, false, instance)
 				time.Sleep(time.Second * 2)
 				msg2 := messages.Types_[messages.MapInformationsRequestID].GetNOA(instance).(*messages.MapInformationsRequest)
 				msg2.MapId = move.MapId
 				sendChanMsg(writeToOfficialServerChan, msg2, false, instance)
-				log.Println(move.MapId)
 				fmt.Println("Command! OK!")
 			} else {
 				fmt.Println("Command! No ok!")

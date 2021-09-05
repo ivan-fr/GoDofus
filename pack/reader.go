@@ -3,6 +3,7 @@ package pack
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"io"
 )
 
@@ -131,12 +132,13 @@ func min(a, b int) int {
 func (r *Reader) tryRead(hotBytes []byte, step int, bytesWanted int) bool {
 	reader := bytes.NewReader(append(r.aLSignal.contentForNextType, hotBytes...))
 
-	nbBytesToRead := min(reader.Len(), bytesWanted) // <= bytesWanted && <= reader.Len
+	nbBytesPossible := reader.Len()
+	nbBytesToRead := min(nbBytesPossible, bytesWanted) // <= bytesWanted && <= reader.Len
 	nSignal := &Signal{contentForType: make([]byte, nbBytesToRead), Type: step}
 
-	n, _ := io.ReadFull(reader, nSignal.contentForType)
+	_, _ = io.ReadFull(reader, nSignal.contentForType)
 
-	nSignal.request = n - bytesWanted
+	nSignal.request = nbBytesPossible - bytesWanted
 	ok := nSignal.request >= 0
 
 	if nSignal.request > 0 {
@@ -218,7 +220,9 @@ func (r *Reader) readHeaderLengthRest(hotBytes []byte, rest int) bool {
 	return true
 }
 
-func (r *Reader) Read(toClient bool, hotBytes []byte) {
+func (r *Reader) Read(fromClient bool, hotBytes []byte) {
+	fmt.Println("start")
+
 	switch r.aLSignal.Type {
 	case messageLength:
 		switch {
@@ -242,7 +246,7 @@ func (r *Reader) Read(toClient bool, hotBytes []byte) {
 			}
 
 			r.aLSignal.updateWith(noSignal)
-			r.Read(toClient, nil)
+			r.Read(fromClient, nil)
 		default:
 			panic("incoherence, last signal can't be positive")
 		}
@@ -255,7 +259,7 @@ func (r *Reader) Read(toClient bool, hotBytes []byte) {
 			}
 
 			r.aLSignal.updateWith(noSignal)
-			r.Read(toClient, nil)
+			r.Read(fromClient, nil)
 		default:
 			panic("incoherence, last signal can't be positive")
 		}
@@ -268,7 +272,7 @@ func (r *Reader) Read(toClient bool, hotBytes []byte) {
 			}
 
 			r.aLSignal.updateWith(noSignal)
-			r.Read(toClient, nil)
+			r.Read(fromClient, nil)
 		default:
 			panic("incoherence, last signal can't be positive")
 		}
@@ -281,17 +285,18 @@ func (r *Reader) Read(toClient bool, hotBytes []byte) {
 			}
 
 			r.aLSignal.updateWith(noSignal)
-			r.Read(toClient, nil)
-		case r.aLWeft.LengthType == 0 && r.aLWeft.waitLength:
-			r.commit()
-		case r.aLWeft.instanceID == 0 && toClient:
+			r.Read(fromClient, nil)
+
+		case r.aLWeft.instanceID == 0 && fromClient:
 			ok := r.readHeaderInstance(nil)
 			if !ok {
 				return
 			}
 
 			r.aLSignal.updateWith(noSignal)
-			r.Read(toClient, nil)
+			r.Read(fromClient, nil)
+		case r.aLWeft.LengthType == 0 && r.aLWeft.waitLength:
+			r.commit()
 		case r.aLWeft.waitLength:
 			ok := r.readHeaderLength(nil)
 			if !ok {
@@ -299,7 +304,7 @@ func (r *Reader) Read(toClient bool, hotBytes []byte) {
 			}
 
 			r.aLSignal.updateWith(noSignal)
-			r.Read(toClient, nil)
+			r.Read(fromClient, nil)
 		default:
 			ok := r.tryRead(nil, messageLength, r.aLWeft.Length)
 
@@ -314,6 +319,8 @@ func (r *Reader) Read(toClient bool, hotBytes []byte) {
 	default:
 		panic("program don't know the step.")
 	}
+
+	fmt.Println("finish")
 }
 
 func NewReader() *Reader {
