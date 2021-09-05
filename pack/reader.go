@@ -110,6 +110,7 @@ func (r *Reader) commit(fromClient bool) {
 			if len(r.aLSignal.contentForNextType) > 0 {
 				r.Read(fromClient, nil)
 			}
+			return
 		}
 
 		if len(r.aLWeft.Message) > 0 {
@@ -124,6 +125,7 @@ func (r *Reader) commit(fromClient bool) {
 			if len(r.aLSignal.contentForNextType) > 0 {
 				r.Read(fromClient, nil)
 			}
+			return
 		}
 	}
 }
