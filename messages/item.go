@@ -25,19 +25,7 @@ func (i *item) GetNOA(instance uint) Message {
 }
 
 func getProtocolType() map[uint16]interface{} {
-
 	var _typesTypes = make(map[uint16]interface{})
-	_typesTypes[ObjectEffectID] = objectEffect{}
-	_typesTypes[ObjectEffectIntegerID] = objectEffectInteger{}
-	_typesTypes[ObjectEffectCreatureID] = objectEffectCreature{}
-	_typesTypes[ObjectEffectLadderID] = objectEffectLadder{}
-	_typesTypes[ObjectEffectMinMaxID] = objectEffectMinMax{}
-	_typesTypes[ObjectEffectDurationID] = objectEffectDuration{}
-	_typesTypes[ObjectEffectStringID] = objectEffectString{}
-	_typesTypes[ObjectEffectDiceID] = objectEffectDice{}
-	_typesTypes[ObjectEffectDateID] = objectEffectDate{}
-	_typesTypes[ObjectEffectMountID] = objectEffectMount{}
-
 	return _typesTypes
 }
 

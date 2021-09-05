@@ -54,7 +54,7 @@ type Map_ struct {
 	id                uint32
 	encrypted         bool
 	encryptionVersion byte
-	dataLen           int32
+	dataLen           uint32
 	encryptedData     []byte
 	relativeId        uint32
 	mapType           byte
@@ -89,7 +89,7 @@ func decodeMap(reader *bytes.Reader) *Map_ {
 			newMap.encryptedData = make([]byte, newMap.dataLen)
 			_ = binary.Read(reader, binary.BigEndian, newMap.encryptedData)
 
-			for i := int32(0); i < newMap.dataLen; i++ {
+			for i := uint32(0); i < newMap.dataLen; i++ {
 				newMap.encryptedData[i] ^= decryptionKey[int(i)%len(decryptionKey)]
 			}
 			reader = bytes.NewReader(newMap.encryptedData)
