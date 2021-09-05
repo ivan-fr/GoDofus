@@ -5,6 +5,7 @@
 package messages
 
 import (
+	"GoDofus/generates"
 	"GoDofus/utils"
 	"bytes"
 	"encoding/binary"
@@ -15,6 +16,7 @@ type CurrentMap struct {
 	PacketId uint32
 	MapId    float64
 	mapKey   []byte
+	myMap    *generates.Map_
 }
 
 var currentMapMap = make(map[uint]*CurrentMap)
@@ -38,6 +40,7 @@ func (cu *CurrentMap) Serialize(buff *bytes.Buffer) {
 func (cu *CurrentMap) Deserialize(reader *bytes.Reader) {
 	_ = binary.Read(reader, binary.BigEndian, &cu.MapId)
 	cu.mapKey = utils.ReadUTF(reader)
+	cu.myMap = generates.LoadMap(uint64(cu.MapId))
 }
 
 func (cu *CurrentMap) GetPacketId() uint32 {
