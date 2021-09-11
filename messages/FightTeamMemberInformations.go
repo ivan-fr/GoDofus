@@ -12,7 +12,6 @@ import (
 
 type FightTeamMemberInformations struct {
 	PacketId uint32
-	typeId   int16
 	id       float64
 }
 
@@ -30,12 +29,10 @@ func (Fi *FightTeamMemberInformations) GetNOA(instance uint) Message {
 }
 
 func (Fi *FightTeamMemberInformations) Serialize(buff *bytes.Buffer) {
-	_ = binary.Write(buff, binary.BigEndian, Fi.typeId)
 	_ = binary.Write(buff, binary.BigEndian, Fi.id)
 }
 
 func (Fi *FightTeamMemberInformations) Deserialize(reader *bytes.Reader) {
-	_ = binary.Read(reader, binary.BigEndian, &Fi.typeId)
 	_ = binary.Read(reader, binary.BigEndian, &Fi.id)
 }
 

@@ -12,7 +12,6 @@ import (
 
 type FightTeamInformations struct {
 	PacketId                       uint32
-	typeId                         uint16
 	AbstractFightTeamInformations0 *AbstractFightTeamInformations
 	FightTeamMemberInformations1   []*FightTeamMemberInformations
 }
@@ -31,7 +30,6 @@ func (Fi *FightTeamInformations) GetNOA(instance uint) Message {
 }
 
 func (Fi *FightTeamInformations) Serialize(buff *bytes.Buffer) {
-	_ = binary.Write(buff, binary.BigEndian, Fi.typeId)
 	Fi.AbstractFightTeamInformations0.Serialize(buff)
 	_ = binary.Write(buff, binary.BigEndian, uint16(len(Fi.FightTeamMemberInformations1)))
 	for i := 0; i < len(Fi.FightTeamMemberInformations1); i++ {
@@ -40,7 +38,6 @@ func (Fi *FightTeamInformations) Serialize(buff *bytes.Buffer) {
 }
 
 func (Fi *FightTeamInformations) Deserialize(reader *bytes.Reader) {
-	_ = binary.Read(reader, binary.BigEndian, &Fi.typeId)
 	Fi.AbstractFightTeamInformations0 = new(AbstractFightTeamInformations)
 	Fi.AbstractFightTeamInformations0.Deserialize(reader)
 	var len1_ uint16

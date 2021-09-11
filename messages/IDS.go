@@ -14,7 +14,6 @@ const (
 	HelloGameID                            = 5556
 	AuthenticationTicketID                 = 3920
 	ItemID                                 = 10
-	ItemWrapperID                          = 2
 	ItemForPresetID                        = 5057
 	CurrentMapID                           = 3437
 	ChangeMapID                            = 6904

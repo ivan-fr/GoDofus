@@ -35,7 +35,6 @@ var Types_ = map[int]Message{
 	HelloGameID:                            &helloGame{},
 	ItemID:                                 &item{},
 	ItemForPresetID:                        &itemForPreset{},
-	ItemWrapperID:                          &itemWrapper{},
 	SelectedServerDataID:                   &selectedServerData{},
 	VersionID:                              &version{},
 }

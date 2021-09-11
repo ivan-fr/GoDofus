@@ -12,7 +12,6 @@ import (
 
 type InteractiveElement struct {
 	PacketId                 uint32
-	typeId                   int16
 	elementId                int32
 	elementTypeId            int32
 	InteractiveElementSkill2 []*InteractiveElementSkill
@@ -34,7 +33,6 @@ func (In *InteractiveElement) GetNOA(instance uint) Message {
 }
 
 func (In *InteractiveElement) Serialize(buff *bytes.Buffer) {
-	_ = binary.Write(buff, binary.BigEndian, In.typeId)
 	_ = binary.Write(buff, binary.BigEndian, In.elementId)
 	_ = binary.Write(buff, binary.BigEndian, In.elementTypeId)
 	_ = binary.Write(buff, binary.BigEndian, uint16(len(In.InteractiveElementSkill2)))
@@ -49,7 +47,6 @@ func (In *InteractiveElement) Serialize(buff *bytes.Buffer) {
 }
 
 func (In *InteractiveElement) Deserialize(reader *bytes.Reader) {
-	_ = binary.Read(reader, binary.BigEndian, &In.typeId)
 	_ = binary.Read(reader, binary.BigEndian, &In.elementId)
 	_ = binary.Read(reader, binary.BigEndian, &In.elementTypeId)
 	var len2_ uint16

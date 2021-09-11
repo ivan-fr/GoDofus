@@ -13,7 +13,6 @@ import (
 
 type InteractiveElementSkill struct {
 	PacketId         uint32
-	typeId           int16
 	skillId          int32
 	skillInstanceUid int32
 }
@@ -32,13 +31,11 @@ func (In *InteractiveElementSkill) GetNOA(instance uint) Message {
 }
 
 func (In *InteractiveElementSkill) Serialize(buff *bytes.Buffer) {
-	_ = binary.Write(buff, binary.BigEndian, In.typeId)
 	utils.WriteVarInt32(buff, In.skillId)
 	_ = binary.Write(buff, binary.BigEndian, In.skillInstanceUid)
 }
 
 func (In *InteractiveElementSkill) Deserialize(reader *bytes.Reader) {
-	_ = binary.Read(reader, binary.BigEndian, &In.typeId)
 	In.skillId = utils.ReadVarInt32(reader)
 	_ = binary.Read(reader, binary.BigEndian, &In.skillInstanceUid)
 }

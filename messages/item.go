@@ -13,7 +13,6 @@ import (
 
 type item struct {
 	PacketId uint32
-	content  []byte
 	typeId   uint16
 	myProcol Message
 }
@@ -26,6 +25,14 @@ func (i *item) GetNOA(instance uint) Message {
 
 func getProtocolType() map[uint16]interface{} {
 	var _typesTypes = make(map[uint16]interface{})
+
+	_typesTypes[FightTeamInformationsID] = &FightTeamInformations{}
+	_typesTypes[FightTeamMemberInformationsID] = &FightTeamMemberInformations{}
+	_typesTypes[InteractiveElementSkillID] = &InteractiveElementSkill{}
+	_typesTypes[GameRolePlayActorInformationsID] = &GameRolePlayActorInformations{}
+	_typesTypes[InteractiveElementID] = &InteractiveElement{}
+	_typesTypes[HouseInformationsID] = &HouseInformations{}
+
 	return _typesTypes
 }
 

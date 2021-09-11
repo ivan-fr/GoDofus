@@ -6,13 +6,11 @@ package messages
 
 import (
 	"bytes"
-	"encoding/binary"
 	"fmt"
 )
 
 type GameRolePlayActorInformations struct {
 	PacketId                      uint32
-	typeId                        int16
 	GameContextActorInformations0 *GameContextActorInformations
 }
 
@@ -30,12 +28,10 @@ func (Ga *GameRolePlayActorInformations) GetNOA(instance uint) Message {
 }
 
 func (Ga *GameRolePlayActorInformations) Serialize(buff *bytes.Buffer) {
-	_ = binary.Write(buff, binary.BigEndian, Ga.typeId)
 	Ga.GameContextActorInformations0.Serialize(buff)
 }
 
 func (Ga *GameRolePlayActorInformations) Deserialize(reader *bytes.Reader) {
-	_ = binary.Read(reader, binary.BigEndian, &Ga.typeId)
 	Ga.GameContextActorInformations0 = new(GameContextActorInformations)
 	Ga.GameContextActorInformations0.Deserialize(reader)
 }

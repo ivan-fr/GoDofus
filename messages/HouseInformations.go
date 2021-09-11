@@ -7,13 +7,11 @@ package messages
 import (
 	"GoDofus/utils"
 	"bytes"
-	"encoding/binary"
 	"fmt"
 )
 
 type HouseInformations struct {
 	PacketId uint32
-	typeId   int16
 	houseId  int32
 	modelId  int32
 }
@@ -32,13 +30,11 @@ func (Ho *HouseInformations) GetNOA(instance uint) Message {
 }
 
 func (Ho *HouseInformations) Serialize(buff *bytes.Buffer) {
-	_ = binary.Write(buff, binary.BigEndian, Ho.typeId)
 	utils.WriteVarInt32(buff, Ho.houseId)
 	utils.WriteVarInt16(buff, Ho.modelId)
 }
 
 func (Ho *HouseInformations) Deserialize(reader *bytes.Reader) {
-	_ = binary.Read(reader, binary.BigEndian, &Ho.typeId)
 	Ho.houseId = utils.ReadVarInt32(reader)
 	Ho.modelId = utils.ReadVarInt16(reader)
 }
