@@ -316,28 +316,7 @@ func decodeMap(reader *bytes.Reader) *Map_ {
 		}
 	}
 
-	text := fmt.Sprintf("var obstacles = Array(")
-	for _, cellData_ := range newMap.cells {
-		text = fmt.Sprintf("%s%d,", text, bToI(cellData_._mov))
-	}
-	text = fmt.Sprintf("%s)", text[:len(text)-1])
-	fmt.Println(text)
-
-	text = fmt.Sprintf("var los = Array(")
-	for _, cellData_ := range newMap.cells {
-		text = fmt.Sprintf("%s%d,", text, bToI(cellData_._los))
-	}
-	text = fmt.Sprintf("%s)", text[:len(text)-1])
-	fmt.Println(text)
-
 	return newMap
-}
-
-func bToI(b bool) int {
-	if b {
-		return 1
-	}
-	return 0
 }
 
 var properties = make(map[string]string)
@@ -441,4 +420,8 @@ func LoadMap(mapId uint64) *Map_ {
 	}
 
 	return decodeMap(bytes.NewReader(all))
+}
+
+func (m *Map_) printToConsole() {
+
 }
