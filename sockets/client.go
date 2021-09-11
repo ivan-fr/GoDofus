@@ -192,6 +192,7 @@ func factoryServerClientToOfficial(myConnServer net.Conn,
 
 	myWeftChan := make(chan *pack.Weft)
 	myPipelineChan := make(chan bool)
+
 	go callBack(myWeftChan)
 	go func(pipelineChan chan bool) {
 		for weft := myReadServer.APipeline.Get(); ; weft = myReadServer.APipeline.Get() {
@@ -204,6 +205,7 @@ func factoryServerClientToOfficial(myConnServer net.Conn,
 				}
 			}
 		}
+
 	}(myPipelineChan)
 
 	myLecture := make([]byte, 256)
@@ -254,13 +256,7 @@ func launchGameClientToOfficialSocket(wg *sync.WaitGroup,
 	var gameRAddr *net.TCPAddr
 	var err error
 
-	for {
-		if selectedServerDataExtended.SSD == nil {
-			continue
-		}
-		gameRAddr, err = net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", selectedServerDataExtended.SSD.Address, selectedServerDataExtended.SSD.Ports[0]))
-		break
-	}
+	gameRAddr, err = net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", selectedServerDataExtended.SSD.Address, selectedServerDataExtended.SSD.Ports[0]))
 
 	if err != nil {
 		log.Println(err)

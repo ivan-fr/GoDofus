@@ -233,7 +233,7 @@ func (r *Reader) Read(fromClient bool, hotBytes []byte) {
 
 			r.commit()
 			r.aLSignal.updateWith(noSignal)
-			if len(r.aLSignal.contentForNextType) > 0 {
+			if r.aLSignal.request > 0 {
 				r.Read(fromClient, nil)
 			}
 		}
@@ -297,7 +297,7 @@ func (r *Reader) Read(fromClient bool, hotBytes []byte) {
 		case r.aLWeft.LengthType == 0 && r.aLWeft.waitLength:
 			r.commit()
 			r.aLSignal.updateWith(noSignal)
-			if len(r.aLSignal.contentForNextType) > 0 {
+			if r.aLSignal.request > 0 {
 				r.Read(fromClient, nil)
 			}
 		case r.aLWeft.waitLength:
@@ -317,7 +317,7 @@ func (r *Reader) Read(fromClient bool, hotBytes []byte) {
 
 			r.commit()
 			r.aLSignal.updateWith(noSignal)
-			if len(r.aLSignal.contentForNextType) > 0 {
+			if r.aLSignal.request > 0 {
 				r.Read(fromClient, nil)
 			}
 		}

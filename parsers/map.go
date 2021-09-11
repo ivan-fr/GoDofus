@@ -3,8 +3,8 @@ package parsers
 import (
 	"GoDofus/utils"
 	"bytes"
+	"compress/zlib"
 	"encoding/binary"
-	"encoding/hex"
 	"fmt"
 	"io"
 	"os"
@@ -12,7 +12,7 @@ import (
 )
 
 func getDecryptionKey() []byte {
-	decodeString, _ := hex.DecodeString("649ae451ca33ec53bbcbcc33becf15f4")
+	decodeString := []byte("649ae451ca33ec53bbcbcc33becf15f4")
 	return decodeString
 }
 
@@ -90,7 +90,7 @@ func decodeMap(reader *bytes.Reader) *Map_ {
 			_ = binary.Read(reader, binary.BigEndian, newMap.encryptedData)
 
 			for i := uint32(0); i < newMap.dataLen; i++ {
-				newMap.encryptedData[i] ^= decryptionKey[int(i)%len(decryptionKey)]
+				newMap.encryptedData[i] ^= decryptionKey[i%uint32(len(decryptionKey))]
 			}
 			reader = bytes.NewReader(newMap.encryptedData)
 		}
@@ -162,28 +162,28 @@ func decodeMap(reader *bytes.Reader) *Map_ {
 
 	var layersCount byte
 	_ = binary.Read(reader, binary.BigEndian, &layersCount)
-	var layers = make([]*layer, layersCount)
+	newMap.layers = make([]*layer, layersCount)
 	for i := 0; i < int(layersCount); i++ {
-		layers[i] = new(layer)
+		newMap.layers[i] = new(layer)
 
 		if newMap.mapVersion >= 9 {
 			var smallLayerId byte
 			_ = binary.Read(reader, binary.BigEndian, &smallLayerId)
-			layers[i].layerId = int32(smallLayerId)
+			newMap.layers[i].layerId = int32(smallLayerId)
 		} else {
-			_ = binary.Read(reader, binary.BigEndian, &layers[i].layerId)
+			_ = binary.Read(reader, binary.BigEndian, &newMap.layers[i].layerId)
 		}
-		_ = binary.Read(reader, binary.BigEndian, &layers[i].cellsCount)
+		_ = binary.Read(reader, binary.BigEndian, &newMap.layers[i].cellsCount)
 
-		if layers[i].cellsCount > 0 {
-			layers[i].cells = make([]*cell, layers[i].cellsCount)
-			for j := 0; j < int(layers[i].cellsCount); j++ {
-				layers[i].cells[j] = new(cell)
+		if newMap.layers[i].cellsCount > 0 {
+			newMap.layers[i].cells = make([]*cell, newMap.layers[i].cellsCount)
+			for j := 0; j < int(newMap.layers[i].cellsCount); j++ {
+				newMap.layers[i].cells[j] = new(cell)
 
-				_ = binary.Read(reader, binary.BigEndian, &layers[i].cells[j].cellId)
+				_ = binary.Read(reader, binary.BigEndian, &newMap.layers[i].cells[j].cellId)
 
-				_ = binary.Read(reader, binary.BigEndian, &layers[i].cells[j].elementsCount)
-				for z := 0; z < int(layers[i].cells[j].elementsCount); z++ {
+				_ = binary.Read(reader, binary.BigEndian, &newMap.layers[i].cells[j].elementsCount)
+				for z := 0; z < int(newMap.layers[i].cells[j].elementsCount); z++ {
 					var elementType byte
 					_ = binary.Read(reader, binary.BigEndian, &elementType)
 
@@ -217,7 +217,7 @@ func decodeMap(reader *bytes.Reader) *Map_ {
 					}
 				}
 
-				layers[i].cells[j].myLayer = layers[i]
+				newMap.layers[i].cells[j].myLayer = newMap.layers[i]
 			}
 		}
 	}
@@ -246,7 +246,7 @@ func decodeMap(reader *bytes.Reader) *Map_ {
 			newMap.cells[i]._mov = (tmpbytesv9 & 1) == 0
 			newMap.cells[i]._nonWalkableDuringFight = (tmpbytesv9 & 2) != 0
 			newMap.cells[i]._nonWalkableDuringRP = (tmpbytesv9 & 4) != 0
-			newMap.cells[i]._los = (tmpbytesv9 & 8) != 0
+			newMap.cells[i]._los = (tmpbytesv9 & 8) == 0
 			newMap.cells[i]._farmCell = (tmpbytesv9 & 128) != 0
 
 			if newMap.mapVersion >= 10 {
@@ -316,7 +316,28 @@ func decodeMap(reader *bytes.Reader) *Map_ {
 		}
 	}
 
+	text := fmt.Sprintf("var obstacles = Array(")
+	for _, cellData_ := range newMap.cells {
+		text = fmt.Sprintf("%s%d,", text, bToI(cellData_._mov))
+	}
+	text = fmt.Sprintf("%s)", text[:len(text)-1])
+	fmt.Println(text)
+
+	text = fmt.Sprintf("var los = Array(")
+	for _, cellData_ := range newMap.cells {
+		text = fmt.Sprintf("%s%d,", text, bToI(cellData_._los))
+	}
+	text = fmt.Sprintf("%s)", text[:len(text)-1])
+	fmt.Println(text)
+
 	return newMap
+}
+
+func bToI(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
 }
 
 var properties = make(map[string]string)
@@ -387,10 +408,10 @@ func DecodeAllD2p(d2pPath string) {
 	for i := uint32(0); i < indexCount; i++ {
 		filePath := string(utils.ReadUTF(reader))
 		var fileOffset int32
-		var fileLength uint32
+		var fileLength int32
 		_ = binary.Read(reader, binary.BigEndian, &fileOffset)
 		_ = binary.Read(reader, binary.BigEndian, &fileLength)
-		indexes[filePath] = map[string]interface{}{"o": uint32(fileOffset) + dataOffset, "l": fileLength, "stream": raw}
+		indexes[filePath] = map[string]interface{}{"o": int64(fileOffset) + int64(dataOffset), "l": fileLength, "stream": reader}
 	}
 
 	if newFile != "" {
@@ -400,11 +421,24 @@ func DecodeAllD2p(d2pPath string) {
 
 func LoadMap(mapId uint64) *Map_ {
 	index := indexes[fmt.Sprintf("%d/%d.dlm", mapId%10, mapId)]
-	fs := index["stream"].([]byte)
-	reader := bytes.NewReader(fs)
-	_, err := reader.Seek(int64(index["o"].(uint32)), io.SeekStart)
+	reader := index["stream"].(*bytes.Reader)
+	_, err := reader.Seek(index["o"].(int64), io.SeekStart)
 	if err != nil {
 		panic("wrong seek")
 	}
-	return decodeMap(reader)
+
+	data := make([]byte, index["l"].(int32))
+	_, _ = io.ReadFull(reader, data)
+	readerData := bytes.NewReader(data)
+
+	open, err := zlib.NewReader(readerData)
+	if err != nil {
+		panic(err)
+	}
+	all, err := io.ReadAll(open)
+	if err != nil {
+		panic(err)
+	}
+
+	return decodeMap(bytes.NewReader(all))
 }

@@ -1,56 +1,54 @@
 package sockets
 
 import (
-	"GoDofus/commands"
 	"GoDofus/messages"
 	"GoDofus/pack"
 	"bytes"
-	"fmt"
-	"time"
 )
 
 func handlingMyClient(writeInMyClientChan, writeToOfficialServerChan chan []byte, myClientContinueChan, officialServerContinueChan chan bool, instance uint) func(chan *pack.Weft) {
-	chanCrypt := make(chan []byte)
-	go func(chanCrypt chan []byte) {
-		for {
-			currentMap := messages.Types_[messages.CurrentMapID].GetNOA(instance).(*messages.CurrentMap)
-			move := commands.Move{MapId: currentMap.MapId}
-			move.SetFromMapId()
+	/*
+		chanCrypt := make(chan []byte)
+		go func(chanCrypt chan []byte) {
+			for {
+				currentMap := messages.Types_[messages.CurrentMapID].GetNOA(instance).(*messages.CurrentMap)
+				move := commands.Move{MapId: currentMap.MapId}
+				move.SetFromMapId()
 
-			var aCommand string
-			fmt.Println("Command!")
-			_, err := fmt.Scanln(&aCommand)
-			if err != nil {
-				continue
-			}
-			switch aCommand {
-			case "d":
-				move.X += 1
-			case "q":
-				move.X -= 1
-			case "s":
-				move.Y += 1
-			case "z":
-				move.Y -= 1
-			default:
-				continue
-			}
+				var aCommand string
+				fmt.Println("Command!")
+				_, err := fmt.Scanln(&aCommand)
+				if err != nil {
+					continue
+				}
+				switch aCommand {
+				case "d":
+					move.X += 1
+				case "q":
+					move.X -= 1
+				case "s":
+					move.Y += 1
+				case "z":
+					move.Y -= 1
+				default:
+					continue
+				}
 
-			if move.SetFromCoords() {
-				msg := messages.Types_[messages.ChangeMapID].GetNOA(instance).(*messages.ChangeMap)
-				msg.MapId = currentMap.MapId
-				sendChanMsg(writeToOfficialServerChan, msg, false, instance)
-				time.Sleep(time.Second * 2)
-				msg2 := messages.Types_[messages.MapInformationsRequestID].GetNOA(instance).(*messages.MapInformationsRequest)
-				msg2.MapId = move.MapId
-				sendChanMsg(writeToOfficialServerChan, msg2, false, instance)
-				fmt.Println("Command! OK!")
-			} else {
-				fmt.Println("Command! No ok!")
+				if move.SetFromCoords() {
+					msg := messages.Types_[messages.ChangeMapID].GetNOA(instance).(*messages.ChangeMap)
+					msg.MapId = currentMap.MapId
+					sendChanMsg(writeToOfficialServerChan, msg, false, instance)
+					time.Sleep(time.Second * 2)
+					msg2 := messages.Types_[messages.MapInformationsRequestID].GetNOA(instance).(*messages.MapInformationsRequest)
+					msg2.MapId = move.MapId
+					sendChanMsg(writeToOfficialServerChan, msg2, false, instance)
+					fmt.Println("Command! OK!")
+				} else {
+					fmt.Println("Command! No ok!")
+				}
 			}
-		}
-	}(chanCrypt)
-
+		}(chanCrypt)
+	*/
 	return func(weftChan chan *pack.Weft) {
 		for {
 			weft := <-weftChan
@@ -61,7 +59,7 @@ func handlingMyClient(writeInMyClientChan, writeToOfficialServerChan chan []byte
 
 			switch weft.PackId {
 			case messages.RawDataMessageID:
-				chanCrypt <- weft.Message
+				continue
 			case messages.IdentificationID:
 				continue
 			case messages.AuthenticationTicketID:
