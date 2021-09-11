@@ -11,10 +11,9 @@ import (
 )
 
 type GameContextActorPositionInformations struct {
-	PacketId                       uint32
-	contextualId                   float64
-	dispositionTypeId              int16
-	EntityDispositionInformations2 *EntityDispositionInformations
+	PacketId                      uint32
+	contextualId                  float64
+	EntityDispositionInformations *item
 }
 
 var GameContextActorPositionInformationsMap = make(map[uint]*GameContextActorPositionInformations)
@@ -32,15 +31,13 @@ func (Ga *GameContextActorPositionInformations) GetNOA(instance uint) Message {
 
 func (Ga *GameContextActorPositionInformations) Serialize(buff *bytes.Buffer) {
 	_ = binary.Write(buff, binary.BigEndian, Ga.contextualId)
-	_ = binary.Write(buff, binary.BigEndian, Ga.dispositionTypeId)
-	Ga.EntityDispositionInformations2.Serialize(buff)
+	Ga.EntityDispositionInformations.Serialize(buff)
 }
 
 func (Ga *GameContextActorPositionInformations) Deserialize(reader *bytes.Reader) {
 	_ = binary.Read(reader, binary.BigEndian, &Ga.contextualId)
-	_ = binary.Read(reader, binary.BigEndian, &Ga.dispositionTypeId)
-	Ga.EntityDispositionInformations2 = new(EntityDispositionInformations)
-	Ga.EntityDispositionInformations2.Deserialize(reader)
+	Ga.EntityDispositionInformations = new(item)
+	Ga.EntityDispositionInformations.Deserialize(reader)
 }
 
 func (Ga *GameContextActorPositionInformations) GetPacketId() uint32 {

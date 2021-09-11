@@ -32,6 +32,7 @@ func getProtocolType() map[uint16]interface{} {
 	_typesTypes[GameRolePlayActorInformationsID] = &GameRolePlayActorInformations{}
 	_typesTypes[InteractiveElementID] = &InteractiveElement{}
 	_typesTypes[HouseInformationsID] = &HouseInformations{}
+	_typesTypes[EntityDispositionInformationsID] = &EntityDispositionInformations{}
 
 	return _typesTypes
 }

@@ -14,8 +14,8 @@ type InteractiveElement struct {
 	PacketId                 uint32
 	elementId                int32
 	elementTypeId            int32
-	InteractiveElementSkill2 []*InteractiveElementSkill
-	InteractiveElementSkill3 []*InteractiveElementSkill
+	InteractiveElementSkill2 []*item
+	InteractiveElementSkill3 []*item
 	onCurrentMap             bool
 }
 
@@ -53,7 +53,7 @@ func (In *InteractiveElement) Deserialize(reader *bytes.Reader) {
 	_ = binary.Read(reader, binary.BigEndian, &len2_)
 	In.InteractiveElementSkill2 = nil
 	for i := 0; i < int(len2_); i++ {
-		aMessage2 := new(InteractiveElementSkill)
+		aMessage2 := new(item)
 		aMessage2.Deserialize(reader)
 		In.InteractiveElementSkill2 = append(In.InteractiveElementSkill2, aMessage2)
 	}
@@ -61,7 +61,7 @@ func (In *InteractiveElement) Deserialize(reader *bytes.Reader) {
 	_ = binary.Read(reader, binary.BigEndian, &len3_)
 	In.InteractiveElementSkill3 = nil
 	for i := 0; i < int(len3_); i++ {
-		aMessage3 := new(InteractiveElementSkill)
+		aMessage3 := new(item)
 		aMessage3.Deserialize(reader)
 		In.InteractiveElementSkill3 = append(In.InteractiveElementSkill3, aMessage3)
 	}

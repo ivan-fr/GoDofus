@@ -15,9 +15,9 @@ type MapComplementaryInformationsData struct {
 	PacketId                       uint32
 	subAreaId                      int32
 	mapId                          float64
-	HouseInformations2             []*HouseInformations
-	GameRolePlayActorInformations3 []*GameRolePlayActorInformations
-	InteractiveElement4            []*InteractiveElement
+	HouseInformations2             []*item
+	GameRolePlayActorInformations3 []*item
+	InteractiveElement4            []*item
 	StatedElement5                 []*StatedElement
 	MapObstacle6                   []*MapObstacle
 	FightCommonInformations7       []*FightCommonInformations
@@ -76,7 +76,7 @@ func (Ma *MapComplementaryInformationsData) Deserialize(reader *bytes.Reader) {
 	_ = binary.Read(reader, binary.BigEndian, &len2_)
 	Ma.HouseInformations2 = nil
 	for i := 0; i < int(len2_); i++ {
-		aMessage2 := new(HouseInformations)
+		aMessage2 := new(item)
 		aMessage2.Deserialize(reader)
 		Ma.HouseInformations2 = append(Ma.HouseInformations2, aMessage2)
 	}
@@ -84,7 +84,7 @@ func (Ma *MapComplementaryInformationsData) Deserialize(reader *bytes.Reader) {
 	_ = binary.Read(reader, binary.BigEndian, &len3_)
 	Ma.GameRolePlayActorInformations3 = nil
 	for i := 0; i < int(len3_); i++ {
-		aMessage3 := new(GameRolePlayActorInformations)
+		aMessage3 := new(item)
 		aMessage3.Deserialize(reader)
 		Ma.GameRolePlayActorInformations3 = append(Ma.GameRolePlayActorInformations3, aMessage3)
 	}
@@ -92,7 +92,7 @@ func (Ma *MapComplementaryInformationsData) Deserialize(reader *bytes.Reader) {
 	_ = binary.Read(reader, binary.BigEndian, &len4_)
 	Ma.InteractiveElement4 = nil
 	for i := 0; i < int(len4_); i++ {
-		aMessage4 := new(InteractiveElement)
+		aMessage4 := new(item)
 		aMessage4.Deserialize(reader)
 		Ma.InteractiveElement4 = append(Ma.InteractiveElement4, aMessage4)
 	}

@@ -13,7 +13,7 @@ import (
 type FightTeamInformations struct {
 	PacketId                       uint32
 	AbstractFightTeamInformations0 *AbstractFightTeamInformations
-	FightTeamMemberInformations1   []*FightTeamMemberInformations
+	FightTeamMemberInformations1   []*item
 }
 
 var FightTeamInformationsMap = make(map[uint]*FightTeamInformations)
@@ -44,7 +44,7 @@ func (Fi *FightTeamInformations) Deserialize(reader *bytes.Reader) {
 	_ = binary.Read(reader, binary.BigEndian, &len1_)
 	Fi.FightTeamMemberInformations1 = nil
 	for i := 0; i < int(len1_); i++ {
-		aMessage1 := new(FightTeamMemberInformations)
+		aMessage1 := new(item)
 		aMessage1.Deserialize(reader)
 		Fi.FightTeamMemberInformations1 = append(Fi.FightTeamMemberInformations1, aMessage1)
 	}
